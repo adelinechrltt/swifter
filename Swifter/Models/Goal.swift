@@ -10,8 +10,14 @@ import Foundation
 class GoalModel: Identifiable {
     let id = UUID()
     var targetFrequency: Int
-    var startDate : Date
-    var endDate : Date
+    var startDate: Date
+    var endDate: Date
+    var progress: Int = 0
+    enum isCompleted: String {
+        case inProgress = "In progress"
+        case completed = "Completed"
+        case incomplete = "Incomplete"
+    }
     
     init(targetFrequency: Int!, startDate: Date!, endDate: Date!) {
         self.targetFrequency = targetFrequency

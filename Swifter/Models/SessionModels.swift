@@ -20,6 +20,7 @@ enum isCompleted : String {
     case missed = "Missed"
 }
 
+@Observable
 class SessionModel: Identifiable {
     let id = UUID()
         

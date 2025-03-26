@@ -7,6 +7,7 @@
 
 import Foundation
 
+@Observable
 class GoalModel: Identifiable {
     let id = UUID()
     var targetFrequency: Int

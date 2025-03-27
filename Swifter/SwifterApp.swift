@@ -14,7 +14,7 @@ struct SwifterApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            EditSession()
                 .environmentObject(eventStoreManager)
         }
     }

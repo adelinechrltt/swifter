@@ -26,7 +26,6 @@ class SessionModel: Identifiable {
         
     var startTime: Date
     var endTime: Date
-    var distance: Int?
     var calendarEvent: EKEvent
     
     // enums

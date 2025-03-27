@@ -20,7 +20,7 @@ class GoalModel: Identifiable {
         case incomplete = "Incomplete"
     }
     
-    init(targetFrequency: Int!, startDate: Date!, endDate: Date!) {
+    init(targetFrequency: Int, startDate: Date, endDate: Date) {
         self.targetFrequency = targetFrequency
         self.startDate = startDate
         self.endDate = endDate

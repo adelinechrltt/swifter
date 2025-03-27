@@ -15,9 +15,9 @@ struct PreferencesView: View {
     // Query to fetch all PreferencesModel instances
     @Query private var preferences: [PreferencesModel]
     
-    // State for UI controls
-    @State private var selectedTimeOfDay: TimeOfDay = .morning
-    @State private var selectedDayOfWeek: DayOfWeek = .monday
+    // State for UI controls - using sets for multiple selections
+    @State private var selectedTimesOfDay: Set<TimeOfDay> = [.morning]
+    @State private var selectedDaysOfWeek: Set<DayOfWeek> = [.monday]
     @State private var preJogDuration: Int = 15
     @State private var postJogDuration: Int = 10
     
@@ -25,26 +25,49 @@ struct PreferencesView: View {
         NavigationStack {
             Form {
                 Section("Create New Preferences") {
-                    Picker("Time of Day", selection: $selectedTimeOfDay) {
+                    // Times of day section with toggles
+                    Section("Select Times of Day") {
                         ForEach(TimeOfDay.allCases) { time in
-                            Text(time.rawValue).tag(time)
+                            Toggle(time.rawValue, isOn: Binding(
+                                get: { selectedTimesOfDay.contains(time) },
+                                set: { isOn in
+                                    if isOn {
+                                        selectedTimesOfDay.insert(time)
+                                    } else {
+                                        selectedTimesOfDay.remove(time)
+                                    }
+                                }
+                            ))
                         }
                     }
                     
-                    Picker("Day of Week", selection: $selectedDayOfWeek) {
+                    // Days of week section with toggles
+                    Section("Select Days of Week") {
                         ForEach(DayOfWeek.allCases) { day in
-                            Text(day.name).tag(day)
+                            Toggle(day.name, isOn: Binding(
+                                get: { selectedDaysOfWeek.contains(day) },
+                                set: { isOn in
+                                    if isOn {
+                                        selectedDaysOfWeek.insert(day)
+                                    } else {
+                                        selectedDaysOfWeek.remove(day)
+                                    }
+                                }
+                            ))
                         }
                     }
                     
-                    Stepper("Pre-jog duration: \(preJogDuration) min", value: $preJogDuration, in: 5...60, step: 5)
-                    Stepper("Post-jog duration: \(postJogDuration) min", value: $postJogDuration, in: 5...60, step: 5)
+                    Section("Duration Settings") {
+                        Stepper("Pre-jog duration: \(preJogDuration) min", value: $preJogDuration, in: 5...60, step: 5)
+                        Stepper("Post-jog duration: \(postJogDuration) min", value: $postJogDuration, in: 5...60, step: 5)
+                    }
                     
                     Button("Save Preferences") {
                         savePreferences()
                     }
                     .buttonStyle(.borderedProminent)
                     .frame(maxWidth: .infinity)
+                    .disabled(selectedTimesOfDay.isEmpty || selectedDaysOfWeek.isEmpty)
                 }
                 
                 Section("Saved Preferences") {
@@ -54,7 +77,7 @@ struct PreferencesView: View {
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(preferences) { pref in
-                            VStack(alignment: .leading) {
+                            VStack(alignment: .leading, spacing: 4) {
                                 Text("Times: \(pref.preferredTimesOfDay.map { $0.rawValue }.joined(separator: ", "))")
                                 Text("Days: \(pref.preferredDaysOfWeek.map { $0.name }.joined(separator: ", "))")
                                 Text("Pre-jog: \(pref.preJogDuration) min, Post-jog: \(pref.postJogDuration) min")
@@ -75,10 +98,15 @@ struct PreferencesView: View {
     }
     
     private func savePreferences() {
-        // Create a new preferences model and save it
+        // Validate we have at least one selection for each category
+        guard !selectedTimesOfDay.isEmpty, !selectedDaysOfWeek.isEmpty else {
+            return
+        }
+        
+        // Create a new preferences model with all selected options
         let newPreferences = PreferencesModel(
-            timeOfDay: [selectedTimeOfDay],
-            dayOfWeek: [selectedDayOfWeek],
+            timeOfDay: Array(selectedTimesOfDay),
+            dayOfWeek: Array(selectedDaysOfWeek),
             preJogDuration: preJogDuration,
             postJogDuration: postJogDuration
         )

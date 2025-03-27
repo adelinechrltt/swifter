@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct OnboardPreJogTime: View {
+struct OnboardPostJogTime: View {
     @State private var joggingMinutes: Int = 0  // Default value
 
     var body: some View {
@@ -73,7 +73,7 @@ struct OnboardPreJogTime: View {
                     Spacer()
 
                     // Next Button
-                    NavigationLink(destination: OnboardPostJogTime()) {
+                    NavigationLink(destination: OnboardPreferredJogTime()) {
                         Text("Next")
                             .font(.system(size: 14))
                             .foregroundColor(joggingMinutes > 0 ? .black : .gray)
@@ -103,5 +103,5 @@ struct OnboardPreJogTime: View {
 }
 
 #Preview {
-    OnboardPreJogTime()
+    OnboardPostJogTime()
 }

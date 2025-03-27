@@ -24,7 +24,7 @@ struct OnboardThanksForLettingUsKnow: View {
 
 
               
-                NavigationLink(destination: OnboardPreJogTime()) {
+                NavigationLink(destination: ContentView()) {
                     Text("Let’s start jogging! ")
                         .font(.system(size: 14))
                         .foregroundColor(.black)

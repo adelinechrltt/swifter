@@ -15,7 +15,7 @@ struct SwifterApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            OnboardStart()
                 .environmentObject(eventStoreManager)
         }
         .modelContainer(for: [PreferencesModel.self])

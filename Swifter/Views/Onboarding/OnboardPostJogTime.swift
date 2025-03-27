@@ -15,7 +15,7 @@ struct OnboardPostJogTime: View {
             VStack(alignment: .leading, spacing: 20) {
                 Spacer()
                 
-                Text("How much time do you need to prepare before a jog?")
+                Text("How long do you usually cool down after jogging?")
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.black)
                     .navigationBarBackButtonHidden(true)

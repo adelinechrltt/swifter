@@ -8,7 +8,7 @@ struct OnboardTimeOnFeet: View {
             VStack(alignment: .leading, spacing: 20) {
                 Spacer()
                 
-                Text("How long do you usually stay on your feet during a jog??")
+                Text("How long do you usually stay on your feet during a jog?")
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.black)
                     .navigationBarBackButtonHidden(true)

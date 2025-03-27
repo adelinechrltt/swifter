@@ -80,7 +80,7 @@ struct OnboardPrefferedJogDays: View {
 
                     // Next Button (Visible only if a selection is made)
                     if !selectedDays.isEmpty {
-                        NavigationLink(destination: EmptyView()) {
+                        NavigationLink(destination: OnboardFinish()) {
                             Text("Next")
                                 .font(.system(size: 14))
                                 .foregroundColor(.black)

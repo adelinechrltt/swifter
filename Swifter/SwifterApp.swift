@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct SwifterApp: App {
@@ -17,5 +18,6 @@ struct SwifterApp: App {
             ContentView()
                 .environmentObject(eventStoreManager)
         }
+        .modelContainer(for: [PreferencesModel.self])
     }
 }

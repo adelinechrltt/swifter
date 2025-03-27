@@ -13,7 +13,7 @@ enum TimeOfDay: String, CaseIterable, Identifiable, Codable{
     case afternoon = "Afternoon"
     case evening = "Evening"
     case night = "Night"
-
+    
     var id: String { self.rawValue }
 }
 
@@ -41,18 +41,17 @@ enum DayOfWeek: Int, CaseIterable, Identifiable, Codable{
     }
 }
 
-class PreferencesModel: Identifiable {
-    let id = UUID()
-
+@Model
+class PreferencesModel {
     var preJogDuration: Int
     var postJogDuration: Int
-
-    var preferredTimesOfDay: Set<TimeOfDay>
-    var preferredDaysOfWeek: Set<DayOfWeek>
-
-    init(timeOfDay: Set<TimeOfDay>, dayOfWeek: Set<DayOfWeek>, preJogDuration: Int, postJogDuration: Int) {
-        self.preferredTimesOfDay = timeOfDay
-        self.preferredDaysOfWeek = dayOfWeek
+    
+    var preferredTimesOfDay: [TimeOfDay]
+    var preferredDaysOfWeek: [DayOfWeek]
+    
+    init(timeOfDay: [TimeOfDay], dayOfWeek: [DayOfWeek], preJogDuration: Int, postJogDuration: Int) {
+        self.preferredTimesOfDay = Array(Set(timeOfDay))
+        self.preferredDaysOfWeek = Array(Set(dayOfWeek))
         self.preJogDuration = preJogDuration
         self.postJogDuration = postJogDuration
     }

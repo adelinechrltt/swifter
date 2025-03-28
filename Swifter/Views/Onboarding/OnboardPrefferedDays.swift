@@ -97,14 +97,6 @@ struct OnboardPrefferedJogDays: View {
             .padding(30)
         }
         .navigationBarHidden(true)
-        .onAppear {
-            if tempPreferences.preferredDaysOfWeek.isEmpty {
-                // Default selection - can be removed if not needed
-                if let monday = DayOfWeek.allCases.first(where: { $0 == .monday }) {
-                    tempPreferences.preferredDaysOfWeek.append(monday)
-                }
-            }
-        }
     }
     
     private func toggleSelection(for day: DayOfWeek) {

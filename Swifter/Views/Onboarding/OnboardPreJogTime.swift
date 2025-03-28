@@ -15,8 +15,8 @@ struct OnboardPreJogTime: View {
     @State private var tempPreferences = PreferencesModel(
         timeOfDay: [],
         dayOfWeek: [],
-        preJogDuration: 15,
-        postJogDuration: 15
+        preJogDuration: 0,
+        postJogDuration: 0
     )
 
     var body: some View {

@@ -12,21 +12,26 @@ struct PreferencesView: View {
     // Access the model container via environment
     @Environment(\.modelContext) private var modelContext
     
-    // Query to fetch all PreferencesModel instances
+    // Query to fetch preferences
     @Query private var preferences: [PreferencesModel]
     
-    // State for UI controls - using sets for multiple selections
-    @State private var selectedTimesOfDay: Set<TimeOfDay> = [.morning]
-    @State private var selectedDaysOfWeek: Set<DayOfWeek> = [.monday]
+    // State variables to track user changes
+    @State private var selectedTimesOfDay: Set<TimeOfDay> = []
+    @State private var selectedDaysOfWeek: Set<DayOfWeek> = []
     @State private var preJogDuration: Int = 15
     @State private var postJogDuration: Int = 10
+    
+    // Computed property to get the current preference
+    private var currentPreference: PreferencesModel? {
+        preferences.first
+    }
     
     var body: some View {
         NavigationStack {
             Form {
-                Section("Create New Preferences") {
+                Section("Your Preferences") {
                     // Times of day section with toggles
-                    Section("Select Times of Day") {
+                    Section("Preferred Times of Day") {
                         ForEach(TimeOfDay.allCases) { time in
                             Toggle(time.rawValue, isOn: Binding(
                                 get: { selectedTimesOfDay.contains(time) },
@@ -36,13 +41,14 @@ struct PreferencesView: View {
                                     } else {
                                         selectedTimesOfDay.remove(time)
                                     }
+                                    updatePreference()
                                 }
                             ))
                         }
                     }
                     
                     // Days of week section with toggles
-                    Section("Select Days of Week") {
+                    Section("Preferred Days of Week") {
                         ForEach(DayOfWeek.allCases) { day in
                             Toggle(day.name, isOn: Binding(
                                 get: { selectedDaysOfWeek.contains(day) },
@@ -52,6 +58,7 @@ struct PreferencesView: View {
                                     } else {
                                         selectedDaysOfWeek.remove(day)
                                     }
+                                    updatePreference()
                                 }
                             ))
                         }
@@ -59,83 +66,70 @@ struct PreferencesView: View {
                     
                     Section("Duration Settings") {
                         Stepper("Pre-jog duration: \(preJogDuration) min", value: $preJogDuration, in: 5...60, step: 5)
+                            .onChange(of: preJogDuration) { _, _ in updatePreference() }
+                            
                         Stepper("Post-jog duration: \(postJogDuration) min", value: $postJogDuration, in: 5...60, step: 5)
+                            .onChange(of: postJogDuration) { _, _ in updatePreference() }
                     }
-                    
-                    Button("Save Preferences") {
-                        savePreferences()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
-                    .disabled(selectedTimesOfDay.isEmpty || selectedDaysOfWeek.isEmpty)
                 }
                 
-                Section("Saved Preferences") {
-                    if preferences.isEmpty {
-                        Text("No preferences saved yet")
-                            .italic()
+                if currentPreference == nil {
+                    Section {
+                        Text("No preferences found. Please complete the onboarding process first.")
                             .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(preferences) { pref in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Times: \(pref.preferredTimesOfDay.map { $0.rawValue }.joined(separator: ", "))")
-                                Text("Days: \(pref.preferredDaysOfWeek.map { $0.name }.joined(separator: ", "))")
-                                Text("Pre-jog: \(pref.preJogDuration) min, Post-jog: \(pref.postJogDuration) min")
-                            }
-                            .padding(.vertical, 4)
-                        }
-                        .onDelete(perform: deletePreferences)
                     }
                 }
             }
-            .navigationTitle("Preferences")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    EditButton()
-                }
+            .navigationTitle("Your Preferences")
+            .onAppear {
+                loadPreferenceData()
             }
         }
     }
     
-    private func savePreferences() {
-        // Validate we have at least one selection for each category
-        guard !selectedTimesOfDay.isEmpty, !selectedDaysOfWeek.isEmpty else {
-            return
-        }
+    // Load current preference data into state variables
+    private func loadPreferenceData() {
+        guard let preference = currentPreference else { return }
         
-        // Create a new preferences model with all selected options
-        let newPreferences = PreferencesModel(
-            timeOfDay: Array(selectedTimesOfDay),
-            dayOfWeek: Array(selectedDaysOfWeek),
-            preJogDuration: preJogDuration,
-            postJogDuration: postJogDuration
-        )
+        selectedTimesOfDay = Set(preference.preferredTimesOfDay)
+        selectedDaysOfWeek = Set(preference.preferredDaysOfWeek)
+        preJogDuration = preference.preJogDuration
+        postJogDuration = preference.postJogDuration
+    }
+    
+    // Update the existing preference with current state
+    private func updatePreference() {
+        guard let preference = currentPreference else { return }
         
-        modelContext.insert(newPreferences)
+        // Update the model with current selections
+        preference.preferredTimesOfDay = Array(selectedTimesOfDay)
+        preference.preferredDaysOfWeek = Array(selectedDaysOfWeek)
+        preference.preJogDuration = preJogDuration
+        preference.postJogDuration = postJogDuration
         
-        // Try to save changes
+        // Save the changes
         do {
             try modelContext.save()
         } catch {
             print("Failed to save preferences: \(error)")
         }
     }
-    
-    private func deletePreferences(at offsets: IndexSet) {
-        for index in offsets {
-            modelContext.delete(preferences[index])
-        }
-        
-        // Try to save changes
-        do {
-            try modelContext.save()
-        } catch {
-            print("Failed to delete preferences: \(error)")
-        }
-    }
 }
 
+// Create a preview with sample data
 #Preview {
-    PreferencesView()
-        .modelContainer(for: PreferencesModel.self, inMemory: true)
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: PreferencesModel.self, configurations: config)
+    
+    // Add a sample preference to the preview container
+    let samplePreference = PreferencesModel(
+        timeOfDay: [.morning, .evening],
+        dayOfWeek: [.monday, .wednesday, .friday],
+        preJogDuration: 15,
+        postJogDuration: 10
+    )
+    container.mainContext.insert(samplePreference)
+    
+    return PreferencesView()
+        .modelContainer(container)
 }

@@ -6,12 +6,21 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct OnboardPreJogTime: View {
-    @State private var joggingMinutes: Int = 0  // Default value
+    @Environment(\.modelContext) private var modelContext
+    @State private var preJogDuration: Int = 15 // Default value
+    
+    @State private var tempPreferences = PreferencesModel(
+        timeOfDay: [],
+        dayOfWeek: [],
+        preJogDuration: 15,
+        postJogDuration: 15
+    )
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(alignment: .leading, spacing: 20) {
                 Spacer()
                 
@@ -24,21 +33,21 @@ struct OnboardPreJogTime: View {
                 HStack {
                     // Minus Button (disabled at 0)
                     Button(action: {
-                        if joggingMinutes > 0 {
-                            joggingMinutes -= 5
+                        if preJogDuration > 0 {
+                            preJogDuration -= 5
                         }
                     }) {
                         Image(systemName: "minus.circle.fill")
                             .resizable()
                             .frame(width: 40, height: 40)
-                            .foregroundColor(joggingMinutes == 0 ? .gray : .black) // Disabled look
+                            .foregroundColor(preJogDuration == 0 ? .gray : .black) // Disabled look
                     }
-                    .disabled(joggingMinutes == 0) // Prevents negative values
+                    .disabled(preJogDuration == 0) // Prevents negative values
 
                     Spacer()
 
                     // Jogging Minutes in the Middle
-                    Text("\(joggingMinutes) min")
+                    Text("\(preJogDuration) min")
                         .font(.system(size: 24, weight: .bold))
                         .frame(minWidth: 100)
                         .multilineTextAlignment(.center)
@@ -47,8 +56,8 @@ struct OnboardPreJogTime: View {
 
                     // Plus Button
                     Button(action: {
-                        if joggingMinutes < 120 {
-                            joggingMinutes += 5
+                        if preJogDuration < 120 {
+                            preJogDuration += 5
                         }
                     }) {
                         Image(systemName: "plus.circle.fill")
@@ -73,18 +82,21 @@ struct OnboardPreJogTime: View {
                     Spacer()
 
                     // Next Button
-                    NavigationLink(destination: OnboardPostJogTime()) {
+                    NavigationLink(destination: OnboardPostJogTime(tempPreferences: tempPreferences)) {
                         Text("Next")
                             .font(.system(size: 14))
-                            .foregroundColor(joggingMinutes > 0 ? .black : .gray)
+                            .foregroundColor(preJogDuration > 0 ? .black : .gray)
                             .padding()
                             .frame(width: 150, height: 45)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 25)
-                                    .stroke(joggingMinutes > 0 ? Color.black : Color.gray, lineWidth: 1)
+                                    .stroke(preJogDuration > 0 ? Color.black : Color.gray, lineWidth: 1)
                             )
                     }
-                    .disabled(joggingMinutes == 0) // Only enabled when value > 0
+                    .disabled(preJogDuration == 0)
+                    .onAppear {
+                        tempPreferences.preJogDuration = preJogDuration
+                    }
                 }
                 .padding(.top, 150)
                 .padding(.bottom, 100)

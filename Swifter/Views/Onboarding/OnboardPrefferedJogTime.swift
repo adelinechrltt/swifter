@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct OnboardPreferredJogTime: View {
-    @State private var selectedTimes: [String] = []
-    let jogTimes = ["Morning", "Noon", "Afternoon", "Evening"]
+    @Environment(\.modelContext) private var modelContext
+    @State var tempPreferences: PreferencesModel
     
     var body: some View {
         NavigationView {
@@ -17,7 +17,7 @@ struct OnboardPreferredJogTime: View {
                 Spacer()
                 
                 // Title
-                Text("What’s your preferred jogging time?")
+                Text("What's your preferred jogging time?")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(.black)
                 
@@ -27,18 +27,18 @@ struct OnboardPreferredJogTime: View {
                 
                 // Horizontal selection buttons
                 HStack(spacing: 10) {
-                    ForEach(jogTimes, id: \.self) { item in
+                    ForEach(TimeOfDay.allCases) { time in
                         Button(action: {
-                            toggleSelection(for: item)
+                            toggleSelection(for: time)
                         }) {
-                            Text(item)
+                            Text(time.rawValue)
                                 .font(.system(size: 13))
                                 .padding(.horizontal, 15)
                                 .padding(.vertical, 10)
                                 .background(
-                                    selectedTimes.contains(item) ? Color.black.opacity(0.8) : Color.clear
+                                    tempPreferences.preferredTimesOfDay.contains(time) ? Color.black.opacity(0.8) : Color.clear
                                 )
-                                .foregroundColor(selectedTimes.contains(item) ? .white : .black)
+                                .foregroundColor(tempPreferences.preferredTimesOfDay.contains(time) ? .white : .black)
                                 .clipShape(Capsule()) // Rounded fill effect
                                 .overlay(
                                     Capsule().stroke(Color.black, lineWidth: 1) // Rounded border
@@ -59,24 +59,19 @@ struct OnboardPreferredJogTime: View {
                 // Buttons (Skip & Next)
                 HStack {
                     // Skip Button
-                    Button(action: {
-                        // Handle skip action
-                    }) {
+                    NavigationLink(destination: OnboardPrefferedJogDays(tempPreferences: tempPreferences)) {
                         Text("Skip")
-                        .foregroundColor(.gray)
-                        NavigationLink(destination: OnboardPrefferedJogDays()) {
-                        }
-                        .font(.system(size: 14))
-                        .foregroundColor(.gray)
-                        .padding()
-                        .frame(width: 100, height: 45)
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray)
+                            .padding()
+                            .frame(width: 100, height: 45)
                     }
                     
                     Spacer()
 
                     // Next Button (Visible only if a selection is made)
-                    if !selectedTimes.isEmpty {
-                        NavigationLink(destination: OnboardPrefferedJogDays()) {
+                    if !tempPreferences.preferredTimesOfDay.isEmpty {
+                        NavigationLink(destination: OnboardPrefferedJogDays(tempPreferences: tempPreferences)) {
                             Text("Next")
                                 .font(.system(size: 14))
                                 .foregroundColor(.black)
@@ -97,15 +92,15 @@ struct OnboardPreferredJogTime: View {
         .navigationBarHidden(true)
     }
     
-    private func toggleSelection(for item: String) {
-        if selectedTimes.contains(item) {
-            selectedTimes.removeAll { $0 == item }
+    private func toggleSelection(for time: TimeOfDay) {
+        if tempPreferences.preferredTimesOfDay.contains(time) {
+            tempPreferences.preferredTimesOfDay.removeAll { $0 == time }
         } else {
-            selectedTimes.append(item)
+            tempPreferences.preferredTimesOfDay.append(time)
         }
     }
 }
 
 #Preview {
-    OnboardPreferredJogTime()
+    OnboardPreferredJogTime(tempPreferences: PreferencesModel(timeOfDay: [], dayOfWeek: [], preJogDuration: 15, postJogDuration: 15))
 }

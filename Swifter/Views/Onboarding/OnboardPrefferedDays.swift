@@ -8,14 +8,8 @@
 import SwiftUI
 
 struct OnboardPrefferedJogDays: View {
-    @State private var selectedDays: [String] = []
-    let jogDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    
-    let columns = [
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10)
-    ]
+    @Environment(\.modelContext) private var modelContext
+    @State var tempPreferences: PreferencesModel
     
     var body: some View {
         NavigationView {
@@ -23,7 +17,7 @@ struct OnboardPrefferedJogDays: View {
                 Spacer()
                 
                 // Title
-                Text("What’s your preferred jogging days?")
+                Text("What's your preferred jogging days?")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(.black)
                 
@@ -32,19 +26,23 @@ struct OnboardPrefferedJogDays: View {
                     .foregroundColor(.gray)
                 
                 // Grid selection buttons
-                LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(jogDays, id: \.self) { item in
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 10),
+                    GridItem(.flexible(), spacing: 10),
+                    GridItem(.flexible(), spacing: 10)
+                ], spacing: 10) {
+                    ForEach(DayOfWeek.allCases) { day in
                         Button(action: {
-                            toggleSelection(for: item)
+                            toggleSelection(for: day)
                         }) {
-                            Text(item)
+                            Text(day.name)
                                 .font(.system(size: 14))
                                 .padding(.vertical, 10)
                                 .frame(maxWidth: .infinity) // Makes button expand horizontally
                                 .background(
-                                    selectedDays.contains(item) ? Color.black.opacity(0.8) : Color.clear
+                                    tempPreferences.preferredDaysOfWeek.contains(day) ? Color.black.opacity(0.8) : Color.clear
                                 )
-                                .foregroundColor(selectedDays.contains(item) ? .white : .black)
+                                .foregroundColor(tempPreferences.preferredDaysOfWeek.contains(day) ? .white : .black)
                                 .clipShape(Capsule()) // Rounded fill effect
                                 .overlay(
                                     Capsule().stroke(Color.black, lineWidth: 1) // Rounded border
@@ -79,7 +77,7 @@ struct OnboardPrefferedJogDays: View {
                     Spacer()
 
                     // Next Button (Visible only if a selection is made)
-                    if !selectedDays.isEmpty {
+                    if !tempPreferences.preferredDaysOfWeek.isEmpty {
                         NavigationLink(destination: OnboardThanksForLettingUsKnow()) {
                             Text("Next")
                                 .font(.system(size: 14))
@@ -99,17 +97,31 @@ struct OnboardPrefferedJogDays: View {
             .padding(30)
         }
         .navigationBarHidden(true)
+        .onAppear {
+            if tempPreferences.preferredDaysOfWeek.isEmpty {
+                // Default selection - can be removed if not needed
+                if let monday = DayOfWeek.allCases.first(where: { $0 == .monday }) {
+                    tempPreferences.preferredDaysOfWeek.append(monday)
+                }
+            }
+        }
     }
     
-    private func toggleSelection(for item: String) {
-        if selectedDays.contains(item) {
-            selectedDays.removeAll { $0 == item }
+    private func toggleSelection(for day: DayOfWeek) {
+        if tempPreferences.preferredDaysOfWeek.contains(day) {
+            tempPreferences.preferredDaysOfWeek.removeAll { $0 == day }
         } else {
-            selectedDays.append(item)
+            tempPreferences.preferredDaysOfWeek.append(day)
         }
     }
 }
 
+// Preview needs a temporary PreferencesModel to work
 #Preview {
-    OnboardPrefferedJogDays()
+    OnboardPrefferedJogDays(tempPreferences: PreferencesModel(
+        timeOfDay: [.morning],
+        dayOfWeek: [.monday],
+        preJogDuration: 15,
+        postJogDuration: 15
+    ))
 }

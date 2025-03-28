@@ -78,7 +78,7 @@ struct OnboardPrefferedJogDays: View {
 
                     // Next Button (Visible only if a selection is made)
                     if !tempPreferences.preferredDaysOfWeek.isEmpty {
-                        NavigationLink(destination: OnboardThanksForLettingUsKnow()) {
+                        NavigationLink(destination: OnboardThanksForLettingUsKnow(tempPreferences: tempPreferences)) {
                             Text("Next")
                                 .font(.system(size: 14))
                                 .foregroundColor(.black)

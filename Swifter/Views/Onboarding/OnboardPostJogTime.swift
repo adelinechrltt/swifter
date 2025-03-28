@@ -1,5 +1,5 @@
 //
-//  OnboardPreJogTime.swift
+//  OnboardPostJogTime.swift
 //  SwifterSwiftUi
 //
 //  Created by Natasya Felicia on 26/03/25.
@@ -14,7 +14,7 @@ struct OnboardPostJogTime: View {
     @State var tempPreferences: PreferencesModel
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             VStack(alignment: .leading, spacing: 20) {
                 Spacer()
                 
@@ -34,13 +34,12 @@ struct OnboardPostJogTime: View {
                         Image(systemName: "minus.circle.fill")
                             .resizable()
                             .frame(width: 40, height: 40)
-                            .foregroundColor(postJogDuration == 0 ? .gray : .black) // Disabled look
+                            .foregroundColor(postJogDuration == 0 ? .gray : .black)
                     }
-                    .disabled(postJogDuration == 0) // Prevents negative values
+                    .disabled(postJogDuration == 0)
 
                     Spacer()
 
-                    // Jogging Minutes in the Middle
                     Text("\(postJogDuration) min")
                         .font(.system(size: 24, weight: .bold))
                         .frame(minWidth: 100)
@@ -48,7 +47,6 @@ struct OnboardPostJogTime: View {
 
                     Spacer()
 
-                    // Plus Button
                     Button(action: {
                         if postJogDuration < 120 {
                             postJogDuration += 5
@@ -62,9 +60,7 @@ struct OnboardPostJogTime: View {
                 }
                 .padding(.top, 10)
 
-                // Next & Skip Button Row
                 HStack {
-                    // Skip Button
                     NavigationLink(destination: EmptyView()) {
                         Text("Skip")
                             .font(.system(size: 14))
@@ -75,7 +71,6 @@ struct OnboardPostJogTime: View {
                     
                     Spacer()
 
-                    // Next Button
                     NavigationLink(destination: OnboardPreferredJogTime(tempPreferences: tempPreferences)) {
                         Text("Next")
                             .font(.system(size: 14))
@@ -87,16 +82,16 @@ struct OnboardPostJogTime: View {
                                     .stroke(postJogDuration > 0 ? Color.black : Color.gray, lineWidth: 1)
                             )
                     }
-                    .disabled(postJogDuration == 0) // Only enabled when value > 0
-                    .simultaneousGesture(TapGesture().onEnded {
-                                            tempPreferences.postJogDuration = postJogDuration
+                    .disabled(postJogDuration == 0)
+                    .simultaneousGesture(TapGesture().onEnded { _ in
+                        // Update the preferences before navigating
+                        tempPreferences.postJogDuration = postJogDuration
                     })
                 }
                 .padding(.top, 150)
                 .padding(.bottom, 100)
 
-                // Progress Bar
-                ProgressView(value: 0.25, total: 1.0)
+                ProgressView(value: 0.5, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle())
                     .accentColor(.black)
                     .frame(height: 4)
@@ -105,6 +100,10 @@ struct OnboardPostJogTime: View {
             .padding(30)
         }
         .navigationBarHidden(true)
+        .onAppear {
+            // Set initial value from the preferences if available
+            postJogDuration = tempPreferences.postJogDuration
+        }
     }
 }
 

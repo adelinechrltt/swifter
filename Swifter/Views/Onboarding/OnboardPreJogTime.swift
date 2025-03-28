@@ -10,7 +10,7 @@ import SwiftData
 
 struct OnboardPreJogTime: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var preJogDuration: Int = 15 // Default value
+    @State private var preJogDuration: Int = 0 // Default value
     
     @State private var tempPreferences = PreferencesModel(
         timeOfDay: [],
@@ -94,9 +94,10 @@ struct OnboardPreJogTime: View {
                             )
                     }
                     .disabled(preJogDuration == 0)
-                    .onAppear {
+                    .simultaneousGesture(TapGesture().onEnded { _ in
+                        // Update preJogDuration in tempPreferences before navigating
                         tempPreferences.preJogDuration = preJogDuration
-                    }
+                    })
                 }
                 .padding(.top, 150)
                 .padding(.bottom, 100)

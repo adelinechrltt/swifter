@@ -5,13 +5,6 @@
 //  Created by Adeline Charlotte Augustinne on 27/03/25.
 //
 
-//
-//  CustomEventEditViewModel.swift
-//  TestingEventKit
-//
-//  Created by Adeline Charlotte Augustinne on 27/03/25.
-//
-
 import Foundation
 import SwiftUI
 import EventKit

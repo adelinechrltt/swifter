@@ -66,9 +66,9 @@ final class EventStoreManager: ObservableObject {
         
         // define a day as
         // start of day for running: 6AM
-        // end of day for running: 8PM
+        // end of day for running: 9PM
         let startOfDay = calendar.date(bySettingHour: 6, minute: 0, second: 0, of: date)!
-        let endOfDay = calendar.date(bySettingHour: 20, minute: 0, second: 0, of: date)!
+        let endOfDay = calendar.date(bySettingHour: 21, minute: 0, second: 0, of: date)!
 
         // retrieve all the events in the calendar local DB
         let predicate = eventStore.predicateForEvents(withStart: startOfDay, end: endOfDay, calendars: nil)
@@ -94,7 +94,7 @@ final class EventStoreManager: ObservableObject {
         }
 
         // check if free time is available between after LAST event
-        // and 8PM (end of day)
+        // and 9PM (end of day)
         if endOfDay.timeIntervalSince(lastEndTime) >= duration {
             possibleTimes.append((lastEndTime, endOfDay))
         }

@@ -10,9 +10,9 @@ import SwiftData
 
 enum TimeOfDay: String, CaseIterable, Identifiable, Codable{
     case morning = "Morning"
+    case noon = "Noon"
     case afternoon = "Afternoon"
     case evening = "Evening"
-    case night = "Night"
     
     var id: String { self.rawValue }
 }

@@ -14,6 +14,11 @@ struct ContentView: View {
                 .tabItem {
                     Label("Home", systemImage: "house")
                 }
+            
+            PreferencesView()
+                .tabItem {
+                    Label("Preferences", systemImage: "gear")
+                }
 
             ProfileView()
                 .tabItem {

@@ -8,6 +8,11 @@
 import SwiftUI
 
 struct OnboardJoggingFrequency: View {
+    @Environment(\.modelContext) private var modelContext
+    private var goalManager: GoalManager {
+        GoalManager(modelContext: modelContext)
+    }
+    
     @State private var joggingFrequency: Int = 0 // Default value
 
     var body: some View {
@@ -76,6 +81,9 @@ struct OnboardJoggingFrequency: View {
                         }
                         .padding(.top, 150)
                         .padding(.bottom, 100)
+                        .simultaneousGesture(TapGesture().onEnded { _ in
+                            goalManager.createNewGoal(targetFreq: joggingFrequency, startingDate: Date(), endingDate: Date()+(60*60*24*7))
+                        })
                     } else {
                         Text("Next")
                             .font(.system(size: 14))

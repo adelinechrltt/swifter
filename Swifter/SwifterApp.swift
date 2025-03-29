@@ -18,6 +18,6 @@ struct SwifterApp: App {
 //                .environmentObject(eventStoreManager)
             OnboardTimeOnFeet()
         }
-        .modelContainer(for: [PreferencesModel.self])
+        .modelContainer(for: [PreferencesModel.self, GoalModel.self])
     }
 }

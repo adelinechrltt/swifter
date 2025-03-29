@@ -13,6 +13,9 @@ struct OnboardThanksForLettingUsKnow: View {
     private var preferencesManager: PreferencesManager {
         PreferencesManager(modelContext: modelContext)
     }
+    private var goalManager: GoalManager {
+        GoalManager(modelContext: modelContext)
+    }
 
     var body: some View {
         NavigationView {
@@ -39,6 +42,10 @@ struct OnboardThanksForLettingUsKnow: View {
                         )
                 }
                 .simultaneousGesture(TapGesture().onEnded { _ in
+                    // TODO: replace this block of code with home menu navigation
+                    print(goalManager.fetchGoals()?.targetFrequency)
+                    print(goalManager.fetchGoals()?.startDate)
+                    print(goalManager.fetchGoals()?.endDate)
                     preferencesManager.debug()
                 })
                 

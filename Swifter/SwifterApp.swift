@@ -14,8 +14,9 @@ struct SwifterApp: App {
 
     var body: some Scene {
         WindowGroup {
-            EditSessionView()
-                .environmentObject(eventStoreManager)
+//            EditSessionView()
+//                .environmentObject(eventStoreManager)
+            OnboardTimeOnFeet()
         }
         .modelContainer(for: [PreferencesModel.self])
     }

@@ -10,15 +10,12 @@ import SwiftData
 
 struct OnboardPreJogTime: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var preJogDuration: Int = 0 // Default value
+    private var preferencesManager: PreferencesManager {
+        PreferencesManager(modelContext: modelContext)
+    }
     
-    @State private var tempPreferences = PreferencesModel(
-        timeOfDay: [],
-        dayOfWeek: [],
-        preJogDuration: 0,
-        postJogDuration: 0
-    )
-
+    @State private var preJogDuration: Int = 0
+    
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 20) {
@@ -28,7 +25,7 @@ struct OnboardPreJogTime: View {
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.black)
                     .navigationBarBackButtonHidden(true)
-
+                
                 // Custom Stepper using Apple's Native Logic
                 HStack {
                     // Minus Button (disabled at 0)
@@ -43,17 +40,17 @@ struct OnboardPreJogTime: View {
                             .foregroundColor(preJogDuration == 0 ? .gray : .black) // Disabled look
                     }
                     .disabled(preJogDuration == 0) // Prevents negative values
-
+                    
                     Spacer()
-
+                    
                     // Jogging Minutes in the Middle
                     Text("\(preJogDuration) min")
                         .font(.system(size: 24, weight: .bold))
                         .frame(minWidth: 100)
                         .multilineTextAlignment(.center)
-
+                    
                     Spacer()
-
+                    
                     // Plus Button
                     Button(action: {
                         if preJogDuration < 120 {
@@ -67,7 +64,7 @@ struct OnboardPreJogTime: View {
                     }
                 }
                 .padding(.top, 10)
-
+                
                 // Next & Skip Button Row
                 HStack {
                     // Skip Button
@@ -80,9 +77,9 @@ struct OnboardPreJogTime: View {
                     }
                     
                     Spacer()
-
-                    // Next Button
-                    NavigationLink(destination: OnboardPostJogTime(tempPreferences: tempPreferences)) {
+                    
+//                     Next Button
+                    NavigationLink(destination: OnboardPostJogTime() ) {
                         Text("Next")
                             .font(.system(size: 14))
                             .foregroundColor(preJogDuration > 0 ? .black : .gray)
@@ -91,27 +88,26 @@ struct OnboardPreJogTime: View {
                             .overlay(
                                 RoundedRectangle(cornerRadius: 25)
                                     .stroke(preJogDuration > 0 ? Color.black : Color.gray, lineWidth: 1)
-                            )
+                                )
                     }
-                    .disabled(preJogDuration == 0)
-                    .simultaneousGesture(TapGesture().onEnded { _ in
-                        // Update preJogDuration in tempPreferences before navigating
-                        tempPreferences.preJogDuration = preJogDuration
-                    })
+                        .disabled(preJogDuration == 0)
+                        .simultaneousGesture(TapGesture().onEnded { _ in
+                            preferencesManager.setPrejogTime(prejogTime: preJogDuration)
+                        })
+                    .padding(.top, 150)
+                    .padding(.bottom, 100)
+                    
+                    // Progress Bar
+                    ProgressView(value: 0.25, total: 1.0)
+                        .progressViewStyle(LinearProgressViewStyle())
+                        .accentColor(.black)
+                        .frame(height: 4)
+                        .padding(.top, 10)
                 }
-                .padding(.top, 150)
-                .padding(.bottom, 100)
-
-                // Progress Bar
-                ProgressView(value: 0.25, total: 1.0)
-                    .progressViewStyle(LinearProgressViewStyle())
-                    .accentColor(.black)
-                    .frame(height: 4)
-                    .padding(.top, 10)
+                .padding(30)
             }
-            .padding(30)
+            .navigationBarHidden(true)
         }
-        .navigationBarHidden(true)
     }
 }
 

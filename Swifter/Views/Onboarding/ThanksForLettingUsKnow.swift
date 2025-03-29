@@ -10,8 +10,10 @@ import SwiftData
 
 struct OnboardThanksForLettingUsKnow: View {
     @Environment(\.modelContext) private var modelContext
-    var tempPreferences: PreferencesModel
-    
+    private var preferencesManager: PreferencesManager {
+        PreferencesManager(modelContext: modelContext)
+    }
+
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 20) {
@@ -25,7 +27,7 @@ struct OnboardThanksForLettingUsKnow: View {
                     .font(.system(size: 19))
                     .foregroundColor(.black)
                 
-                NavigationLink(destination: ContentView()) {
+                NavigationLink(destination: EditSessionView()) {
                     Text("Let's start jogging! ")
                         .font(.system(size: 14))
                         .foregroundColor(.black)
@@ -36,9 +38,8 @@ struct OnboardThanksForLettingUsKnow: View {
                                 .stroke(Color.black, lineWidth: 1)
                         )
                 }
-                .simultaneousGesture(TapGesture().onEnded {
-                    // Save the preferences to SwiftData
-                    savePreferences()
+                .simultaneousGesture(TapGesture().onEnded { _ in
+                    preferencesManager.debug()
                 })
                 
                 Spacer()
@@ -55,32 +56,13 @@ struct OnboardThanksForLettingUsKnow: View {
         .navigationBarBackButtonHidden(true)
     }
     
-    private func savePreferences() {
-        // Create a new preferences instance from tempPreferences
-        let newPreferences = PreferencesModel(
-            timeOfDay: tempPreferences.preferredTimesOfDay,
-            dayOfWeek: tempPreferences.preferredDaysOfWeek,
-            preJogDuration: tempPreferences.preJogDuration,
-            postJogDuration: tempPreferences.postJogDuration
-        )
-        
-        // Insert into model context (SwiftData)
-        modelContext.insert(newPreferences)
-        
-        do {
-            try modelContext.save()
-            print("Preferences saved successfully")
-        } catch {
-            print("Failed to save preferences: \(error)")
-        }
-    }
 }
 
-#Preview {
-    OnboardThanksForLettingUsKnow(tempPreferences: PreferencesModel(
-        timeOfDay: [.morning],
-        dayOfWeek: [.monday, .wednesday, .friday],
-        preJogDuration: 15,
-        postJogDuration: 10
-    ))
-}
+//#Preview {
+//    OnboardThanksForLettingUsKnow(tempPreferences: PreferencesModel(
+//        timeOfDay: [.morning],
+//        dayOfWeek: [.monday, .wednesday, .friday],
+//        preJogDuration: 15,
+//        postJogDuration: 10
+//    ))
+//}

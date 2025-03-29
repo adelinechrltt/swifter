@@ -2,6 +2,11 @@ import SwiftUI
 
 struct OnboardTimeOnFeet: View {
     @State private var joggingMinutes: Int = 0  // Default value
+    
+    @Environment(\.modelContext) private var modelContext
+    private var preferencesManager: PreferencesManager {
+        PreferencesManager(modelContext: modelContext)
+    }
 
     var body: some View {
         NavigationView {
@@ -70,6 +75,9 @@ struct OnboardTimeOnFeet: View {
                         }
                         .padding(.top, 150)
                         .padding(.bottom, 100)
+                        .simultaneousGesture(TapGesture().onEnded {
+                            preferencesManager.createNewPreference(timeOnFeet: joggingMinutes)
+                        })
                     } else {
                         Text("Next")
                             .font(.system(size: 14))

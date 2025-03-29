@@ -1,5 +1,5 @@
 //
-//  OnboardPrefferedJogDays.swift
+//  OnboardPreferredJogTime.swift
 //  SwifterSwiftUi
 //
 //  Created by Natasya Felicia on 26/03/25.
@@ -7,9 +7,13 @@
 
 import SwiftUI
 
-struct OnboardPrefferedJogDays: View {
+struct OnboardPreferredJogTime: View {
     @Environment(\.modelContext) private var modelContext
-    @State var tempPreferences: PreferencesModel
+    private var preferencesManager: PreferencesManager {
+        PreferencesManager(modelContext: modelContext)
+    }
+
+    @State var timesOfDay: [TimeOfDay] = []
     
     var body: some View {
         NavigationView {
@@ -17,7 +21,7 @@ struct OnboardPrefferedJogDays: View {
                 Spacer()
                 
                 // Title
-                Text("What's your preferred jogging days?")
+                Text("What's your preferred jogging time?")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(.black)
                 
@@ -25,24 +29,20 @@ struct OnboardPrefferedJogDays: View {
                     .font(.system(size: 16))
                     .foregroundColor(.gray)
                 
-                // Grid selection buttons
-                LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: 10),
-                    GridItem(.flexible(), spacing: 10),
-                    GridItem(.flexible(), spacing: 10)
-                ], spacing: 10) {
-                    ForEach(DayOfWeek.allCases) { day in
+                // Horizontal selection buttons
+                HStack(spacing: 10) {
+                    ForEach(TimeOfDay.allCases) { time in
                         Button(action: {
-                            toggleSelection(for: day)
+                            toggleSelection(for: time)
                         }) {
-                            Text(day.name)
-                                .font(.system(size: 14))
+                            Text(time.rawValue)
+                                .font(.system(size: 13))
+                                .padding(.horizontal, 15)
                                 .padding(.vertical, 10)
-                                .frame(maxWidth: .infinity) // Makes button expand horizontally
                                 .background(
-                                    tempPreferences.preferredDaysOfWeek.contains(day) ? Color.black.opacity(0.8) : Color.clear
+                                    timesOfDay.contains(time) ? Color.black.opacity(0.8) : Color.clear
                                 )
-                                .foregroundColor(tempPreferences.preferredDaysOfWeek.contains(day) ? .white : .black)
+                                .foregroundColor(timesOfDay.contains(time) ? .white : .black)
                                 .clipShape(Capsule()) // Rounded fill effect
                                 .overlay(
                                     Capsule().stroke(Color.black, lineWidth: 1) // Rounded border
@@ -50,7 +50,6 @@ struct OnboardPrefferedJogDays: View {
                         }
                     }
                 }
-                .padding(.top, 10)
                 
                 Spacer()
                 
@@ -64,9 +63,9 @@ struct OnboardPrefferedJogDays: View {
                 // Buttons (Skip & Next)
                 HStack {
                     // Skip Button
-                    Button(action: {
-                        // Handle skip action
-                    }) {
+                    NavigationLink(destination: OnboardTimeOnFeet()
+//                                    OnboardPrefferedJogDays(tempPreferences: tempPreferences)
+                    ) {
                         Text("Skip")
                             .font(.system(size: 14))
                             .foregroundColor(.gray)
@@ -77,8 +76,11 @@ struct OnboardPrefferedJogDays: View {
                     Spacer()
 
                     // Next Button (Visible only if a selection is made)
-                    if !tempPreferences.preferredDaysOfWeek.isEmpty {
-                        NavigationLink(destination: OnboardThanksForLettingUsKnow(tempPreferences: tempPreferences)) {
+                    if !timesOfDay.isEmpty {
+                        NavigationLink(destination:
+                                        OnboardPreferredJogDays()
+//                                        OnboardPrefferedJogDays(tempPreferences: tempPreferences)
+                        ) {
                             Text("Next")
                                 .font(.system(size: 14))
                                 .foregroundColor(.black)
@@ -91,7 +93,10 @@ struct OnboardPrefferedJogDays: View {
                         }
                     }
                 }
-                .padding(.bottom, 40) // Adjust bottom position
+                .padding(.bottom, 40)
+                .simultaneousGesture(TapGesture().onEnded { _ in
+                    preferencesManager.setTimesOfDay(timesOfDay: timesOfDay)
+                })
                 
             }
             .padding(30)
@@ -99,21 +104,15 @@ struct OnboardPrefferedJogDays: View {
         .navigationBarHidden(true)
     }
     
-    private func toggleSelection(for day: DayOfWeek) {
-        if tempPreferences.preferredDaysOfWeek.contains(day) {
-            tempPreferences.preferredDaysOfWeek.removeAll { $0 == day }
+    private func toggleSelection(for time: TimeOfDay) {
+        if timesOfDay.contains(time) {
+            timesOfDay.removeAll { $0 == time }
         } else {
-            tempPreferences.preferredDaysOfWeek.append(day)
+            timesOfDay.append(time)
         }
     }
 }
 
-// Preview needs a temporary PreferencesModel to work
 #Preview {
-    OnboardPrefferedJogDays(tempPreferences: PreferencesModel(
-        timeOfDay: [.morning],
-        dayOfWeek: [.monday],
-        preJogDuration: 15,
-        postJogDuration: 15
-    ))
+    OnboardPreferredJogTime()
 }

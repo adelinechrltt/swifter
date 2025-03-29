@@ -10,8 +10,11 @@ import SwiftData
 
 struct OnboardPostJogTime: View {
     @Environment(\.modelContext) private var modelContext
+    private var preferencesManager: PreferencesManager {
+        PreferencesManager(modelContext: modelContext)
+    }
+    
     @State private var postJogDuration: Int = 0  // Default value
-    @State var tempPreferences: PreferencesModel
 
     var body: some View {
         NavigationView {
@@ -71,7 +74,7 @@ struct OnboardPostJogTime: View {
                     
                     Spacer()
 
-                    NavigationLink(destination: OnboardPreferredJogTime(tempPreferences: tempPreferences)) {
+                    NavigationLink(destination: OnboardPreferredJogTime()) {
                         Text("Next")
                             .font(.system(size: 14))
                             .foregroundColor(postJogDuration > 0 ? .black : .gray)
@@ -84,8 +87,7 @@ struct OnboardPostJogTime: View {
                     }
                     .disabled(postJogDuration == 0)
                     .simultaneousGesture(TapGesture().onEnded { _ in
-                        // Update the preferences before navigating
-                        tempPreferences.postJogDuration = postJogDuration
+                        preferencesManager.setPostjogTime(postjogTime: postJogDuration)
                     })
                 }
                 .padding(.top, 150)
@@ -100,13 +102,13 @@ struct OnboardPostJogTime: View {
             .padding(30)
         }
         .navigationBarHidden(true)
-        .onAppear {
-            // Set initial value from the preferences if available
-            postJogDuration = tempPreferences.postJogDuration
-        }
+//        .onAppear {
+//            // Set initial value from the preferences if available
+//            postJogDuration = tempPreferences.postJogDuration
+//        }
     }
 }
 
 #Preview {
-    OnboardPostJogTime(tempPreferences: PreferencesModel(timeOfDay: [], dayOfWeek: [], preJogDuration: 15, postJogDuration: 15))
+    OnboardPostJogTime()
 }

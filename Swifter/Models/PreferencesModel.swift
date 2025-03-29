@@ -43,16 +43,17 @@ enum DayOfWeek: Int, CaseIterable, Identifiable, Codable{
 
 @Model
 class PreferencesModel {
-    var preJogDuration: Int
-    var postJogDuration: Int
+    var jogDuration: Int
     
-    var preferredTimesOfDay: [TimeOfDay]
-    var preferredDaysOfWeek: [DayOfWeek]
+    // optional variables
+    // set with default value
+    var preJogDuration: Int = 0
+    var postJogDuration: Int = 0
     
-    init(timeOfDay: [TimeOfDay], dayOfWeek: [DayOfWeek], preJogDuration: Int, postJogDuration: Int) {
-        self.preferredTimesOfDay = Array(Set(timeOfDay))
-        self.preferredDaysOfWeek = Array(Set(dayOfWeek))
-        self.preJogDuration = preJogDuration
-        self.postJogDuration = postJogDuration
+    var preferredTimesOfDay: [TimeOfDay] = [TimeOfDay.morning, TimeOfDay.afternoon]
+    var preferredDaysOfWeek: [DayOfWeek]? = nil
+    
+    init(timeOnFeet: Int){
+        self.jogDuration = timeOnFeet
     }
 }

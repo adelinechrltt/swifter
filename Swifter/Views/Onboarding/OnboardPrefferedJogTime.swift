@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct OnboardPreferredJogTime: View {
-    @State private var selectedTimes: [String] = []
+    @State private var selectedTimes: Set<String> = []
     let jogTimes = ["Morning", "Noon", "Afternoon", "Evening"]
     
     var body: some View {
@@ -19,30 +19,26 @@ struct OnboardPreferredJogTime: View {
                 // Title
                 Text("What’s your preferred jogging time?")
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                 
                 Text("Select all that apply.")
                     .font(.system(size: 16))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                 
                 // Horizontal selection buttons
                 HStack(spacing: 10) {
-                    ForEach(jogTimes, id: \.self) { item in
+                    ForEach(jogTimes, id: \.self) { time in
                         Button(action: {
-                            toggleSelection(for: item)
+                            toggleSelection(for: time)
                         }) {
-                            Text(item)
+                            Text(time)
                                 .font(.system(size: 13))
                                 .padding(.horizontal, 15)
                                 .padding(.vertical, 10)
-                                .background(
-                                    selectedTimes.contains(item) ? Color.black.opacity(0.8) : Color.clear
-                                )
-                                .foregroundColor(selectedTimes.contains(item) ? .white : .black)
-                                .clipShape(Capsule()) // Rounded fill effect
-                                .overlay(
-                                    Capsule().stroke(Color.black, lineWidth: 1) // Rounded border
-                                )
+                                .background(selectedTimes.contains(time) ? Color.primary.opacity(0.8) : Color.clear)
+                                .foregroundColor(selectedTimes.contains(time) ? .white : .primary)
+                                .clipShape(Capsule())
+                                .overlay(Capsule().stroke(Color.primary, lineWidth: 1))
                         }
                     }
                 }
@@ -52,40 +48,32 @@ struct OnboardPreferredJogTime: View {
                 // Progress Bar
                 ProgressView(value: 0.5, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle())
-                    .accentColor(.gray)
+                    .tint(.gray)
                     .frame(height: 6)
                     .padding(.top, 10)
                 
                 // Buttons (Skip & Next)
                 HStack {
                     // Skip Button
-                    Button(action: {
-                        // Handle skip action
-                    }) {
+                    NavigationLink(destination: OnboardPreferredDays()) {
                         Text("Skip")
-                        .foregroundColor(.gray)
-                        NavigationLink(destination: OnboardPrefferedJogDays()) {
-                        }
-                        .font(.system(size: 14))
-                        .foregroundColor(.gray)
-                        .padding()
-                        .frame(width: 100, height: 45)
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                            .padding()
+                            .frame(width: 100, height: 45)
                     }
                     
                     Spacer()
 
                     // Next Button (Visible only if a selection is made)
                     if !selectedTimes.isEmpty {
-                        NavigationLink(destination: OnboardPrefferedJogDays()) {
+                        NavigationLink(destination: OnboardPreferredDays()) {
                             Text("Next")
                                 .font(.system(size: 14))
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                                 .padding()
                                 .frame(width: 150, height: 45)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .stroke(Color.black, lineWidth: 1)
-                                )
+                                .overlay(RoundedRectangle(cornerRadius: 25).stroke(Color.primary, lineWidth: 1))
                         }
                     }
                 }
@@ -97,11 +85,11 @@ struct OnboardPreferredJogTime: View {
         .navigationBarHidden(true)
     }
     
-    private func toggleSelection(for item: String) {
-        if selectedTimes.contains(item) {
-            selectedTimes.removeAll { $0 == item }
+    private func toggleSelection(for time: String) {
+        if selectedTimes.contains(time) {
+            selectedTimes.remove(time)
         } else {
-            selectedTimes.append(item)
+            selectedTimes.insert(time)
         }
     }
 }

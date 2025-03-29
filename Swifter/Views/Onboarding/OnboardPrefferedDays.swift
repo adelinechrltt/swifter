@@ -1,14 +1,7 @@
-//
-//  OnboardPrefferedJogDays.swift
-//  SwifterSwiftUi
-//
-//  Created by Natasya Felicia on 26/03/25.
-//
-
 import SwiftUI
 
-struct OnboardPrefferedJogDays: View {
-    @State private var selectedDays: [String] = []
+struct OnboardPreferredDays: View {
+    @State private var selectedDays: Set<String> = []
     let jogDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     
     let columns = [
@@ -25,30 +18,26 @@ struct OnboardPrefferedJogDays: View {
                 // Title
                 Text("What’s your preferred jogging days?")
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                 
                 Text("Select all that apply.")
                     .font(.system(size: 16))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                 
                 // Grid selection buttons
                 LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(jogDays, id: \.self) { item in
+                    ForEach(jogDays, id: \.self) { day in
                         Button(action: {
-                            toggleSelection(for: item)
+                            toggleSelection(for: day)
                         }) {
-                            Text(item)
+                            Text(day)
                                 .font(.system(size: 14))
                                 .padding(.vertical, 10)
-                                .frame(maxWidth: .infinity) // Makes button expand horizontally
-                                .background(
-                                    selectedDays.contains(item) ? Color.black.opacity(0.8) : Color.clear
-                                )
-                                .foregroundColor(selectedDays.contains(item) ? .white : .black)
-                                .clipShape(Capsule()) // Rounded fill effect
-                                .overlay(
-                                    Capsule().stroke(Color.black, lineWidth: 1) // Rounded border
-                                )
+                                .frame(maxWidth: .infinity)
+                                .background(selectedDays.contains(day) ? Color.primary.opacity(0.8) : Color.clear)
+                                .foregroundColor(selectedDays.contains(day) ? .white : .primary)
+                                .clipShape(Capsule())
+                                .overlay(Capsule().stroke(Color.primary, lineWidth: 1))
                         }
                     }
                 }
@@ -59,7 +48,7 @@ struct OnboardPrefferedJogDays: View {
                 // Progress Bar
                 ProgressView(value: 0.5, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle())
-                    .accentColor(.gray)
+                    .tint(.gray)
                     .frame(height: 6)
                     .padding(.top, 10)
                 
@@ -71,7 +60,7 @@ struct OnboardPrefferedJogDays: View {
                     }) {
                         Text("Skip")
                             .font(.system(size: 14))
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                             .padding()
                             .frame(width: 100, height: 45)
                     }
@@ -83,13 +72,10 @@ struct OnboardPrefferedJogDays: View {
                         NavigationLink(destination: OnboardFinish()) {
                             Text("Next")
                                 .font(.system(size: 14))
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                                 .padding()
                                 .frame(width: 150, height: 45)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .stroke(Color.black, lineWidth: 1)
-                                )
+                                .overlay(RoundedRectangle(cornerRadius: 25).stroke(Color.primary, lineWidth: 1))
                         }
                     }
                 }
@@ -101,15 +87,28 @@ struct OnboardPrefferedJogDays: View {
         .navigationBarHidden(true)
     }
     
-    private func toggleSelection(for item: String) {
-        if selectedDays.contains(item) {
-            selectedDays.removeAll { $0 == item }
+    private func toggleSelection(for day: String) {
+        if selectedDays.contains(day) {
+            selectedDays.remove(day)
         } else {
-            selectedDays.append(item)
+            selectedDays.insert(day)
         }
     }
 }
 
-#Preview {
-    OnboardPrefferedJogDays()
+// MARK: - Previews
+struct OnboardPreferredDays_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            OnboardPreferredDays()
+                .previewDevice("iPhone 14 Pro")
+                .previewDisplayName("Light Mode")
+            
+            OnboardPreferredDays()
+                .previewDevice("iPhone 14 Pro")
+                .preferredColorScheme(.dark)
+                .previewDisplayName("Dark Mode")
+        }
+    }
 }
+

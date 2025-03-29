@@ -15,29 +15,26 @@ struct OnboardPreJogTime: View {
             VStack(alignment: .leading, spacing: 20) {
                 Spacer()
                 
+                // Title
                 Text("How much time do you need to prepare before a jog?")
                     .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .navigationBarBackButtonHidden(true)
 
-                // Custom Stepper using Apple's Native Logic
+                // Custom Stepper
                 HStack {
                     // Minus Button (disabled at 0)
-                    Button(action: {
-                        if joggingMinutes > 0 {
-                            joggingMinutes -= 5
-                        }
-                    }) {
+                    Button(action: { joggingMinutes = max(0, joggingMinutes - 5) }) {
                         Image(systemName: "minus.circle.fill")
                             .resizable()
                             .frame(width: 40, height: 40)
-                            .foregroundColor(joggingMinutes == 0 ? .gray : .black) // Disabled look
+                            .foregroundColor(joggingMinutes == 0 ? .gray : .primary)
                     }
-                    .disabled(joggingMinutes == 0) // Prevents negative values
+                    .disabled(joggingMinutes == 0)
 
                     Spacer()
 
-                    // Jogging Minutes in the Middle
+                    // Jogging Minutes Display
                     Text("\(joggingMinutes) min")
                         .font(.system(size: 24, weight: .bold))
                         .frame(minWidth: 100)
@@ -45,16 +42,12 @@ struct OnboardPreJogTime: View {
 
                     Spacer()
 
-                    // Plus Button
-                    Button(action: {
-                        if joggingMinutes < 120 {
-                            joggingMinutes += 5
-                        }
-                    }) {
+                    // Plus Button (capped at 120)
+                    Button(action: { joggingMinutes = min(120, joggingMinutes + 5) }) {
                         Image(systemName: "plus.circle.fill")
                             .resizable()
                             .frame(width: 40, height: 40)
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                     }
                 }
                 .padding(.top, 10)
@@ -62,29 +55,29 @@ struct OnboardPreJogTime: View {
                 // Next & Skip Button Row
                 HStack {
                     // Skip Button
-                    NavigationLink(destination: EmptyView()) {
+                    NavigationLink(destination: OnboardPreferredJogTime()) {
                         Text("Skip")
                             .font(.system(size: 14))
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                             .padding()
                             .frame(width: 100, height: 45)
                     }
                     
                     Spacer()
 
-                    // Next Button
+                    // Next Button (Disabled at 0)
                     NavigationLink(destination: OnboardPreferredJogTime()) {
                         Text("Next")
                             .font(.system(size: 14))
-                            .foregroundColor(joggingMinutes > 0 ? .black : .gray)
+                            .foregroundColor(joggingMinutes > 0 ? .primary : .secondary)
                             .padding()
                             .frame(width: 150, height: 45)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 25)
-                                    .stroke(joggingMinutes > 0 ? Color.black : Color.gray, lineWidth: 1)
+                                    .stroke(joggingMinutes > 0 ? Color.primary : Color.secondary, lineWidth: 1)
                             )
                     }
-                    .disabled(joggingMinutes == 0) // Only enabled when value > 0
+                    .disabled(joggingMinutes == 0)
                 }
                 .padding(.top, 150)
                 .padding(.bottom, 100)
@@ -92,7 +85,7 @@ struct OnboardPreJogTime: View {
                 // Progress Bar
                 ProgressView(value: 0.25, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle())
-                    .accentColor(.black)
+                    .tint(.primary)
                     .frame(height: 4)
                     .padding(.top, 10)
             }

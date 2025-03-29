@@ -8,43 +8,44 @@
 import SwiftUI
 
 struct OnboardStart: View {
-    
     var body: some View {
         NavigationView {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 16) {
                 Spacer()
-                    .navigationBarBackButtonHidden(true)
+                
+                // Welcome Title
                 Text("Welcome To Swifter")
                     .font(.system(size: 34, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
 
-                Text("Let's Personalize Your Jogging Experience!")
+                // Subtitle
+                Text("Let's personalize your jogging experience!")
                     .font(.system(size: 18))
-                    .foregroundColor(.black)
+                    .foregroundColor(.secondary)
 
+                // Start Button
                 NavigationLink(destination: OnboardTimeOnFeet()) {
                     Text("Start Onboarding")
-                        .font(.system(size: 14))
-                        .foregroundColor(.black)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.primary)
                         .padding()
-                        .frame(width: 150, height: 45)
-                        .overlay(
+                        .frame(width: 180, height: 50)
+                        .background(
                             RoundedRectangle(cornerRadius: 25)
-                                .stroke(Color.black, lineWidth: 1))
+                                .stroke(Color.primary, lineWidth: 1)
+                        )
                 }
-                .padding(.top, 10)
+                .padding(.top, 20)
 
                 Spacer()
             }
             .padding(30)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(Color.white.ignoresSafeArea())
+            .background(Color(.systemBackground).ignoresSafeArea())
         }
         .navigationBarHidden(true)
-        
     }
 }
-
 
 #Preview {
     OnboardStart()

@@ -1,10 +1,3 @@
-//
-//  OnboardJoggingFrequency.swift
-//  SwifterSwiftUi
-//
-//  Created by Natasya Felicia on 26/03/25.
-//
-
 import SwiftUI
 
 struct OnboardJoggingFrequency: View {
@@ -15,14 +8,14 @@ struct OnboardJoggingFrequency: View {
             VStack(alignment: .leading, spacing: 20) {
                 Spacer()
                 
+                // Title
                 Text("What’s your target jogging frequency for this week?")
                     .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.black)
-                    .navigationBarBackButtonHidden(true)
-
-        
+                    .foregroundColor(.primary)
+                
+                // Frequency Selection Row
                 HStack {
-                    // Minus Button (disabled at 0)
+                    // Minus Button (Disabled at 0)
                     Button(action: {
                         if joggingFrequency > 0 {
                             joggingFrequency -= 1
@@ -31,13 +24,13 @@ struct OnboardJoggingFrequency: View {
                         Image(systemName: "minus.circle.fill")
                             .resizable()
                             .frame(width: 40, height: 40)
-                            .foregroundColor(joggingFrequency == 0 ? .gray : .black) // Disabled look
+                            .foregroundColor(joggingFrequency == 0 ? .gray : .primary)
                     }
-                    .disabled(joggingFrequency == 0) // Disables button interaction
+                    .disabled(joggingFrequency == 0) // Prevents negative values
 
                     Spacer()
 
-                    // Jogging Frequency in the Middle
+                    // Jogging Frequency Text
                     Text("\(joggingFrequency) times a week")
                         .font(.system(size: 24, weight: .bold))
                         .frame(minWidth: 150)
@@ -45,7 +38,7 @@ struct OnboardJoggingFrequency: View {
 
                     Spacer()
 
-                    // Plus Button
+                    // Plus Button (Limited to 7)
                     Button(action: {
                         if joggingFrequency < 7 {
                             joggingFrequency += 1
@@ -54,24 +47,24 @@ struct OnboardJoggingFrequency: View {
                         Image(systemName: "plus.circle.fill")
                             .resizable()
                             .frame(width: 40, height: 40)
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                     }
                 }
                 .padding(.top, 10)
 
-                // Next Button Row
+                // "Next" Button Row
                 HStack {
                     Spacer()
                     if joggingFrequency > 0 {
                         NavigationLink(destination: OnboardAllSet()) {
                             Text("Next")
                                 .font(.system(size: 14))
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                                 .padding()
                                 .frame(width: 150, height: 45)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 25)
-                                        .stroke(Color.black, lineWidth: 1)
+                                        .stroke(Color.primary, lineWidth: 1)
                                 )
                         }
                         .padding(.top, 150)
@@ -89,7 +82,7 @@ struct OnboardJoggingFrequency: View {
                 // Progress Bar
                 ProgressView(value: 0.5, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle())
-                    .accentColor(.black)
+                    .accentColor(.primary)
                     .frame(height: 4)
                     .padding(.top, 10)
             }
@@ -99,6 +92,18 @@ struct OnboardJoggingFrequency: View {
     }
 }
 
-#Preview {
-    OnboardJoggingFrequency()
+// MARK: - Previews
+struct OnboardJoggingFrequency_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            OnboardJoggingFrequency()
+                .previewDevice("iPhone 14 Pro")
+                .previewDisplayName("Light Mode")
+            
+            OnboardJoggingFrequency()
+                .previewDevice("iPhone 14 Pro")
+                .preferredColorScheme(.dark)
+                .previewDisplayName("Dark Mode")
+        }
+    }
 }

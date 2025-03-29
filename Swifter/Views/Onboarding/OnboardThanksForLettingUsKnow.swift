@@ -10,41 +10,46 @@ import SwiftUI
 struct OnboardThanksForLettingUsKnow: View {
     var body: some View {
         NavigationView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 24) {
                 Spacer()
 
+                // Title
                 Text("Thanks for letting us know!")
-                    .font(.system(size: 36, weight: .bold))
-                    .foregroundColor(.black)
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.primary)
 
+                // Subtitle
                 Text("Your jogging schedule has been updated accordingly.")
-                    .font(.system(size: 19))
-                    .foregroundColor(.black)
-                
+                    .font(.system(size: 18))
+                    .foregroundColor(.secondary)
 
+                Spacer()
 
-              
+                // Start Jogging Button
                 NavigationLink(destination: OnboardPreJogTime()) {
-                    Text("Let’s start jogging! ")
-                        .font(.system(size: 14))
-                        .foregroundColor(.black)
+                    Text("Let’s start jogging!")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.primary)
                         .padding()
-                        .frame(width: 180, height: 40)
-                        .overlay(
+                        .frame(width: 200, height: 50)
+                        .background(
                             RoundedRectangle(cornerRadius: 25)
-                                .stroke(Color.black, lineWidth: 1)
+                                .stroke(Color.primary, lineWidth: 1)
                         )
                 }
-                Spacer()
-                
-                ProgressView(value: 1, total: 1.0)
+
+                // Progress Bar
+                ProgressView(value: 1.0, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle())
-                    .accentColor(.black)
-                    .frame(height: 4)
-                    .padding(.top, 10)
+                    .accentColor(.primary)
+                    .frame(height: 6)
+                    .padding(.top, 20)
+
+                Spacer()
             }
-            .frame(maxWidth: .infinity, alignment: .leading) // Ensures text is left-aligned
             .padding(40)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.systemBackground).ignoresSafeArea())
         }
         .navigationBarBackButtonHidden(true)
     }

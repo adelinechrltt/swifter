@@ -10,7 +10,7 @@ struct OnboardTimeOnFeet: View {
                 
                 Text("How long do you usually stay on your feet during a jog?")
                     .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .navigationBarBackButtonHidden(true)
 
                 // Custom Stepper using Apple's Native Logic
@@ -24,7 +24,7 @@ struct OnboardTimeOnFeet: View {
                         Image(systemName: "minus.circle.fill")
                             .resizable()
                             .frame(width: 40, height: 40)
-                            .foregroundColor(joggingMinutes == 0 ? .gray : .black) // Gray if disabled
+                            .foregroundColor(joggingMinutes == 0 ? .gray : .primary) // Gray if disabled
                             .opacity(joggingMinutes == 0 ? 0.5 : 1.0) // Reduce opacity if disabled
                     }
                     .disabled(joggingMinutes == 0) // Disable button at 0
@@ -33,6 +33,7 @@ struct OnboardTimeOnFeet: View {
 
                     // Jogging Minutes in the Middle
                     Text("\(joggingMinutes) min")
+                        .foregroundColor(.primary)
                         .font(.system(size: 24, weight: .bold))
                         .frame(minWidth: 100)
                         .multilineTextAlignment(.center)
@@ -48,7 +49,7 @@ struct OnboardTimeOnFeet: View {
                         Image(systemName: "plus.circle.fill")
                             .resizable()
                             .frame(width: 40, height: 40)
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                     }
                 }
                 .padding(.top, 10)
@@ -60,12 +61,12 @@ struct OnboardTimeOnFeet: View {
                         NavigationLink(destination: OnboardJoggingFrequency()) {
                             Text("Next")
                                 .font(.system(size: 14))
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                                 .padding()
                                 .frame(width: 150, height: 45)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 25)
-                                        .stroke(Color.black, lineWidth: 1)
+                                        .stroke(Color.primary, lineWidth: 1)
                                 )
                         }
                         .padding(.top, 150)
@@ -80,12 +81,13 @@ struct OnboardTimeOnFeet: View {
                     }
                 }
 
-                // Progress Bar
+                // Progress Bar (ONLY FIXED VISIBILITY)
                 ProgressView(value: 0.25, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle())
-                    .accentColor(.black)
-                    .frame(height: 4)
-                    .padding(.top, 10)
+                    .tint(.primary) // Ensures visibility
+                    .frame(height: 5) // Slightly thicker for better visibility
+                    .padding(.bottom, 10) // Moves it up slightly so it's not hidden
+
             }
             .padding(30)
         }

@@ -30,7 +30,7 @@ struct OnboardThanksForLettingUsKnow: View {
                     .font(.system(size: 19))
                     .foregroundColor(.black)
                 
-                NavigationLink(destination: EditSessionView()) {
+                NavigationLink(destination: PreferencesView()) {
                     Text("Let's start jogging! ")
                         .font(.system(size: 14))
                         .foregroundColor(.black)

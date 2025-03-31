@@ -9,7 +9,7 @@ import SwiftData
 import SwiftData
 import Foundation
 
-class GoalManager {
+class GoalManager: ObservableObject {
     private let modelContext: ModelContext
     
     init(modelContext: ModelContext) {

@@ -23,6 +23,14 @@ enum CalendarErrors: Error {
 final class EventStoreManager: ObservableObject {
     let eventStore = EKEventStore()
     
+    func checkCalendarAccess() throws{
+        /// check if calendar access granted?
+        guard EKEventStore.authorizationStatus(for: .event) == .authorized else {
+            throw CalendarErrors.accessNotGranted
+            return
+        }
+    }
+    
     func requestAccess(completion: @escaping (Result<Void, Error>) -> Void) {
         eventStore.requestAccess(to: .event) { granted, error in
             if granted {
@@ -33,20 +41,12 @@ final class EventStoreManager: ObservableObject {
         }
     }
     
-    func checkCalendarAccess() throws{
-        // check if calendar access granted?
-        guard EKEventStore.authorizationStatus(for: .event) == .authorized else {
-            throw CalendarErrors.accessNotGranted
-            return
-        }
-    }
-    
+    /// create a new event, return the event's ID to be used as value for the jogging session instance's property
     func createNewEvent(
         eventTitle: String,
         startTime: Date,
         endTime: Date
-    ) {
-        // create new event
+    ) -> String? {
         let event = EKEvent(eventStore: eventStore)
         event.title = eventTitle
         event.startDate = startTime
@@ -58,19 +58,47 @@ final class EventStoreManager: ObservableObject {
             print("✅ Jogging event saved successfully!")
         } catch {
             print("❌ Error saving event: \(error.localizedDescription)")
+            return nil
+        }
+        
+        return event.eventIdentifier
+    }
+    
+    // find an event by id
+    func findEventById(id: String) -> EKEvent? {
+        if let event = eventStore.event(withIdentifier: id) {
+            return event
+        }
+        return nil
+    }
+    
+    
+    // update an event's start & end times
+    func setEventTimes(id: String, newStart: Date, newEnd: Date){
+        if let event = findEventById(id: id){
+            event.startDate = newStart
+            event.endDate = newEnd
+            
+            do {
+                   try eventStore.save(event, span: .thisEvent, commit: true)
+                   print("calendar event updated")
+               } catch {
+                   print("error bro")
+               }
         }
     }
     
-    func findAvailableSlot(date: Date, duration: TimeInterval){
+    
+    func findAvailableSlot(date: Date, duration: TimeInterval) -> [Date]?{
         let calendar = Calendar.current
         
-        // define a day as
-        // start of day for running: 6AM
-        // end of day for running: 9PM
+        /// day constraints definition as:
+        /// - start of day for running: 6AM
+        /// - end of day for running: 9PM
         let startOfDay = calendar.date(bySettingHour: 6, minute: 0, second: 0, of: date)!
         let endOfDay = calendar.date(bySettingHour: 21, minute: 0, second: 0, of: date)!
 
-        // retrieve all the events in the calendar local DB
+        /// retrieve all the events in the calendar local DB
         let predicate = eventStore.predicateForEvents(withStart: startOfDay, end: endOfDay, calendars: nil)
         let events = eventStore.events(matching: predicate).sorted { $0.startDate < $1.startDate }
 
@@ -78,14 +106,12 @@ final class EventStoreManager: ObservableObject {
 
         var lastEndTime = startOfDay
 
-        // check if free time is available between 6AM (start of day)
-        // and before the FIRST event
+        /// check if free time is available between 6AM (start of day) and before the FIRST event
         if let firstEvent = events.first, firstEvent.startDate.timeIntervalSince(startOfDay) >= duration {
             possibleTimes.append((startOfDay, firstEvent.startDate))
         }
 
-        // iterate through all events to check if time between events
-        // is enough for allotting a session
+        /// iterate through all events to check if time between events is enough for allotting a session
         for event in events {
             if event.startDate.timeIntervalSince(lastEndTime) >= duration {
                 possibleTimes.append((lastEndTime, event.startDate))
@@ -93,20 +119,29 @@ final class EventStoreManager: ObservableObject {
             lastEndTime = event.endDate
         }
 
-        // check if free time is available between after LAST event
-        // and 9PM (end of day)
+        /// check if free time is available between after LAST event and 9PM (end of day)
         if endOfDay.timeIntervalSince(lastEndTime) >= duration {
             possibleTimes.append((lastEndTime, endOfDay))
         }
 
-        // if no possible time then return
-        // check other day via function caller
+        /// if no possible time then return check other day to the function caller
         guard !possibleTimes.isEmpty else {
             print("No free time available to schedule jog.")
-            return
+            return nil
         }
         
-        createNewEvent(eventTitle: "lorem ipsum", startTime: possibleTimes.first!.start, endTime: possibleTimes.first!.start + duration)
+        return [possibleTimes.first!.start, possibleTimes.first!.start + duration]
+    }
+    
+    // TODO: integrate with preferences data
+    func findDayOfWeek(date: Date, duration: TimeInterval) -> [Date]?{
+        for i in 0...7{
+            if let newDate = Calendar.current.date(byAdding: .day, value: i, to: date),
+               let availableTime = findAvailableSlot(date: newDate, duration: duration) {
+                return availableTime
+            }
+        }
+        return nil
     }
 }
 

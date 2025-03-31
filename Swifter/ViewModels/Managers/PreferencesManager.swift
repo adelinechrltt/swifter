@@ -5,10 +5,10 @@
 //  Created by Adeline Charlotte Augustinne on 29/03/25.
 //
 
-import SwiftData
+import Foundation
 import SwiftData
 
-class PreferencesManager {
+class PreferencesManager: ObservableObject {
     private let modelContext: ModelContext
     
     init(modelContext: ModelContext) {

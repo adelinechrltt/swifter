@@ -100,10 +100,11 @@ final class EventStoreManager: ObservableObject {
 
         /// retrieve all the events in the calendar local DB
         let predicate = eventStore.predicateForEvents(withStart: startOfDay, end: endOfDay, calendars: nil)
-        let events = eventStore.events(matching: predicate).sorted { $0.startDate < $1.startDate }
+        let events = eventStore.events(matching: predicate)
+            .filter { !$0.isAllDay } /// --> ignore all-day events like Core Challenge or holiday
+            .sorted { $0.startDate < $1.startDate } /// sort ascending by start time
 
         var possibleTimes: [(start: Date, end: Date)] = []
-
         var lastEndTime = startOfDay
 
         /// check if free time is available between 6AM (start of day) and before the FIRST event
@@ -113,10 +114,17 @@ final class EventStoreManager: ObservableObject {
 
         /// iterate through all events to check if time between events is enough for allotting a session
         for event in events {
-            if event.startDate.timeIntervalSince(lastEndTime) >= duration {
-                possibleTimes.append((lastEndTime, event.startDate))
+            
+            /// only update lastEndTime when an event truly extends beyond the previous one
+            /// so we ignore events whose duration is still within another event
+            if event.endDate > lastEndTime {
+                if event.startDate.timeIntervalSince(lastEndTime) >= duration {
+                    possibleTimes.append((lastEndTime, event.startDate))
+                }
+                
+                /// if two events exist where event B starts before event A ends, then we consider the end time which is later only
+                lastEndTime = max(lastEndTime, event.endDate)
             }
-            lastEndTime = event.endDate
         }
 
         /// check if free time is available between after LAST event and 9PM (end of day)

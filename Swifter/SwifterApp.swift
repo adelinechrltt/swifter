@@ -15,7 +15,7 @@ struct SwifterApp: App {
     var body: some Scene {
         WindowGroup {
 //            EditSessionView()
-            Testing().environmentObject(eventStoreManager)
+            AnalyticsView().environmentObject(eventStoreManager)
 
         }
         .modelContainer(for: [PreferencesModel.self, GoalModel.self, SessionModel.self])

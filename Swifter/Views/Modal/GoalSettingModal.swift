@@ -1,10 +1,17 @@
 import SwiftUI
+import SwiftData
 
 struct GoalSettingModal: View {
+    //modal
     @Binding var isPresented: Bool
-    @State private var targetFrequency: Int = 1
-    @State private var startDate = Date()
-    @State private var endDate = Date()
+    @StateObject private var viewModel: EditGoalViewModel
+    
+    // Initialize with environment-based model context
+    init(isPresented: Binding<Bool>, modelContext: ModelContext) {
+        self._isPresented = isPresented
+        let goalManager = GoalManager(modelContext: modelContext)
+        _viewModel = StateObject(wrappedValue: EditGoalViewModel(goalManager: goalManager))
+    }
     
     var body: some View {
         ZStack {
@@ -23,6 +30,7 @@ struct GoalSettingModal: View {
                             .font(.system(size: 20, weight: .bold))
                         Spacer()
                         Button("Save") {
+                            viewModel.saveGoal()
                             isPresented = false
                         }
                         .font(.title3)
@@ -36,8 +44,8 @@ struct GoalSettingModal: View {
                             
                             HStack(spacing: 0) {
                                 Button(action: {
-                                    if targetFrequency > 1 {
-                                        targetFrequency -= 1
+                                    if viewModel.targetFrequency > 1 {
+                                        viewModel.targetFrequency -= 1
                                     }
                                 }) {
                                     Text("-")
@@ -47,13 +55,13 @@ struct GoalSettingModal: View {
                                         .cornerRadius(8)
                                 }
                                 
-                                Text("\(targetFrequency) times / week")
+                                Text("\(viewModel.targetFrequency) times / week")
                                     .font(.system(size: 15, weight: .medium))
                                     .frame(minWidth: 120, alignment: .center)
                                 
                                 Button(action: {
-                                    if targetFrequency < 7 {
-                                        targetFrequency += 1
+                                    if viewModel.targetFrequency < 7 {
+                                        viewModel.targetFrequency += 1
                                     }
                                 }) {
                                     Text("+")
@@ -72,10 +80,10 @@ struct GoalSettingModal: View {
                             
                             Spacer()
                             
-                            DatePicker("", selection: $startDate, displayedComponents: .date)
+                            DatePicker("", selection: $viewModel.startDate, displayedComponents: .date)
                                 .datePickerStyle(CompactDatePickerStyle())
                                 .labelsHidden()
-                                .frame(maxWidth: .infinity) // Ensure it takes the full width
+                                .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.gray.opacity(0.2))
                                 .cornerRadius(8)
@@ -88,10 +96,10 @@ struct GoalSettingModal: View {
                             
                             Spacer()
                             
-                            DatePicker("", selection: $endDate, displayedComponents: .date)
+                            DatePicker("", selection: $viewModel.endDate, displayedComponents: .date)
                                 .datePickerStyle(CompactDatePickerStyle())
                                 .labelsHidden()
-                                .frame(maxWidth: .infinity) // Ensure it takes the full width
+                                .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.gray.opacity(0.2))
                                 .cornerRadius(8)
@@ -110,8 +118,12 @@ struct GoalSettingModal: View {
     }
 }
 
+// Updated preview that uses a mock ModelContext
 struct GoalSettingModal_Preview: PreviewProvider {
     static var previews: some View {
-        GoalSettingModal(isPresented: .constant(true))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try! ModelContainer(for: GoalModel.self, configurations: config)
+        
+        return GoalSettingModal(isPresented: .constant(true), modelContext: container.mainContext)
     }
 }

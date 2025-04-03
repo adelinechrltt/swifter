@@ -392,23 +392,30 @@ struct DayView: View {
     
     var body: some View {
         ZStack {
+            // Background for all days (empty or visible)
+            Rectangle()
+                .fill(Color.clear)
+                .frame(height: 40)
+            
+            // Selection indicator
             if isSelected {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.gray.opacity(0.5))
                     .frame(height: 40)
             }
             
+            // Day number
             Text("\(day)")
                 .fontWeight(isSelected ? .bold : .regular)
-                .foregroundColor(isSelected ? .black : .black)
-                .overlay(
-                    hasEvents && !isSelected ?
-                        Circle()
-                            .fill(Color.blue)
-                            .frame(width: 6, height: 6)
-                            .offset(y: 14)
-                         : nil
-                )
+                .foregroundColor(.black)
+            
+            // Event indicator dot
+            if hasEvents && !isSelected {
+                Circle()
+                    .fill(Color.blue)
+                    .frame(width: 6, height: 6)
+                    .offset(y: 14)
+            }
         }
         .frame(maxWidth: .infinity)
     }

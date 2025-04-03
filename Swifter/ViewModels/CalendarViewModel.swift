@@ -19,14 +19,16 @@ class CalendarViewModel: ObservableObject {
         checkCalendarAccess()
     }
     
-    func checkCalendarAccess() {
+    func checkCalendarAccess(completion: ((Bool) -> Void)? = nil) {
         eventStoreManager.requestAccess { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success:
                     self.hasCalendarAccess = true
+                    completion?(true)
                 case .failure:
                     self.hasCalendarAccess = false
+                    completion?(false)
                 }
             }
         }
@@ -68,7 +70,7 @@ class CalendarViewModel: ObservableObject {
             
             // Format time
             let timeFormatter = DateFormatter()
-            timeFormatter.dateFormat = "h:mm a"
+            timeFormatter.dateFormat = "h:mm a" 
             let timeString = timeFormatter.string(from: ekEvent.startDate)
             
             // Create color from calendar color

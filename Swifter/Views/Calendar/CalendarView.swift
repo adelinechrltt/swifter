@@ -16,6 +16,8 @@ struct Event: Identifiable {
 }
 
 struct CalendarView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    
     // ViewModel to manage calendar data
     @StateObject private var viewModel = CalendarViewModel()
     
@@ -38,7 +40,7 @@ struct CalendarView: View {
                     Text("\(monthName(for: currentMonth))")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary) // Uses system foreground color
                 }
                 .sheet(isPresented: $showMonthPicker) {
                     VStack(spacing: 20) {
@@ -58,7 +60,7 @@ struct CalendarView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.blue)
+                        .background(Color.accentColor) // Uses system accent color
                         .foregroundColor(.white)
                         .cornerRadius(10)
                         .padding(.horizontal)
@@ -75,7 +77,7 @@ struct CalendarView: View {
                     Text(String(format: "%d", currentYear))
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary) // Uses system foreground color
                 }
                 .sheet(isPresented: $showYearPicker) {
                     VStack(spacing: 20) {
@@ -95,8 +97,8 @@ struct CalendarView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .foregroundColor(.black)
+                        .background(Color.accentColor) // Uses system accent color
+                        .foregroundColor(.white)
                         .cornerRadius(10)
                         .padding(.horizontal)
                     }
@@ -116,11 +118,12 @@ struct CalendarView: View {
                         .frame(maxWidth: .infinity)
                 }
             }
+            .padding(.horizontal) 
             .padding(.top, 20)
             .padding(.bottom, 10)
             
             // Calendar days
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 20) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 10) { // Reduced spacing
                 ForEach(daysInMonth(), id: \.self) { day in
                     if day > 0 {
                         DayView(day: day, isSelected: day == selectedDay, hasEvents: viewModel.hasEventsOnDay(day: day))
@@ -156,40 +159,55 @@ struct CalendarView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         ForEach(0..<24) { hour in
                             let events = viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay ?? 1)
+                            let hourEvents = events.filter { event in
+                                // Extract the hour from the event time string properly
+                                if let eventHour = extractHourFromTimeString(event.time) {
+                                    return eventHour == hour
+                                }
+                                return false
+                            }
                             
-                            HStack(alignment: .top) {
-                                // Format the hour display with proper AM/PM
-                                Text(formatHour(hour))
-                                    .foregroundColor(.gray)
-                                    .frame(width: 70, alignment: .leading)
-                                
-                                // Check if there's an event at this hour for the selected day
-                                if let eventIndex = events.firstIndex(where: {
-                                    // Match events based on hour part of time string
-                                    let hourString = formatHourSimple(hour).lowercased()
-                                    return $0.time.lowercased().contains(hourString)
-                                }) {
-                                    VStack(alignment: .leading) {
-                                        Text(events[eventIndex].title)
-                                            .font(.subheadline)
-                                            .foregroundColor(.black)
-                                        
-                                        Text(events[eventIndex].time)
-                                            .font(.caption)
-                                            .foregroundColor(.black.opacity(0.7))
-                                    }
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .fill(events[eventIndex].color.opacity(0.3))
-                                    )
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                } else {
+                            VStack(alignment: .leading, spacing: 0) {
+                                // Hour label
+                                HStack {
+                                    Text(formatHour(hour))
+                                        .foregroundColor(.gray)
+                                        .frame(width: 70, alignment: .leading)
+                                    
                                     Spacer()
                                 }
+                                .padding(.vertical, 8)
+                                
+                                // Events at this hour
+                                if !hourEvents.isEmpty {
+                                    ForEach(hourEvents) { event in
+                                        HStack(alignment: .top) {
+                                            Rectangle()
+                                                .fill(Color.clear)
+                                                .frame(width: 70)
+                                            
+                                            VStack(alignment: .leading) {
+                                                Text(event.title)
+                                                    .font(.subheadline)
+                                                    .fontWeight(.medium)
+                                                    .foregroundColor(.primary)
+                                                
+                                                Text(event.time)
+                                                    .font(.caption)
+                                                    .foregroundColor(.primary.opacity(0.7))
+                                            }
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .fill(event.color.opacity(0.3))
+                                            )
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                        }
+                                        .padding(.bottom, 4)
+                                    }
+                                }
                             }
-                            .frame(height: 60)
                             
                             Divider()
                         }
@@ -225,7 +243,7 @@ struct CalendarView: View {
                 Button(action: {}) {
                     Image(systemName: "figure.run")
                         .font(.system(size: 24))
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                 }
                 
                 Spacer()
@@ -233,16 +251,16 @@ struct CalendarView: View {
                 Button(action: {}) {
                     Image(systemName: "calendar")
                         .font(.system(size: 24))
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                 }
                 
                 Spacer()
             }
             .padding()
-            .background(Color.white)
+            .background(Color(uiColor: .systemBackground))
         }
-        .background(Color.white)
-        .foregroundColor(.black)
+        .background(Color(uiColor: .systemBackground)) // System background that adapts to dark/light mode
+        .foregroundColor(.primary) // System text color that adapts to dark/light mode
         .gesture(
             DragGesture()
                 .onEnded { gesture in
@@ -266,8 +284,13 @@ struct CalendarView: View {
                 }
         )
         .onAppear {
-            // Fetch events when the view appears
-            viewModel.fetchEventsForMonth(year: currentYear, month: currentMonth)
+            // First check calendar access, then fetch events
+            viewModel.checkCalendarAccess { success in
+                if success {
+                    // Only fetch events after confirming we have access
+                    viewModel.fetchEventsForMonth(year: currentYear, month: currentMonth)
+                }
+            }
         }
         .onChange(of: currentMonth) { _, newMonth in
             // Refetch events when month changes
@@ -383,6 +406,34 @@ struct CalendarView: View {
             return "\(hour):00"
         }
     }
+    
+    private func extractHourFromTimeString(_ timeString: String) -> Int? {
+        let timeFormatter = DateFormatter()
+        timeFormatter.locale = Locale.current
+        
+        // Try both common time formats
+        for format in ["h:mm a", "HH:mm"] {
+            timeFormatter.dateFormat = format
+            if let date = timeFormatter.date(from: timeString) {
+                let hour = Calendar.current.component(.hour, from: date)
+                return hour
+            }
+        }
+        
+        // If direct parsing fails, extract manually for common formats like "10 PM" or "22:00"
+        if timeString.lowercased().contains("pm"), let hourStr = timeString.split(separator: " ").first, 
+           let hour = Int(hourStr) {
+            return hour == 12 ? 12 : hour + 12
+        } else if timeString.lowercased().contains("am"), let hourStr = timeString.split(separator: " ").first, 
+                  let hour = Int(hourStr) {
+            return hour == 12 ? 0 : hour
+        } else if timeString.contains(":"), let hourStr = timeString.split(separator: ":").first, 
+                  let hour = Int(hourStr) {
+            return hour
+        }
+        
+        return nil
+    }
 }
 
 struct DayView: View {
@@ -400,19 +451,19 @@ struct DayView: View {
             // Selection indicator
             if isSelected {
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.gray.opacity(0.5))
+                    .fill(Color.primary.opacity(0.2)) // Adapts to dark/light mode
                     .frame(height: 40)
             }
             
             // Day number
             Text("\(day)")
                 .fontWeight(isSelected ? .bold : .regular)
-                .foregroundColor(.black)
+                .foregroundColor(.primary) // Adapts to dark/light mode
             
             // Event indicator dot
             if hasEvents && !isSelected {
                 Circle()
-                    .fill(Color.blue)
+                    .fill(Color.accentColor) // Uses system accent color
                     .frame(width: 6, height: 6)
                     .offset(y: 14)
             }

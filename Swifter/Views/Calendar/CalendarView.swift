@@ -15,8 +15,9 @@ struct Event: Identifiable {
 }
 
 struct CalendarView: View {
+    // Initialize with the current date information
     @State private var selectedDate = Date()
-    @State private var selectedDay: Int? = 24 // Default to today in image
+    @State private var selectedDay: Int? = Calendar.current.component(.day, from: Date()) // Current day
     @State private var currentMonth = Calendar.current.component(.month, from: Date())
     @State private var currentYear = Calendar.current.component(.year, from: Date())
     
@@ -43,7 +44,7 @@ struct CalendarView: View {
                 
                 Spacer()
                 
-                Text("\(currentYear)")
+                Text(String(format: "%d", currentYear)) 
                     .font(.largeTitle)
                     .fontWeight(.bold)
             }
@@ -82,7 +83,7 @@ struct CalendarView: View {
             
             // Date display and edit button
             HStack {
-                Text("\(weekdayName(for: dayOfWeek(year: currentYear, month: currentMonth, day: selectedDay ?? 1))), \(selectedDay ?? 1) \(monthNameShort(for: currentMonth)) \(currentYear)")
+                Text("\(weekdayName(for: dayOfWeek(year: currentYear, month: currentMonth, day: selectedDay ?? 1))), \(selectedDay ?? 1) \(monthNameShort(for: currentMonth)) \(String(format: "%d", currentYear))")
                     .font(.title2)
                     .fontWeight(.bold)
                 
@@ -98,26 +99,29 @@ struct CalendarView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(0..<24) { hour in
-                        if hour < 5 { // Just showing first few hours like in the image
-                            HStack(alignment: .top) {
-                                Text("\(hour) AM")
-                                    .foregroundColor(.gray)
-                                    .frame(width: 60, alignment: .leading)
-                                
-                                if hour == 2 && selectedDay == 24 {
-                                    // Example event at 2 AM
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.blue.opacity(0.3))
-                                        .frame(height: 30)
-                                        .padding(.leading, 8)
-                                } else {
-                                    Spacer()
-                                }
-                            }
-                            .frame(height: 60)
+                        HStack(alignment: .top) {
+                            // Format the hour display with proper AM/PM
+                            Text(formatHour(hour))
+                                .foregroundColor(.gray)
+                                .frame(width: 70, alignment: .leading)
                             
-                            Divider()
+                            // Check if there's an event at this hour for the selected day
+                            if let dayEvents = events[selectedDay ?? 0],
+                               let eventIndex = dayEvents.firstIndex(where: {
+                                   // This is a simplified check - in a real app you'd parse the time string
+                                   $0.time.contains("\(formatHourSimple(hour))")
+                               }) {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(dayEvents[eventIndex].color.opacity(0.3))
+                                    .frame(height: 30)
+                                    .padding(.leading, 8)
+                            } else {
+                                Spacer()
+                            }
                         }
+                        .frame(height: 60)
+                        
+                        Divider()
                     }
                 }
                 .padding(.horizontal)
@@ -219,6 +223,43 @@ struct CalendarView: View {
         dateFormatter.calendar = Calendar(identifier: .gregorian)
         return dateFormatter.weekdaySymbols[weekday - 1]
     }
+    
+    // Add two helper methods for formatting hours
+    private func formatHour(_ hour: Int) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.dateFormat = DateFormatter.dateFormat(fromTemplate: "j", options: 0, locale: Locale.current)
+        
+        // Check if the formatter uses AM/PM (12-hour format)
+        let uses12HourFormat = formatter.dateFormat?.contains("a") ?? false
+        
+        if uses12HourFormat {
+            if hour == 0 { return "12 AM" }
+            if hour < 12 { return "\(hour) AM" }
+            if hour == 12 { return "12 PM" }
+            return "\(hour-12) PM"
+        } else {
+            return String(format: "%02d:00", hour)
+        }
+    }
+    
+    private func formatHourSimple(_ hour: Int) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.dateFormat = DateFormatter.dateFormat(fromTemplate: "j", options: 0, locale: Locale.current)
+        
+        // Check if the formatter uses AM/PM (12-hour format)
+        let uses12HourFormat = formatter.dateFormat?.contains("a") ?? false
+        
+        if uses12HourFormat {
+            if hour == 0 { return "12 AM" }
+            if hour < 12 { return "\(hour) AM" }
+            if hour == 12 { return "12 PM" }
+            return "\(hour-12) PM"
+        } else {
+            return "\(hour):00"
+        }
+    }
 }
 
 struct DayView: View {
@@ -257,3 +298,4 @@ struct CalendarView_Previews: PreviewProvider {
             .preferredColorScheme(.dark)
     }
 }
+

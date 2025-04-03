@@ -18,7 +18,7 @@ struct UpcomingSession: View {
                     }
                     .padding(.vertical, 30)
                     
-                    // Session Card (Now Wider)
+                    // Session Card
                     VStack(spacing: 14) {
                         Text("Tomorrow")
                             .font(.system(size: 15))
@@ -46,7 +46,7 @@ struct UpcomingSession: View {
                         }
                     }
                     .padding(18)
-                    .frame(maxWidth: geometry.size.width * 0.9) // 🔥 Makes it Wider!
+                    .frame(maxWidth: geometry.size.width * 0.9)
                     .background(Color(.secondarySystemBackground))
                     .cornerRadius(20)
                     .padding(.bottom, 28)

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import EventKit
 
 struct Event: Identifiable {
     var id = UUID()
@@ -15,38 +16,92 @@ struct Event: Identifiable {
 }
 
 struct CalendarView: View {
+    // ViewModel to manage calendar data
+    @StateObject private var viewModel = CalendarViewModel()
+    
     // Initialize with the current date information
     @State private var selectedDate = Date()
     @State private var selectedDay: Int? = Calendar.current.component(.day, from: Date()) // Current day
     @State private var currentMonth = Calendar.current.component(.month, from: Date())
     @State private var currentYear = Calendar.current.component(.year, from: Date())
-    
-    // Sample events
-    @State private var events: [Int: [Event]] = [
-        24: [
-            Event(title: "Team Meeting", time: "10:00 AM", color: .blue),
-            Event(title: "Lunch with Alex", time: "12:30 PM", color: .green),
-            Event(title: "Project Deadline", time: "5:00 PM", color: .red)
-        ],
-        26: [
-            Event(title: "Doctor Appointment", time: "9:00 AM", color: .purple),
-            Event(title: "Gym Session", time: "6:30 PM", color: .orange)
-        ]
-    ]
+    @State private var showMonthPicker = false
+    @State private var showYearPicker = false
     
     var body: some View {
         VStack(spacing: 0) {
             // Month and year header
             HStack {
-                Text("\(monthName(for: currentMonth))")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+                // Month with picker
+                Button(action: {
+                    showMonthPicker = true
+                }) {
+                    Text("\(monthName(for: currentMonth))")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
+                }
+                .sheet(isPresented: $showMonthPicker) {
+                    VStack(spacing: 20) {
+                        Text("Select Month")
+                            .font(.headline)
+                            .padding(.top)
+                        
+                        Picker("Month", selection: $currentMonth) {
+                            ForEach(1...12, id: \.self) { month in
+                                Text(monthName(for: month))
+                            }
+                        }
+                        .pickerStyle(.wheel)
+                        
+                        Button("Done") {
+                            showMonthPicker = false
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                    }
+                    .presentationDetents([.height(250)])
+                }
                 
                 Spacer()
                 
-                Text(String(format: "%d", currentYear)) 
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+                // Year with picker
+                Button(action: {
+                    showYearPicker = true
+                }) {
+                    Text(String(format: "%d", currentYear))
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
+                }
+                .sheet(isPresented: $showYearPicker) {
+                    VStack(spacing: 20) {
+                        Text("Select Year")
+                            .font(.headline)
+                            .padding(.top)
+                        
+                        Picker("Year", selection: $currentYear) {
+                            ForEach((currentYear-10)...(currentYear+10), id: \.self) { year in
+                                Text(String(format: "%d", year))
+                            }
+                        }
+                        .pickerStyle(.wheel)
+                        
+                        Button("Done") {
+                            showYearPicker = false
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.black)
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                    }
+                    .presentationDetents([.height(250)])
+                }
             }
             .padding(.horizontal)
             .padding(.top)
@@ -68,7 +123,7 @@ struct CalendarView: View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 20) {
                 ForEach(daysInMonth(), id: \.self) { day in
                     if day > 0 {
-                        DayView(day: day, isSelected: day == selectedDay, hasEvents: events[day] != nil)
+                        DayView(day: day, isSelected: day == selectedDay, hasEvents: viewModel.hasEventsOnDay(day: day))
                             .onTapGesture {
                                 selectedDay = day
                             }
@@ -96,35 +151,69 @@ struct CalendarView: View {
             .padding(.top)
             
             // Time slots display
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(0..<24) { hour in
-                        HStack(alignment: .top) {
-                            // Format the hour display with proper AM/PM
-                            Text(formatHour(hour))
-                                .foregroundColor(.gray)
-                                .frame(width: 70, alignment: .leading)
+            if viewModel.hasCalendarAccess {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(0..<24) { hour in
+                            let events = viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay ?? 1)
                             
-                            // Check if there's an event at this hour for the selected day
-                            if let dayEvents = events[selectedDay ?? 0],
-                               let eventIndex = dayEvents.firstIndex(where: {
-                                   // This is a simplified check - in a real app you'd parse the time string
-                                   $0.time.contains("\(formatHourSimple(hour))")
-                               }) {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(dayEvents[eventIndex].color.opacity(0.3))
-                                    .frame(height: 30)
-                                    .padding(.leading, 8)
-                            } else {
-                                Spacer()
+                            HStack(alignment: .top) {
+                                // Format the hour display with proper AM/PM
+                                Text(formatHour(hour))
+                                    .foregroundColor(.gray)
+                                    .frame(width: 70, alignment: .leading)
+                                
+                                // Check if there's an event at this hour for the selected day
+                                if let eventIndex = events.firstIndex(where: {
+                                    // Match events based on hour part of time string
+                                    let hourString = formatHourSimple(hour).lowercased()
+                                    return $0.time.lowercased().contains(hourString)
+                                }) {
+                                    VStack(alignment: .leading) {
+                                        Text(events[eventIndex].title)
+                                            .font(.subheadline)
+                                            .foregroundColor(.black)
+                                        
+                                        Text(events[eventIndex].time)
+                                            .font(.caption)
+                                            .foregroundColor(.black.opacity(0.7))
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(events[eventIndex].color.opacity(0.3))
+                                    )
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                } else {
+                                    Spacer()
+                                }
                             }
+                            .frame(height: 60)
+                            
+                            Divider()
                         }
-                        .frame(height: 60)
-                        
-                        Divider()
                     }
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
+            } else {
+                VStack {
+                    Text("Calendar Access Required")
+                        .font(.headline)
+                        .padding(.bottom, 4)
+                    
+                    Text("Please grant calendar access in Settings to view your events")
+                        .font(.subheadline)
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.gray)
+                    
+                    Button("Request Access") {
+                        viewModel.checkCalendarAccess()
+                    }
+                    .padding(.top, 12)
+                }
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             
             Spacer()
@@ -136,7 +225,7 @@ struct CalendarView: View {
                 Button(action: {}) {
                     Image(systemName: "figure.run")
                         .font(.system(size: 24))
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                 }
                 
                 Spacer()
@@ -144,16 +233,50 @@ struct CalendarView: View {
                 Button(action: {}) {
                     Image(systemName: "calendar")
                         .font(.system(size: 24))
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                 }
                 
                 Spacer()
             }
             .padding()
-            .background(Color.black)
+            .background(Color.white)
         }
-        .background(Color.black)
-        .foregroundColor(.white)
+        .background(Color.white)
+        .foregroundColor(.black)
+        .gesture(
+            DragGesture()
+                .onEnded { gesture in
+                    if gesture.translation.width > 100 {
+                        // Swipe right - go to previous month
+                        if currentMonth > 1 {
+                            currentMonth -= 1
+                        } else {
+                            currentMonth = 12
+                            currentYear -= 1
+                        }
+                    } else if gesture.translation.width < -100 {
+                        // Swipe left - go to next month
+                        if currentMonth < 12 {
+                            currentMonth += 1
+                        } else {
+                            currentMonth = 1
+                            currentYear += 1
+                        }
+                    }
+                }
+        )
+        .onAppear {
+            // Fetch events when the view appears
+            viewModel.fetchEventsForMonth(year: currentYear, month: currentMonth)
+        }
+        .onChange(of: currentMonth) { _, newMonth in
+            // Refetch events when month changes
+            viewModel.fetchEventsForMonth(year: currentYear, month: newMonth)
+        }
+        .onChange(of: currentYear) { _, newYear in
+            // Refetch events when year changes
+            viewModel.fetchEventsForMonth(year: newYear, month: currentMonth)
+        }
     }
     
     // Helper methods
@@ -277,7 +400,7 @@ struct DayView: View {
             
             Text("\(day)")
                 .fontWeight(isSelected ? .bold : .regular)
-                .foregroundColor(isSelected ? .white : .white)
+                .foregroundColor(isSelected ? .black : .black)
                 .overlay(
                     hasEvents && !isSelected ?
                         Circle()
@@ -295,7 +418,7 @@ struct DayView: View {
 struct CalendarView_Previews: PreviewProvider {
     static var previews: some View {
         CalendarView()
-            .preferredColorScheme(.dark)
+            .preferredColorScheme(.light)
     }
 }
 

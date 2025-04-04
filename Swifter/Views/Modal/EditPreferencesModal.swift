@@ -15,7 +15,7 @@ struct EditPreferencesModal: View {
     
     var body: some View {
         ZStack {
-            Color.black.opacity(0.4) // Dim background
+            Color.primary.opacity(0.2) // Dynamic background
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture { isPresented = false }
             
@@ -23,13 +23,12 @@ struct EditPreferencesModal: View {
                 Spacer()
                 
                 VStack(alignment: .leading, spacing: 20) {
-                    
                     // Title & Back Button
                     HStack {
                         Button(action: { isPresented = false }) {
                             Image(systemName: "chevron.left")
                                 .font(.title2)
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                         }
                         Spacer()
                         Text("Edit Preferences")
@@ -38,51 +37,41 @@ struct EditPreferencesModal: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 15) {
-                        
-                        // Avg Time On Feet (Stepper)
-                        Text("Avg Time On Feet (Required)")
-                            .font(.subheadline).bold()
+                        Text("Avg Time On Feet (Required)").font(.subheadline).bold()
                         Stepper("\(avgTimeOnFeet) minutes", value: $avgTimeOnFeet, in: 5...120, step: 5)
                         
-                        // Avg Pre Jog Duration (Stepper)
-                        Text("Avg Pre Jog Duration")
-                            .font(.subheadline).bold()
+                        Text("Avg Pre Jog Duration").font(.subheadline).bold()
                         Stepper("\(preJogDuration) minutes", value: $preJogDuration, in: 0...60, step: 5)
                         
-                        // Avg Post Jog Duration (Stepper)
-                        Text("Avg Post Jog Duration")
-                            .font(.subheadline).bold()
+                        Text("Avg Post Jog Duration").font(.subheadline).bold()
                         Stepper("\(postJogDuration) minutes", value: $postJogDuration, in: 0...60, step: 5)
                         
-                        // Preferred Time of the Day (Picker)
-                        Text("Preferred Time of the Day")
-                            .font(.subheadline).bold()
+                        Text("Preferred Time of the Day").font(.subheadline).bold()
+
                         Picker("Select Time", selection: $preferredTime) {
                             ForEach(timeOptions, id: \.self) { Text($0) }
                         }
                         .pickerStyle(MenuPickerStyle())
                         
-                        // Preferred Day of the Week (Picker)
-                        Text("Preferred Day of the Week")
-                            .font(.subheadline).bold()
+                        Text("Preferred Day of the Week").font(.subheadline).bold()
+
                         Picker("Select Day", selection: $preferredDay) {
                             ForEach(daysOfWeek, id: \.self) { Text($0) }
                         }
                         .pickerStyle(MenuPickerStyle())
                     }
                     
-                    // Save Button
                     Button(action: { isPresented = false }) {
                         Text("Save")
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.gray)
+                            .background(Color.accentColor)
                             .foregroundColor(.white)
                             .cornerRadius(10)
                     }
                 }
                 .padding(20)
-                .background(Color.white)
+                .background(Color(UIColor.systemBackground)) // Adapt to system theme
                 .clipShape(RoundedRectangle(cornerRadius: 20))
                 .shadow(radius: 10)
                 .padding(.horizontal, 20)
@@ -93,9 +82,21 @@ struct EditPreferencesModal: View {
     }
 }
 
-// Preview
-struct EditPreferencesModal_Previews: PreviewProvider {
+// MARK: - Previews
+struct CombinedModals_Previews: PreviewProvider {
     static var previews: some View {
-        EditPreferencesModal(isPresented: .constant(true))
+        Group {
+            NavigationView {
+                EditPreferencesModal(isPresented: .constant(true))
+            }
+            .previewDevice("iPhone 16 Pro")
+            .previewDisplayName("Edit Preferences")
+            
+            NavigationView {
+                EditPreferencesModal(isPresented: .constant(true))
+            }
+            .previewDevice("iPhone 16 Pro")
+            .previewDisplayName("Goal Setting")
+        }
     }
 }

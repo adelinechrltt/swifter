@@ -6,36 +6,36 @@
 //
 
 import Foundation
+import SwiftData
 import EventKit
 
-enum SessionType {
-    case prejog
-    case jogging
-    case postjog
+enum SessionType: String, Codable {
+    case prejog = "Pre-jogging"
+    case jogging = "Jogging"
+    case postjog = "Post-jogging"
 }
 
-enum isCompleted : String {
+enum isCompleted : String, Codable {
     case completed = "Done"
     case incomplete = "Not started yet"
     case missed = "Missed"
 }
 
-@Observable
+@Model
 class SessionModel: Identifiable {
-    let id = UUID()
-        
+    
     var startTime: Date
     var endTime: Date
-    var calendarEvent: EKEvent
+    var calendarEventID: String
     
-    // enums
+    /// enums
     var sessionType: SessionType
     var status: isCompleted
     
-    init(startTime: Date, endTime: Date, calendarEvent: EKEvent, sessionType: SessionType){
+    init(startTime: Date, endTime: Date, calendarEventID: String, sessionType: SessionType){
         self.startTime = startTime
         self.endTime = endTime
-        self.calendarEvent = calendarEvent
+        self.calendarEventID = calendarEventID
         self.sessionType = sessionType
         self.status = isCompleted.incomplete
     }

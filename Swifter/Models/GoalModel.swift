@@ -6,20 +6,22 @@
 //
 
 import Foundation
+import SwiftData
 
-@Observable
-class GoalModel: Identifiable {
-    let id = UUID()
+enum GoalStatus: String, Codable {
+    case inProgress = "In progress"
+    case completed = "Completed"
+    case incomplete = "Incomplete"
+}
+
+@Model
+class GoalModel {
     var targetFrequency: Int
     var startDate: Date
     var endDate: Date
     var progress: Int = 0
-    enum isCompleted: String {
-        case inProgress = "In progress"
-        case completed = "Completed"
-        case incomplete = "Incomplete"
-    }
-    
+    var status: GoalStatus = GoalStatus.inProgress
+
     init(targetFrequency: Int, startDate: Date, endDate: Date) {
         self.targetFrequency = targetFrequency
         self.startDate = startDate

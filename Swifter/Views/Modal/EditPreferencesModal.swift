@@ -23,6 +23,7 @@ struct EditPreferencesModal: View {
                 Spacer()
                 
                 VStack(alignment: .leading, spacing: 20) {
+                    // Title & Back Button
                     HStack {
                         Button(action: { isPresented = false }) {
                             Image(systemName: "chevron.left")
@@ -46,12 +47,14 @@ struct EditPreferencesModal: View {
                         Stepper("\(postJogDuration) minutes", value: $postJogDuration, in: 0...60, step: 5)
                         
                         Text("Preferred Time of the Day").font(.subheadline).bold()
+
                         Picker("Select Time", selection: $preferredTime) {
                             ForEach(timeOptions, id: \.self) { Text($0) }
                         }
                         .pickerStyle(MenuPickerStyle())
                         
                         Text("Preferred Day of the Week").font(.subheadline).bold()
+
                         Picker("Select Day", selection: $preferredDay) {
                             ForEach(daysOfWeek, id: \.self) { Text($0) }
                         }
@@ -97,4 +100,3 @@ struct CombinedModals_Previews: PreviewProvider {
         }
     }
 }
-

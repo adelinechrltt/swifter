@@ -14,8 +14,10 @@ struct SwifterApp: App {
 
     var body: some Scene {
         WindowGroup {
-            EditSession()
-                .environmentObject(eventStoreManager)
+//            EditSessionView()
+            AnalyticsView().environmentObject(eventStoreManager)
+
         }
+        .modelContainer(for: [PreferencesModel.self, GoalModel.self, SessionModel.self])
     }
 }

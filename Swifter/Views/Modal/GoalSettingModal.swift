@@ -18,7 +18,6 @@ struct GoalSettingModal: View {
 
             VStack {
                 Spacer()
-
                 VStack(alignment: .leading, spacing: 25) {
                     HStack {
                         Text("Edit Your Weekly Goal")
@@ -29,8 +28,7 @@ struct GoalSettingModal: View {
                         }
                         .font(.title3)
                     }
-
-                    VStack(alignment: .leading, spacing: 25) {
+                  VStack(alignment: .leading, spacing: 25) {
                         HStack {
                             Text("Target Jog Frequency")
                                 .font(.system(size: 18, weight: .medium))
@@ -82,7 +80,6 @@ struct GoalSettingModal: View {
                                 .background(Color.gray.opacity(0.2))
                                 .cornerRadius(8)
                         }
-
                         HStack {
                             Text("End Date")
                                 .font(.system(size: 18, weight: .medium))
@@ -93,7 +90,7 @@ struct GoalSettingModal: View {
                             DatePicker("", selection: $endDate, displayedComponents: .date)
                                 .datePickerStyle(CompactDatePickerStyle())
                                 .labelsHidden()
-                                .frame(maxWidth: .infinity)
+                                .frame(maxWidth: .infinity) // Ensure it takes the full width
                                 .padding()
                                 .background(Color.gray.opacity(0.2))
                                 .cornerRadius(8)

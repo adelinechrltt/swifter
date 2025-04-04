@@ -22,14 +22,24 @@ struct CardStyling<Content: View>: View {
 
 struct AnalyticsView: View {
     
-    @State var donutChartData: [(category: String, value: Int)] {
+    @Environment(\.modelContext) private var modelContext
+    private var goalManager: GoalManager {
+        GoalManager(modelContext: modelContext)
+    }
+    private var sessionManager: JoggingSessionManager {
+        JoggingSessionManager(modelContext: modelContext)
+    }
+    
+    @StateObject private var viewModel = AnalyticsViewModel()
+    
+    var donutChartData: [(category: String, value: Int)] {
         [
             ("Done", 1),
             ("Not done", 1)
         ]
     }
     
-    @State var lineChartData: [(category: String, value: Int)] {
+    var lineChartData: [(category: String, value: Int)] {
         [
             ("Completed goals", 3),
             ("Incomplete goals", 1)
@@ -72,7 +82,7 @@ struct AnalyticsView: View {
                             ])
                 {
                     VStack{
-                        Chart(donutChartData, id: \.category) { item in
+                        Chart(viewModel.weeklyProgress, id: \.category) { item in
                             SectorMark(
                                 angle: .value("Value", item.value),
                                 innerRadius: .ratio(0.4)
@@ -83,7 +93,14 @@ struct AnalyticsView: View {
                     }
                     VStack {
                         HStack{
-                            Text("1/2").font(.title.bold())
+                            if viewModel.weeklyProgress.count >= 2 {
+                                Text("\(viewModel.weeklyProgress[0].value)/\(viewModel.weeklyProgress[0].value + viewModel.weeklyProgress[1].value)")
+                                    .font(.title.bold())
+                            } else {
+                                Text("No weekly data")
+                                    .font(.title3.italic())
+                                    .foregroundColor(.gray)
+                            }
                             Spacer()
                         }.padding(.horizontal)
                         Text("runs completed this week").font(.title3).fontWeight(.regular)
@@ -99,7 +116,7 @@ struct AnalyticsView: View {
                         .font(.title2)
                         .fontWeight(.semibold)
                     HStack{
-                        Text("2").font(.title.bold())
+                        Text("\(viewModel.monthlyJogs)").font(.title.bold())
                         Text("total runs on March 2025").font(.caption)
                     }
                 }.frame(maxWidth: .infinity))
@@ -109,7 +126,7 @@ struct AnalyticsView: View {
                         .font(.title2)
                         .fontWeight(.semibold)
                     HStack{
-                        Text("11").font(.title.bold())
+                        Text("\(viewModel.totalJogs)").font(.title.bold())
                         Text("total runs completed with Swifter").font(.caption)
                     }.frame(maxWidth: 160)
                 }.frame(maxWidth: .infinity))
@@ -127,16 +144,20 @@ struct AnalyticsView: View {
                 {
                     VStack {
                         HStack{
-                            Text("3").font(.title3.bold())
-                            Text("completed goals")
+                            Text("\(viewModel.goalChartData[0].value)").font(.title3.bold())
+                            Text((viewModel.goalChartData[0].value)>1 ? "completed goals" : "completed goal")
                         }
                         HStack{
-                            Text("1").font(.title3.bold())
-                            Text("incomplete goal")
+                            if viewModel.weeklyProgress.count >= 2 {
+                                Text("\(viewModel.goalChartData[1].value)")
+                                Text((viewModel.goalChartData[1].value)>1 ? "completed goals" : "completed goal")
+                            } else {
+                                Text("Progress unavailable")
+                            }
                         }
                     }
                     VStack{
-                        Chart(lineChartData, id: \.category) { item in
+                        Chart(viewModel.goalChartData, id: \.category) { item in
                             BarMark(
                                 x: .value("Month", item.category),
                                 y: .value("Value", item.value)
@@ -179,7 +200,7 @@ struct AnalyticsView: View {
                 /// Scrollable Goal List
                 ScrollView {
                     VStack(spacing: 8) {
-                        ForEach(goalsDummy, id: \.self) { goal in
+                        ForEach(viewModel.goals, id: \.self) { goal in
                             HStack {
                                 Text("\(goal.targetFrequency)")
                                     .font(.caption)
@@ -207,7 +228,12 @@ struct AnalyticsView: View {
                     .clipped()
                     .gesture(DragGesture())
             }.padding(.horizontal, 15))
-        }.padding()
+        }
+        .padding()
+        .onAppear(){
+            viewModel.fetchGoalData(goalManager: goalManager)
+            viewModel.fetchSessionData(sessionManager: sessionManager)
+        }
     }
 }
 

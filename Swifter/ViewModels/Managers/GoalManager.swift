@@ -30,8 +30,8 @@ class GoalManager: ObservableObject {
         
     }
     
-    func fetchGoals() -> GoalModel? {
+    func fetchGoals() -> [GoalModel]? {
         let goals = FetchDescriptor<GoalModel>()
-        return try? modelContext.fetch(goals).first
+        return try? modelContext.fetch(goals)
     }
 }

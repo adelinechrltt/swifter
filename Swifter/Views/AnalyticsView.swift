@@ -31,33 +31,6 @@ struct AnalyticsView: View {
     }
     
     @StateObject private var viewModel = AnalyticsViewModel()
-    
-    var donutChartData: [(category: String, value: Int)] {
-        [
-            ("Done", 1),
-            ("Not done", 1)
-        ]
-    }
-    
-    var lineChartData: [(category: String, value: Int)] {
-        [
-            ("Completed goals", 3),
-            ("Incomplete goals", 1)
-        ]
-    }
-    
-    @State var goalsDummy: [GoalModel] = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd"
-        
-        return [
-            GoalModel(targetFrequency: 10, startDate: formatter.date(from: "2025/01/01")!, endDate: formatter.date(from: "2025/03/01")!),
-            GoalModel(targetFrequency: 15, startDate: formatter.date(from: "2025/02/20")!, endDate: formatter.date(from: "2025/05/20")!),
-            GoalModel(targetFrequency: 20, startDate: formatter.date(from: "2025/03/01")!, endDate: formatter.date(from: "2025/06/01")!),
-            GoalModel(targetFrequency: 30, startDate: formatter.date(from: "2025/01/01")!, endDate: formatter.date(from: "2025/07/01")!),
-            GoalModel(targetFrequency: 25, startDate: formatter.date(from: "2025/02/15")!, endDate: formatter.date(from: "2025/04/15")!)
-        ]
-    }()
 
     var body: some View {
         ScrollView{

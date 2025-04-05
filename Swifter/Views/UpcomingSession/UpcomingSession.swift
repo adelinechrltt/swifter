@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct UpcomingSession: View {
-    @State private var showButtons = false
     @State private var showProgress = false
 
     var body: some View {
@@ -104,10 +103,6 @@ struct UpcomingSession: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
-                    .opacity(showButtons ? 1 : 0)
-                    .offset(y: showButtons ? 0 : 40)
-                    .animation(.easeOut(duration: 0.5).delay(0.3), value: showButtons)
-
                     Spacer()
 
                     // Progress Circle
@@ -192,7 +187,6 @@ struct UpcomingSession: View {
         }
         .navigationBarHidden(true)
         .onAppear {
-            showButtons = true
             showProgress = true
         }
     }

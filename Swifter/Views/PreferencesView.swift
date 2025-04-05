@@ -21,6 +21,9 @@ struct PreferencesView: View {
     @State private var preJogDuration: Int = 15
     @State private var postJogDuration: Int = 10
     
+    // State to control the goal setting modal
+    @State private var showGoalSettingModal = false
+    
     // Computed property to get the current preference
     private var currentPreference: PreferencesModel? {
         preferences.first
@@ -71,6 +74,20 @@ struct PreferencesView: View {
                         Stepper("Post-jog duration: \(postJogDuration) min", value: $postJogDuration, in: 5...60, step: 5)
                             .onChange(of: postJogDuration) { _, _ in updatePreference() }
                     }
+                    
+                    // Add section for Goal Settings with button to open modal
+                    Section("Goal Settings") {
+                        Button(action: {
+                            showGoalSettingModal = true
+                        }) {
+                            HStack {
+                                Text("Edit Weekly Goal")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                    }
                 }
                 
                 if currentPreference == nil {
@@ -83,6 +100,9 @@ struct PreferencesView: View {
             .navigationTitle("Your Preferences")
             .onAppear {
                 loadPreferenceData()
+            }
+            .sheet(isPresented: $showGoalSettingModal) {
+                GoalSettingModal(isPresented: $showGoalSettingModal, modelContext: modelContext)
             }
         }
     }
@@ -142,4 +162,4 @@ struct PreferencesView: View {
     PreferencesView()
         .modelContainer(container)
 }
-    
+

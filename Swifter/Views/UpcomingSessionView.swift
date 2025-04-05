@@ -175,9 +175,9 @@ struct UpcomingSession: View {
                 }
             }
             // TODO: sheet refactor
-//            .sheet(isPresented: $viewModel.preferencesModalShown){
-//                EditPreferencesModal(isPresented: $viewModel.preferencesModalShown)
-//            }
+           .sheet(isPresented: $viewModel.preferencesModalShown){
+               EditPreferencesModal(isPresented: $viewModel.preferencesModalShown, modelContext: modelContext)
+           }
             .sheet(isPresented: $viewModel.goalModalShown) {
                 GoalSettingModal(isPresented: $viewModel.goalModalShown, modelContext: modelContext)
             }

@@ -1,17 +1,31 @@
 import SwiftUI
+import SwiftData
 
 struct EditPreferencesModal: View {
     @Binding var isPresented: Bool
     
-    // State Variables
+    // SwiftData model context
+    var modelContext: ModelContext
+    
+    // Query to fetch preferences
+    @Query private var preferences: [PreferencesModel]
+    
+    // State variables to track user changes
+    @State private var selectedTimesOfDay: Set<TimeOfDay> = []
+    @State private var selectedDaysOfWeek: Set<DayOfWeek> = []
     @State private var avgTimeOnFeet: Int = 30
     @State private var preJogDuration: Int = 5
     @State private var postJogDuration: Int = 5
-    @State private var preferredTime: String = "Morning"
-    @State private var preferredDay: String = "Monday"
     
-    let timeOptions = ["Morning", "Afternoon", "Evening"]
-    let daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    // Computed property to get the current preference
+    private var currentPreference: PreferencesModel? {
+        preferences.first
+    }
+    
+    init(isPresented: Binding<Bool>, modelContext: ModelContext) {
+        self._isPresented = isPresented
+        self.modelContext = modelContext
+    }
     
     var body: some View {
         ZStack {
@@ -39,29 +53,53 @@ struct EditPreferencesModal: View {
                     VStack(alignment: .leading, spacing: 15) {
                         Text("Avg Time On Feet (Required)").font(.subheadline).bold()
                         Stepper("\(avgTimeOnFeet) minutes", value: $avgTimeOnFeet, in: 5...120, step: 5)
+                            .onChange(of: avgTimeOnFeet) { _, _ in updatePreference() }
                         
                         Text("Avg Pre Jog Duration").font(.subheadline).bold()
                         Stepper("\(preJogDuration) minutes", value: $preJogDuration, in: 0...60, step: 5)
+                            .onChange(of: preJogDuration) { _, _ in updatePreference() }
                         
                         Text("Avg Post Jog Duration").font(.subheadline).bold()
                         Stepper("\(postJogDuration) minutes", value: $postJogDuration, in: 0...60, step: 5)
+                            .onChange(of: postJogDuration) { _, _ in updatePreference() }
                         
-                        Text("Preferred Time of the Day").font(.subheadline).bold()
-
-                        Picker("Select Time", selection: $preferredTime) {
-                            ForEach(timeOptions, id: \.self) { Text($0) }
-                        }
-                        .pickerStyle(MenuPickerStyle())
+                        Text("Preferred Times of Day").font(.subheadline).bold()
                         
-                        Text("Preferred Day of the Week").font(.subheadline).bold()
-
-                        Picker("Select Day", selection: $preferredDay) {
-                            ForEach(daysOfWeek, id: \.self) { Text($0) }
+                        ForEach(TimeOfDay.allCases) { time in
+                            Toggle(time.rawValue, isOn: Binding(
+                                get: { selectedTimesOfDay.contains(time) },
+                                set: { isOn in
+                                    if isOn {
+                                        selectedTimesOfDay.insert(time)
+                                    } else {
+                                        selectedTimesOfDay.remove(time)
+                                    }
+                                    updatePreference()
+                                }
+                            ))
                         }
-                        .pickerStyle(MenuPickerStyle())
+                        
+                        Text("Preferred Days of the Week").font(.subheadline).bold()
+                        
+                        ForEach(DayOfWeek.allCases) { day in
+                            Toggle(day.name, isOn: Binding(
+                                get: { selectedDaysOfWeek.contains(day) },
+                                set: { isOn in
+                                    if isOn {
+                                        selectedDaysOfWeek.insert(day)
+                                    } else {
+                                        selectedDaysOfWeek.remove(day)
+                                    }
+                                    updatePreference()
+                                }
+                            ))
+                        }
                     }
                     
-                    Button(action: { isPresented = false }) {
+                    Button(action: {
+                        updatePreference()
+                        isPresented = false 
+                    }) {
                         Text("Save")
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -78,25 +116,65 @@ struct EditPreferencesModal: View {
             }
             .frame(maxWidth: 700)
             .transition(.move(edge: .bottom))
+            .onAppear {
+                loadPreferenceData()
+            }
+        }
+    }
+    
+    // Load current preference data into state variables
+    private func loadPreferenceData() {
+        guard let preference = currentPreference else { return }
+        
+        selectedTimesOfDay = Set(preference.preferredTimesOfDay)
+        selectedDaysOfWeek = Set(preference.preferredDaysOfWeek ?? [])
+        avgTimeOnFeet = preference.jogDuration
+        preJogDuration = preference.preJogDuration
+        postJogDuration = preference.postJogDuration
+    }
+    
+    // Update the existing preference with current state
+    private func updatePreference() {
+        guard let preference = currentPreference else { return }
+        
+        // Update the model with current selections
+        preference.preferredTimesOfDay = Array(selectedTimesOfDay)
+        preference.preferredDaysOfWeek = Array(selectedDaysOfWeek)
+        preference.jogDuration = avgTimeOnFeet
+        preference.preJogDuration = preJogDuration
+        preference.postJogDuration = postJogDuration
+        
+        // Save the changes
+        do {
+            try modelContext.save()
+            print("✅ Preferences updated successfully")
+        } catch {
+            print("❌ Failed to save preferences: \(error)")
         }
     }
 }
 
-// MARK: - Previews
-struct CombinedModals_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            NavigationView {
-                EditPreferencesModal(isPresented: .constant(true))
-            }
-            .previewDevice("iPhone 16 Pro")
-            .previewDisplayName("Edit Preferences")
+#Preview {
+    let container: ModelContainer = {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        do {
+            let container = try ModelContainer(for: PreferencesModel.self, configurations: config)
             
-            NavigationView {
-                EditPreferencesModal(isPresented: .constant(true))
-            }
-            .previewDevice("iPhone 16 Pro")
-            .previewDisplayName("Goal Setting")
+            // Insert sample data
+            let samplePreference = PreferencesModel(
+                timeOnFeet: 15,
+                preJogDuration: 15,
+                postJogDuration: 10,
+                timeOfDay: [TimeOfDay.morning, TimeOfDay.evening],
+                dayOfWeek: [DayOfWeek.monday, DayOfWeek.wednesday, DayOfWeek.friday]
+            )
+            container.mainContext.insert(samplePreference)
+            
+            return container
+        } catch {
+            fatalError("Failed to create model container: \(error)")
         }
-    }
+    }()
+    
+    return EditPreferencesModal(isPresented: .constant(true), modelContext: container.mainContext)
 }

@@ -51,7 +51,7 @@ struct GoalSettingModal: View {
                                     Text("-")
                                         .font(.title2)
                                         .frame(width: 40, height: 30)
-                                        .background(Color.gray.opacity(0.2))
+                                        .background(Color(UIColor.secondarySystemBackground)) // Use adaptive background
                                         .cornerRadius(8)
                                 }
                                 
@@ -67,7 +67,7 @@ struct GoalSettingModal: View {
                                     Text("+")
                                         .font(.title2)
                                         .frame(width: 40, height: 30)
-                                        .background(Color.gray.opacity(0.2))
+                                        .background(Color(UIColor.secondarySystemBackground)) // Use adaptive background
                                         .cornerRadius(8)
                                 }
                             }
@@ -85,7 +85,7 @@ struct GoalSettingModal: View {
                                 .labelsHidden()
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.gray.opacity(0.2))
+                                .background(Color(UIColor.secondarySystemBackground)) // Use adaptive background
                                 .cornerRadius(8)
                         }
                         
@@ -101,13 +101,13 @@ struct GoalSettingModal: View {
                                 .labelsHidden()
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.gray.opacity(0.2))
+                                .background(Color(UIColor.secondarySystemBackground)) // Use adaptive background
                                 .cornerRadius(8)
                         }
                     }
                 }
                 .padding(20)
-                .background(Color.white)
+                .background(Color(UIColor.systemBackground)) // Use adaptive background
                 .clipShape(RoundedRectangle(cornerRadius: 20))
                 .shadow(radius: 10)
                 .padding(.horizontal, 20)

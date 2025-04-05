@@ -3,50 +3,42 @@ import SwiftData
 
 struct EditPreferencesModal: View {
     @Binding var isPresented: Bool
-    
-    // SwiftData model context
+
     var modelContext: ModelContext
-    
-    // Query to fetch preferences
     @Query private var preferences: [PreferencesModel]
-    
-    // State variables to track user changes
+
     @State private var selectedTimesOfDay: Set<TimeOfDay> = []
     @State private var selectedDaysOfWeek: Set<DayOfWeek> = []
     @State private var avgTimeOnFeet: Int = 30
     @State private var preJogDuration: Int = 5
     @State private var postJogDuration: Int = 5
-    
-    // Layout for grid items
-    private let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible()),
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
-    
-    // Computed property to get the current preference
+
+    @State private var showSaveAlert = false
+
+    private let columns = Array(repeating: GridItem(.flexible()), count: 4)
+
     private var currentPreference: PreferencesModel? {
         preferences.first
     }
-    
+
     init(isPresented: Binding<Bool>, modelContext: ModelContext) {
         self._isPresented = isPresented
         self.modelContext = modelContext
     }
-    
+
     var body: some View {
         ZStack {
-            Color.primary.opacity(0.2) // Dynamic background
+            // Transparent modal background
+            Color.black.opacity(0.4)
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture { isPresented = false }
-            
+
             VStack {
                 Spacer()
-                
+
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
-                        // Title & Back Button
+                        // Title & Back
                         HStack {
                             Button(action: { isPresented = false }) {
                                 Image(systemName: "chevron.left")
@@ -58,54 +50,47 @@ struct EditPreferencesModal: View {
                                 .font(.headline)
                             Spacer()
                         }
-                        
+
                         VStack(alignment: .leading, spacing: 15) {
                             Text("Avg Time On Feet (Required)").font(.subheadline).bold()
                             Stepper("\(avgTimeOnFeet) minutes", value: $avgTimeOnFeet, in: 5...120, step: 5)
                                 .onChange(of: avgTimeOnFeet) { _, _ in updatePreference() }
-                            
+
                             Text("Avg Pre Jog Duration").font(.subheadline).bold()
                             Stepper("\(preJogDuration) minutes", value: $preJogDuration, in: 0...60, step: 5)
                                 .onChange(of: preJogDuration) { _, _ in updatePreference() }
-                            
+
                             Text("Avg Post Jog Duration").font(.subheadline).bold()
                             Stepper("\(postJogDuration) minutes", value: $postJogDuration, in: 0...60, step: 5)
                                 .onChange(of: postJogDuration) { _, _ in updatePreference() }
-                            
-                            // Times of day selection
+
                             Text("Preferred Times of Day").font(.subheadline).bold()
-                            
+
                             LazyVGrid(columns: columns, spacing: 8) {
                                 ForEach(TimeOfDay.allCases) { time in
                                     TimeButton(
                                         title: time.rawValue,
                                         isSelected: selectedTimesOfDay.contains(time),
-                                        action: {
-                                            toggleTimeOfDay(time)
-                                        }
+                                        action: { toggleTimeOfDay(time) }
                                     )
                                 }
                             }
-                            
-                            // Days of week selection
+
                             Text("Preferred Days of the Week").font(.subheadline).bold()
-                            
+
                             LazyVGrid(columns: columns, spacing: 8) {
                                 ForEach(DayOfWeek.allCases) { day in
                                     DayButton(
                                         title: day.name.prefix(3),
                                         isSelected: selectedDaysOfWeek.contains(day),
-                                        action: {
-                                            toggleDayOfWeek(day)
-                                        }
+                                        action: { toggleDayOfWeek(day) }
                                     )
                                 }
                             }
                         }
-                        
+
                         Button(action: {
-                            updatePreference()
-                            isPresented = false 
+                            showSaveAlert = true
                         }) {
                             Text("Save")
                                 .frame(maxWidth: .infinity)
@@ -115,12 +100,23 @@ struct EditPreferencesModal: View {
                                 .cornerRadius(10)
                         }
                         .padding(.top, 10)
+                        .alert(isPresented: $showSaveAlert) {
+                            Alert(
+                                title: Text("Save Changes?"),
+                                message: Text("Are you sure you want to save your preferences?"),
+                                primaryButton: .default(Text("OK")) {
+                                    updatePreference()
+                                    isPresented = false
+                                },
+                                secondaryButton: .cancel()
+                            )
+                        }
                     }
                     .padding(20)
+                    .background(Color(.systemBackground)) // ADAPTIVE BG
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .shadow(radius: 10)
                 }
-                .background(Color(UIColor.systemBackground)) // Adapt to system theme
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .shadow(radius: 10)
                 .padding(.horizontal, 20)
                 .frame(maxHeight: UIScreen.main.bounds.height * 0.75)
             }
@@ -131,30 +127,25 @@ struct EditPreferencesModal: View {
             }
         }
     }
-    
-    // Load current preference data into state variables
+
     private func loadPreferenceData() {
         guard let preference = currentPreference else { return }
-        
         selectedTimesOfDay = Set(preference.preferredTimesOfDay)
         selectedDaysOfWeek = Set(preference.preferredDaysOfWeek ?? [])
         avgTimeOnFeet = preference.jogDuration
         preJogDuration = preference.preJogDuration
         postJogDuration = preference.postJogDuration
     }
-    
-    // Update the existing preference with current state
+
     private func updatePreference() {
         guard let preference = currentPreference else { return }
-        
-        // Update the model with current selections
+
         preference.preferredTimesOfDay = Array(selectedTimesOfDay)
         preference.preferredDaysOfWeek = Array(selectedDaysOfWeek)
         preference.jogDuration = avgTimeOnFeet
         preference.preJogDuration = preJogDuration
         preference.postJogDuration = postJogDuration
-        
-        // Save the changes
+
         do {
             try modelContext.save()
             print("✅ Preferences updated successfully")
@@ -162,8 +153,7 @@ struct EditPreferencesModal: View {
             print("❌ Failed to save preferences: \(error)")
         }
     }
-    
-    // Toggle time of day selection
+
     private func toggleTimeOfDay(_ time: TimeOfDay) {
         if selectedTimesOfDay.contains(time) {
             selectedTimesOfDay.remove(time)
@@ -172,8 +162,7 @@ struct EditPreferencesModal: View {
         }
         updatePreference()
     }
-    
-    // Toggle day of week selection
+
     private func toggleDayOfWeek(_ day: DayOfWeek) {
         if selectedDaysOfWeek.contains(day) {
             selectedDaysOfWeek.remove(day)
@@ -184,12 +173,13 @@ struct EditPreferencesModal: View {
     }
 }
 
-// Reusable button for Time of Day selection
+// MARK: - Reusable Buttons
+
 struct TimeButton: View {
     let title: String
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Text(title)
@@ -208,12 +198,11 @@ struct TimeButton: View {
     }
 }
 
-// Reusable button for Day of Week selection
 struct DayButton: View {
     let title: String.SubSequence
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Text(title)
@@ -231,28 +220,27 @@ struct DayButton: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     let container: ModelContainer = {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         do {
             let container = try ModelContainer(for: PreferencesModel.self, configurations: config)
-            
-            // Insert sample data
             let samplePreference = PreferencesModel(
                 timeOnFeet: 15,
                 preJogDuration: 15,
                 postJogDuration: 10,
-                timeOfDay: [TimeOfDay.morning, TimeOfDay.evening],
-                dayOfWeek: [DayOfWeek.monday, DayOfWeek.wednesday, DayOfWeek.friday]
+                timeOfDay: [.morning, .evening],
+                dayOfWeek: [.monday, .wednesday, .friday]
             )
             container.mainContext.insert(samplePreference)
-            
             return container
         } catch {
             fatalError("Failed to create model container: \(error)")
         }
     }()
-    
+
     return EditPreferencesModal(isPresented: .constant(true), modelContext: container.mainContext)
 }

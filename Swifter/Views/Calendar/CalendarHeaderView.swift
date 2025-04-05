@@ -166,7 +166,7 @@ struct DateDisplayView: View {
     }
 }
 
-// MARK: - Events Timeline View 
+// MARK: - Events Timeline View
 struct EventsTimelineView: View {
     let viewModel: CalendarViewModel
     let currentYear: Int
@@ -174,20 +174,22 @@ struct EventsTimelineView: View {
     let selectedDay: Int
     let formatHour: (Int) -> String
     let formatTime: (Date) -> String
-    
+    let hourHeight: CGFloat = 100.0 // Increased hour height
+
     var body: some View {
         ScrollView {
             ZStack(alignment: .topLeading) {
                 // Base hour grid
-                HourGridView(formatHour: formatHour)
-                
+                HourGridView(formatHour: formatHour, hourHeight: hourHeight) // Pass hourHeight
+
                 // Events overlay
                 EventsOverlayView(
                     events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay),
-                    formatTime: formatTime
+                    formatTime: formatTime,
+                    hourHeight: hourHeight // Pass hourHeight
                 )
             }
-            .frame(height: 24 * 50) // Total height for 24 hours
+            .frame(height: 24 * hourHeight) // Use hourHeight constant
         }
     }
 }
@@ -195,7 +197,8 @@ struct EventsTimelineView: View {
 // MARK: - Hour Grid View
 struct HourGridView: View {
     let formatHour: (Int) -> String
-    
+    let hourHeight: CGFloat // Receive hourHeight
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(0..<24) { hour in
@@ -208,8 +211,8 @@ struct HourGridView: View {
                         Spacer()
                     }
                     .padding(.vertical, 8)
-                    .frame(height: 50) // Fixed height for each hour
-                    
+                    .frame(height: hourHeight) // Use hourHeight constant
+
                     Divider()
                 }
             }
@@ -222,7 +225,8 @@ struct HourGridView: View {
 struct EventsOverlayView: View {
     let events: [Event]
     let formatTime: (Date) -> String
-    
+    let hourHeight: CGFloat // Receive hourHeight
+
     var body: some View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width - 70 // Subtract hour label width
@@ -267,10 +271,13 @@ struct EventsOverlayView: View {
         let hour = calendar.component(.hour, from: date)
         let minute = calendar.component(.minute, from: date)
         
-        let hourHeight: CGFloat = 50.0
-        // Calculate position: each hour block is 50 points high
+        // Calculate position: each hour block is hourHeight points high
         // Position is the number of hours * hourHeight + the minute fraction of an hour
-        return CGFloat(hour) * hourHeight + (CGFloat(minute) / 60.0) * hourHeight
+        let exactYPosition = CGFloat(hour) * hourHeight + (CGFloat(minute) / 60.0) * hourHeight
+        
+        // Add a small offset (e.g., 1 point) to push the block slightly below the hour line
+        let verticalOffset: CGFloat = 1.0 
+        return exactYPosition + verticalOffset
     }
 }
 
@@ -279,7 +286,8 @@ struct EventBlockView: View {
     let event: Event
     let formatTime: (Date) -> String
     let width: CGFloat
-    
+    let hourHeight: CGFloat = 100.0 // Define or receive hourHeight
+
     var body: some View {
         VStack(alignment: .leading) {
             Text(event.title)
@@ -295,7 +303,7 @@ struct EventBlockView: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .frame(width: width, alignment: .leading)
-        .frame(height: calculateHeight())
+        .frame(height: calculateHeight()) // Use the updated calculateHeight
         .background(
             RoundedRectangle(cornerRadius: 6)
                 .fill(event.color.opacity(0.3))
@@ -311,16 +319,12 @@ struct EventBlockView: View {
         let endHour = calendar.component(.hour, from: event.endDate)
         let endMinute = calendar.component(.minute, from: event.endDate)
         
-        let hourHeight: CGFloat = 50.0
-        
         // Calculate total duration in minutes
         var durationInMinutes: CGFloat = 0
         
         if endHour < startHour || (endHour == startHour && endMinute <= startMinute) {
             // Event crosses midnight
-            // Calculate minutes from start time to midnight (24:00)
             let minutesToMidnight = CGFloat((24 - startHour) * 60 - startMinute)
-            // Add minutes from midnight to end time
             let minutesAfterMidnight = CGFloat(endHour * 60 + endMinute)
             durationInMinutes = minutesToMidnight + minutesAfterMidnight
         } else {
@@ -331,8 +335,9 @@ struct EventBlockView: View {
         }
         
         // Convert minutes to height - hourHeight represents 60 minutes
-        // Ensure minimum height of 30 for visibility
-        return max(30.0, durationInMinutes / 60.0 * hourHeight)
+        // Ensure minimum height for visibility (adjust if needed with larger hourHeight)
+        let calculatedHeight = durationInMinutes / 60.0 * hourHeight // Use hourHeight constant
+        return max(30.0, calculatedHeight) // Keep a minimum height or adjust as needed
     }
 }
 

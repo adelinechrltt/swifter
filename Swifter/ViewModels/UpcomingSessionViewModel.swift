@@ -11,6 +11,7 @@ final class UpcomingSessionViewModel: ObservableObject {
     
     @Published var currentGoal: GoalModel
     @Published var nextSession: SessionModel
+    @Published var preferencesModalShown: Bool = false
     
     /// init with dummy data
     init(){

@@ -132,7 +132,9 @@ struct UpcomingSession: View {
                                     .font(.system(size: 15))
                                     .foregroundColor(Color.secondary)
                                 
-                                Button(action: {}) {
+                                Button(action: {
+                                    AnalyticsView()
+                                }) {
                                     HStack{
                                         Text("See More")
                                             .font(.system(size: 12, weight: .medium))
@@ -161,13 +163,17 @@ struct UpcomingSession: View {
                 }
             }.toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        print("Tapped gear icon!")
-                    }) {
+                    Button{
+                        viewModel.preferencesModalShown = true
+                    } label: {
                         Image(systemName: "gearshape")
                     }.foregroundColor(.primary)
                 }
             }
+            // TODO: sheet refactor
+//            .sheet(isPresented: $viewModel.preferencesModalShown){
+//                EditPreferencesModal(isPresented: $viewModel.preferencesModalShown)
+//            }
         }
     }
 }

@@ -175,7 +175,8 @@ struct EventsTimelineView: View {
     let formatHour: (Int) -> String
     let formatTime: (Date) -> String
     let hourHeight: CGFloat = 100.0 // Increased hour height
-
+    let onEventTapped: (Event) -> Void // Add this new parameter
+    
     var body: some View {
         ScrollView {
             ZStack(alignment: .topLeading) {
@@ -186,7 +187,8 @@ struct EventsTimelineView: View {
                 EventsOverlayView(
                     events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay),
                     formatTime: formatTime,
-                    hourHeight: hourHeight // Pass hourHeight
+                    hourHeight: hourHeight, // Pass hourHeight
+                    onEventTapped: onEventTapped // Pass onEventTapped
                 )
             }
             .frame(height: 24 * hourHeight) // Use hourHeight constant
@@ -226,7 +228,8 @@ struct EventsOverlayView: View {
     let events: [Event]
     let formatTime: (Date) -> String
     let hourHeight: CGFloat // Receive hourHeight
-
+    let onEventTapped: (Event) -> Void // Add this new parameter
+    
     var body: some View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width - 70 // Subtract hour label width
@@ -253,7 +256,11 @@ struct EventsOverlayView: View {
                             EventBlockView(
                                 event: event,
                                 formatTime: formatTime,
-                                width: eventCount > 1 ? (availableWidth / CGFloat(eventCount)) - 4 : availableWidth
+                                width: eventCount > 1 ? (availableWidth / CGFloat(eventCount)) - 4 : availableWidth,
+                                hourHeight: hourHeight,
+                                onTap: {
+                                    onEventTapped(event)
+                                }
                             )
                         }
                     }
@@ -286,7 +293,8 @@ struct EventBlockView: View {
     let event: Event
     let formatTime: (Date) -> String
     let width: CGFloat
-    let hourHeight: CGFloat = 100.0 // Define or receive hourHeight
+    let hourHeight: CGFloat // Define or receive hourHeight
+    let onTap: () -> Void // Add this new parameter
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -308,6 +316,9 @@ struct EventBlockView: View {
             RoundedRectangle(cornerRadius: 6)
                 .fill(event.color.opacity(0.3))
         )
+        .onTapGesture {
+            onTap() // Call the tap handler
+        }
     }
     
     // Calculate accurate height based on event duration

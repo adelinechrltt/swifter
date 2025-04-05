@@ -54,8 +54,8 @@ class PreferencesModel {
     var preferredDaysOfWeek: [DayOfWeek]? = nil
     
     init(timeOnFeet: Int,
-         preJogDuration: Int = 15,
-         postJogDuration: Int = 10,
+         preJogDuration: Int = 0,
+         postJogDuration: Int = 0,
          timeOfDay: [TimeOfDay] = [TimeOfDay.morning, TimeOfDay.afternoon],
          dayOfWeek: [DayOfWeek] = [DayOfWeek.monday, DayOfWeek.wednesday, DayOfWeek.friday]
     ){

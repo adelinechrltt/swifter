@@ -65,20 +65,14 @@ class CalendarViewModel: ObservableObject {
         
         for ekEvent in ekEvents {
             let day = calendar.component(.day, from: ekEvent.startDate)
-            let hour = calendar.component(.hour, from: ekEvent.startDate)
-            let minute = calendar.component(.minute, from: ekEvent.startDate)
-            
-            // Format time
-            let timeFormatter = DateFormatter()
-            timeFormatter.dateFormat = "h:mm a" 
-            let timeString = timeFormatter.string(from: ekEvent.startDate)
             
             // Create color from calendar color
             let calendarColor = Color(UIColor(cgColor: ekEvent.calendar.cgColor))
             
             let event = Event(
                 title: ekEvent.title ?? "Untitled Event",
-                time: timeString,
+                startDate: ekEvent.startDate, // Use Date object
+                endDate: ekEvent.endDate,     // Use Date object
                 color: calendarColor
             )
             

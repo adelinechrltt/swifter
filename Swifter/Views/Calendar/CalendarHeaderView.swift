@@ -1,0 +1,406 @@
+//
+//  CalendarHeaderView.swift
+//  Swifter
+//
+//  Created by Teuku Fazariz Basya on 05/04/25.
+//
+
+import SwiftUI
+
+import SwiftUI
+
+// MARK: - Calendar Header View
+struct CalendarHeaderView: View {
+    @Binding var currentMonth: Int
+    @Binding var currentYear: Int
+    @Binding var showMonthPicker: Bool
+    @Binding var showYearPicker: Bool
+    let monthName: (Int) -> String
+    
+    var body: some View {
+        HStack {
+            // Month with picker
+            Button(action: {
+                showMonthPicker = true
+            }) {
+                Text("\(monthName(currentMonth))")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+            }
+            .sheet(isPresented: $showMonthPicker) {
+                VStack(spacing: 20) {
+                    Text("Select Month")
+                        .font(.headline)
+                        .padding(.top)
+                    
+                    Picker("Month", selection: $currentMonth) {
+                        ForEach(1...12, id: \.self) { month in
+                            Text(monthName(month))
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    
+                    Button("Done") {
+                        showMonthPicker = false
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.accentColor)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                }
+                .presentationDetents([.height(250)])
+            }
+            
+            Spacer()
+            
+            // Year with picker
+            Button(action: {
+                showYearPicker = true
+            }) {
+                Text(String(format: "%d", currentYear))
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+            }
+            .sheet(isPresented: $showYearPicker) {
+                VStack(spacing: 20) {
+                    Text("Select Year")
+                        .font(.headline)
+                        .padding(.top)
+                    
+                    Picker("Year", selection: $currentYear) {
+                        ForEach((currentYear-10)...(currentYear+10), id: \.self) { year in
+                            Text(String(format: "%d", year))
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    
+                    Button("Done") {
+                        showYearPicker = false
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.accentColor)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                }
+                .presentationDetents([.height(250)])
+            }
+        }
+        .padding(.horizontal)
+        .padding(.top)
+    }
+}
+
+// MARK: - Weekday Header View
+struct WeekdayHeaderView: View {
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { day in
+                Text(day)
+                    .font(.headline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.gray)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.top, 20)
+        .padding(.bottom, 10)
+    }
+}
+
+// MARK: - Calendar Grid View
+struct CalendarGridView: View {
+    let currentYear: Int
+    let currentMonth: Int
+    @Binding var selectedDay: Int?
+    let hasEventsOnDay: (Int) -> Bool
+    let daysInMonth: () -> [Int]
+    
+    var body: some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 10) {
+            ForEach(daysInMonth(), id: \.self) { day in
+                if day > 0 {
+                    DayView(day: day, isSelected: day == selectedDay, hasEvents: hasEventsOnDay(day))
+                        .onTapGesture {
+                            selectedDay = day
+                        }
+                } else {
+                    // Empty space for days not in current month
+                    Text("")
+                        .frame(maxWidth: .infinity)
+                }
+            }
+        }
+        .padding(.horizontal)
+    }
+}
+
+// MARK: - Date Display View
+struct DateDisplayView: View {
+    let weekdayName: (Int) -> String
+    let dayOfWeek: (Int, Int, Int) -> Int
+    let currentYear: Int
+    let currentMonth: Int
+    let selectedDay: Int
+    let monthNameShort: (Int) -> String
+    
+    var body: some View {
+        HStack {
+            Text("\(weekdayName(dayOfWeek(currentYear, currentMonth, selectedDay))), \(selectedDay) \(monthNameShort(currentMonth)) \(String(format: "%d", currentYear))")
+                .font(.title2)
+                .fontWeight(.bold)
+            
+            Spacer()
+            
+            Image(systemName: "pencil")
+                .foregroundColor(.gray)
+        }
+        .padding()
+        .padding(.top)
+    }
+}
+
+// MARK: - Events Timeline View
+struct EventsTimelineView: View {
+    let viewModel: CalendarViewModel
+    let currentYear: Int
+    let currentMonth: Int
+    let selectedDay: Int
+    let formatHour: (Int) -> String
+    let formatTime: (Date) -> String
+    
+    var body: some View {
+        ScrollView {
+            ZStack(alignment: .topLeading) {
+                // Base hour grid
+                HourGridView(formatHour: formatHour)
+                
+                // Events overlay
+                EventsOverlayView(
+                    events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay),
+                    formatTime: formatTime
+                )
+            }
+            .frame(height: 24 * 50) // Total height for 24 hours
+        }
+    }
+}
+
+// MARK: - Hour Grid View
+struct HourGridView: View {
+    let formatHour: (Int) -> String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(0..<24) { hour in
+                VStack(alignment: .leading, spacing: 0) {
+                    // Hour label at the beginning of the hour slot
+                    HStack {
+                        Text(formatHour(hour))
+                            .foregroundColor(.gray)
+                            .frame(width: 70, alignment: .leading)
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .frame(height: 50) // Fixed height for each hour
+                    
+                    Divider()
+                }
+            }
+        }
+        .padding(.horizontal)
+    }
+}
+
+// MARK: - Events Overlay View
+struct EventsOverlayView: View {
+    let events: [Event]
+    let formatTime: (Date) -> String
+    
+    var body: some View {
+        GeometryReader { geometry in
+            let availableWidth = geometry.size.width - 70 // Subtract hour label width
+            
+            ZStack(alignment: .topLeading) {
+                // Group events by start time
+                ForEach(groupEventsByStartTime().sorted(by: { $0.key < $1.key }), id: \.key) { startTime, eventsAtTime in
+                    let eventCount = eventsAtTime.count
+                    
+                    // Display events horizontally when they share the same start time
+                    HStack(spacing: 4) {
+                        ForEach(Array(eventsAtTime.enumerated()), id: \.element.id) { index, event in
+                            EventBlockView(
+                                event: event,
+                                formatTime: formatTime,
+                                width: eventCount > 1 ? (availableWidth / CGFloat(eventCount)) - 4 : availableWidth
+                            )
+                        }
+                    }
+                    .padding(.leading, 70) // Align with hour grid
+                }
+            }
+        }
+    }
+    
+    // Group events by their start time
+    private func groupEventsByStartTime() -> [Date: [Event]] {
+        var eventsByStartTime: [Date: [Event]] = [:]
+        
+        for event in events {
+            // Create date components with just hour and minute for grouping
+            let calendar = Calendar.current
+            let components = calendar.dateComponents([.hour, .minute], from: event.startDate)
+            if let normalizedDate = calendar.date(from: components) {
+                if eventsByStartTime[normalizedDate] != nil {
+                    eventsByStartTime[normalizedDate]!.append(event)
+                } else {
+                    eventsByStartTime[normalizedDate] = [event]
+                }
+            }
+        }
+        
+        return eventsByStartTime
+    }
+}
+
+// MARK: - Event Block View
+struct EventBlockView: View {
+    let event: Event
+    let formatTime: (Date) -> String
+    let width: CGFloat
+    
+    var body: some View {
+        let height = calculateEventHeight()
+        
+        VStack(alignment: .leading) {
+            Text(event.title)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(.primary)
+                .lineLimit(1)
+
+            Text("\(formatTime(event.startDate)) - \(formatTime(event.endDate))")
+                .font(.caption)
+                .foregroundColor(.primary.opacity(0.7))
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .frame(width: width, alignment: .leading)
+        .frame(height: height)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(event.color.opacity(0.3))
+        )
+        .offset(y: calculateEventOffset())
+    }
+    
+    // Calculate precise event height based on duration
+    private func calculateEventHeight() -> CGFloat {
+        let calendar = Calendar.current
+        let startHour = calendar.component(.hour, from: event.startDate)
+        let startMinute = calendar.component(.minute, from: event.startDate)
+        let endHour = calendar.component(.hour, from: event.endDate)
+        let endMinute = calendar.component(.minute, from: event.endDate)
+        
+        let hourHeight: CGFloat = 50.0
+        
+        // Calculate duration in minutes
+        let durationInMinutes: CGFloat
+        if endHour < startHour || (endHour == startHour && endMinute < startMinute) {
+            // Event crosses midnight
+            let minutesToMidnight = CGFloat((24 - startHour) * 60 - startMinute)
+            let minutesAfterMidnight = CGFloat(endHour * 60 + endMinute)
+            durationInMinutes = minutesToMidnight + minutesAfterMidnight
+        } else {
+            // Same day event
+            let startTotalMinutes = CGFloat(startHour * 60 + startMinute)
+            let endTotalMinutes = CGFloat(endHour * 60 + endMinute)
+            durationInMinutes = endTotalMinutes - startTotalMinutes
+        }
+        
+        // Convert minutes to height (hourHeight = 60 minutes)
+        return max(30.0, (durationInMinutes / 60.0) * hourHeight)
+    }
+    
+    // Calculate precise Y offset based on start time
+    private func calculateEventOffset() -> CGFloat {
+        let calendar = Calendar.current
+        let startHour = calendar.component(.hour, from: event.startDate)
+        let startMinute = calendar.component(.minute, from: event.startDate)
+        
+        let hourHeight: CGFloat = 50.0
+        return CGFloat(startHour) * hourHeight + (CGFloat(startMinute) / 60.0) * hourHeight
+    }
+}
+
+// MARK: - Calendar Access View
+struct CalendarAccessView: View {
+    let checkAccess: () -> Void
+    
+    var body: some View {
+        VStack {
+            Text("Calendar Access Required")
+                .font(.headline)
+                .padding(.bottom, 4)
+            
+            Text("Please grant calendar access in Settings to view your events")
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .foregroundColor(.gray)
+            
+            Button("Request Access") {
+                checkAccess()
+            }
+            .padding(.top, 12)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// MARK: - Bottom Tab Bar View
+struct BottomTabBarView: View {
+    var body: some View {
+        HStack {
+            Spacer()
+            
+            Button(action: {}) {
+                Image(systemName: "figure.run")
+                    .font(.system(size: 24))
+                    .foregroundColor(.primary)
+            }
+            
+            Spacer()
+            
+            Button(action: {}) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 24))
+                    .foregroundColor(.primary)
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .background(Color(uiColor: .systemBackground))
+    }
+}
+
+#Preview {
+    CalendarHeaderView(
+        currentMonth: .constant(4),  // April
+        currentYear: .constant(2025), // Current year
+        showMonthPicker: .constant(false),
+        showYearPicker: .constant(false),
+        monthName: { month in
+            let dateFormatter = DateFormatter()
+            dateFormatter.calendar = Calendar(identifier: .gregorian)
+            return dateFormatter.monthSymbols[month - 1]
+        }
+    )
+}

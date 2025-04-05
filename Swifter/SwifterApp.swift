@@ -11,12 +11,13 @@ import SwiftUI
 struct SwifterApp: App {
     
     @StateObject private var eventStoreManager = EventStoreManager()
-
+    
     var body: some Scene {
         WindowGroup {
 //            EditSessionView()
-            ContentView().environmentObject(eventStoreManager)
-//            OnboardStart()
+            ContentView()
+                .environmentObject(eventStoreManager)
+            //            OnboardStart().environmentObject(eventStoreManager)
         }
         .modelContainer(for: [PreferencesModel.self, GoalModel.self, SessionModel.self])
     }

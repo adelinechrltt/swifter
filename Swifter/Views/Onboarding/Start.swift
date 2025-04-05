@@ -10,6 +10,8 @@ import SwiftUI
 struct OnboardStart: View {
     @State private var animateText = false
     @State private var animateButton = false
+    
+    @State var showOnboarding: Bool = true
 
     var body: some View {
         NavigationView {

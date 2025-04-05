@@ -166,7 +166,7 @@ struct DateDisplayView: View {
     }
 }
 
-// MARK: - Events Timeline View
+// MARK: - Events Timeline View 
 struct EventsTimelineView: View {
     let viewModel: CalendarViewModel
     let currentYear: Int
@@ -227,14 +227,25 @@ struct EventsOverlayView: View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width - 70 // Subtract hour label width
             
-            ZStack(alignment: .topLeading) {
-                // Group events by start time
-                ForEach(groupEventsByStartTime().sorted(by: { $0.key < $1.key }), id: \.key) { startTime, eventsAtTime in
+            // First sort events by start time to ensure consistent display
+            let sortedEvents = events.sorted(by: { $0.startDate < $1.startDate })
+            
+            // Group events by normalized start time (hour and minute only)
+            let groupedEvents = Dictionary(grouping: sortedEvents) { event in
+                let calendar = Calendar.current
+                let components = calendar.dateComponents([.hour, .minute], from: event.startDate)
+                return calendar.date(from: components) ?? event.startDate
+            }
+            
+            // Render each group of events that share the same start time
+            ForEach(Array(groupedEvents.keys).sorted(), id: \.self) { startTime in
+                if let eventsAtTime = groupedEvents[startTime] {
                     let eventCount = eventsAtTime.count
                     
-                    // Display events horizontally when they share the same start time
-                    HStack(spacing: 4) {
-                        ForEach(Array(eventsAtTime.enumerated()), id: \.element.id) { index, event in
+                    // Events with same start time are arranged horizontally
+                    // Align items to the top edge
+                    HStack(alignment: .top, spacing: 4) {
+                        ForEach(eventsAtTime, id: \.id) { event in
                             EventBlockView(
                                 event: event,
                                 formatTime: formatTime,
@@ -242,30 +253,24 @@ struct EventsOverlayView: View {
                             )
                         }
                     }
-                    .padding(.leading, 70) // Align with hour grid
+                    .frame(width: availableWidth, alignment: .topLeading) // Align frame content
+                    // Use offset to position from the top-left corner
+                    .offset(x: 70, y: calculateTopYPosition(for: startTime))
                 }
             }
         }
     }
     
-    // Group events by their start time
-    private func groupEventsByStartTime() -> [Date: [Event]] {
-        var eventsByStartTime: [Date: [Event]] = [:]
+    // Calculate the TOP Y position based on start time
+    private func calculateTopYPosition(for date: Date) -> CGFloat {
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: date)
+        let minute = calendar.component(.minute, from: date)
         
-        for event in events {
-            // Create date components with just hour and minute for grouping
-            let calendar = Calendar.current
-            let components = calendar.dateComponents([.hour, .minute], from: event.startDate)
-            if let normalizedDate = calendar.date(from: components) {
-                if eventsByStartTime[normalizedDate] != nil {
-                    eventsByStartTime[normalizedDate]!.append(event)
-                } else {
-                    eventsByStartTime[normalizedDate] = [event]
-                }
-            }
-        }
-        
-        return eventsByStartTime
+        let hourHeight: CGFloat = 50.0
+        // Calculate position: each hour block is 50 points high
+        // Position is the number of hours * hourHeight + the minute fraction of an hour
+        return CGFloat(hour) * hourHeight + (CGFloat(minute) / 60.0) * hourHeight
     }
 }
 
@@ -276,8 +281,6 @@ struct EventBlockView: View {
     let width: CGFloat
     
     var body: some View {
-        let height = calculateEventHeight()
-        
         VStack(alignment: .leading) {
             Text(event.title)
                 .font(.subheadline)
@@ -292,17 +295,17 @@ struct EventBlockView: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .frame(width: width, alignment: .leading)
-        .frame(height: height)
+        .frame(height: calculateHeight())
         .background(
             RoundedRectangle(cornerRadius: 6)
                 .fill(event.color.opacity(0.3))
         )
-        .offset(y: calculateEventOffset())
     }
     
-    // Calculate precise event height based on duration
-    private func calculateEventHeight() -> CGFloat {
+    // Calculate accurate height based on event duration
+    private func calculateHeight() -> CGFloat {
         let calendar = Calendar.current
+        
         let startHour = calendar.component(.hour, from: event.startDate)
         let startMinute = calendar.component(.minute, from: event.startDate)
         let endHour = calendar.component(.hour, from: event.endDate)
@@ -310,11 +313,14 @@ struct EventBlockView: View {
         
         let hourHeight: CGFloat = 50.0
         
-        // Calculate duration in minutes
-        let durationInMinutes: CGFloat
-        if endHour < startHour || (endHour == startHour && endMinute < startMinute) {
+        // Calculate total duration in minutes
+        var durationInMinutes: CGFloat = 0
+        
+        if endHour < startHour || (endHour == startHour && endMinute <= startMinute) {
             // Event crosses midnight
+            // Calculate minutes from start time to midnight (24:00)
             let minutesToMidnight = CGFloat((24 - startHour) * 60 - startMinute)
+            // Add minutes from midnight to end time
             let minutesAfterMidnight = CGFloat(endHour * 60 + endMinute)
             durationInMinutes = minutesToMidnight + minutesAfterMidnight
         } else {
@@ -324,18 +330,9 @@ struct EventBlockView: View {
             durationInMinutes = endTotalMinutes - startTotalMinutes
         }
         
-        // Convert minutes to height (hourHeight = 60 minutes)
-        return max(30.0, (durationInMinutes / 60.0) * hourHeight)
-    }
-    
-    // Calculate precise Y offset based on start time
-    private func calculateEventOffset() -> CGFloat {
-        let calendar = Calendar.current
-        let startHour = calendar.component(.hour, from: event.startDate)
-        let startMinute = calendar.component(.minute, from: event.startDate)
-        
-        let hourHeight: CGFloat = 50.0
-        return CGFloat(startHour) * hourHeight + (CGFloat(startMinute) / 60.0) * hourHeight
+        // Convert minutes to height - hourHeight represents 60 minutes
+        // Ensure minimum height of 30 for visibility
+        return max(30.0, durationInMinutes / 60.0 * hourHeight)
     }
 }
 

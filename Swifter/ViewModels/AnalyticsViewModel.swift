@@ -29,7 +29,7 @@ final class AnalyticsViewModel: ObservableObject {
             self.goals = goalTemp
         } else {
             
-            /// default values for troubleshooting
+            /// dummy data
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyy/MM/dd"
 

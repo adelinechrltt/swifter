@@ -11,6 +11,21 @@ struct OnboardAllSet: View {
 
     @AppStorage("isNewUser") private var isNewUser: Bool = true
 
+    @StateObject private var viewModel = OnboardingViewModel()
+
+    @EnvironmentObject private var eventStoreManager: EventStoreManager
+
+    @Environment(\.modelContext) private var modelContext
+    private var goalManager: GoalManager {
+        GoalManager(modelContext: modelContext)
+    }
+    private var sessionManager: JoggingSessionManager {
+        JoggingSessionManager(modelContext: modelContext)
+    }
+    private var preferencesManager: PreferencesManager {
+        PreferencesManager(modelContext: modelContext)
+    }
+    
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 20) {
@@ -58,6 +73,7 @@ struct OnboardAllSet: View {
 
                 // Maybe Later Button
                 Button {
+                    viewModel.scheduleFirstJog(sessionManager: sessionManager, storeManager: eventStoreManager)
                     isNewUser = false
                 } label: { // TODO: Replace EmptyView() with your HomePageView
                     HStack(spacing: 5) {
@@ -102,6 +118,8 @@ struct OnboardAllSet: View {
             showYesButton = true
             showMaybeButton = true
             showProgress = true
+            
+            viewModel.fetchData(goalManager: goalManager, preferencesManager: preferencesManager)
         }
     }
 }

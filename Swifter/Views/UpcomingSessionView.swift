@@ -118,7 +118,7 @@ struct UpcomingSession: View {
                                 .stroke(Color.primary, lineWidth: 10)
                                 .rotationEffect(.degrees(-90))
                                 .frame(width: 240, height: 240)
-                            
+                                .animation(.easeOut(duration: 1.0).delay(0.2), value: showProgress)
                             
                             VStack(spacing: 8) {
                                 Text("This Week")
@@ -176,7 +176,9 @@ struct UpcomingSession: View {
 //                EditPreferencesModal(isPresented: $viewModel.preferencesModalShown)
 //            }
         }.onAppear {
-            showProgress = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                showProgress = true
+            }
         }
     }
 }

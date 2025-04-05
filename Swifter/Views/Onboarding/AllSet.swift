@@ -9,6 +9,8 @@ struct OnboardAllSet: View {
     @State private var showMaybeButton = false
     @State private var showProgress = false
 
+    @AppStorage("isNewUser") private var isNewUser: Bool = true
+
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 20) {
@@ -55,7 +57,9 @@ struct OnboardAllSet: View {
                 .animation(.easeOut(duration: 0.5).delay(0.4), value: showYesButton)
 
                 // Maybe Later Button
-                NavigationLink(destination: UpcomingSession()) { // TODO: Replace EmptyView() with your HomePageView
+                Button {
+                    isNewUser = false
+                } label: { // TODO: Replace EmptyView() with your HomePageView
                     HStack(spacing: 5) {
                         Text("Maybe Later")
                             .font(.system(size: 12))

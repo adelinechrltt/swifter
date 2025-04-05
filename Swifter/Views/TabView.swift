@@ -17,7 +17,7 @@ struct ContentView: View {
         PreferencesManager(modelContext: modelContext)
     }
     
-    @State private var isNewUser: Bool = false
+    @AppStorage("isNewUser") private var isNewUser: Bool = false
     
     var body: some View {
         

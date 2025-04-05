@@ -14,6 +14,10 @@ struct ContentView: View {
                 .tabItem {
                     Label("Upcoming", systemImage: "house")
                 }
+            CalendarView()
+                .tabItem {
+                    Label("Calendar", systemImage: "calendar")
+                }
         }
     }
 }

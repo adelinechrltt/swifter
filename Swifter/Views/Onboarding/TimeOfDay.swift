@@ -19,99 +19,97 @@ struct OnboardPreferredJogTime: View {
     @Namespace private var animation
 
     var body: some View {
-        NavigationView {
-            VStack(alignment: .leading, spacing: 20) {
-                Spacer()
+        VStack(alignment: .leading, spacing: 20) {
+            Spacer()
 
-                Text("What’s your preferred jogging time?")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.primary)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+            Text("What’s your preferred jogging time?")
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(.primary)
+                .transition(.opacity.combined(with: .move(edge: .top)))
 
-                Text("Select all that apply.")
-                    .font(.system(size: 16))
-                    .foregroundColor(.secondary)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+            Text("Select all that apply.")
+                .font(.system(size: 16))
+                .foregroundColor(.secondary)
+                .transition(.opacity.combined(with: .move(edge: .top)))
 
-                // Time selection
-                HStack(spacing: 10) {
-                    ForEach(TimeOfDay.allCases) { time in
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                toggleSelection(for: time)
-                            }
-                        }) {
-                            Text(time.rawValue)
-                                .font(.system(size: 13))
-                                .padding(.horizontal, 15)
-                                .padding(.vertical, 10)
-                                .background(
-                                    timesOfDay.contains(time)
-                                    ? Color.primary
-                                    : Color.clear
-                                )
-                                .foregroundColor(
-                                    timesOfDay.contains(time)
-                                    ? (colorScheme == .dark ? Color.black : Color.white)
-                                    : Color.primary
-                                )
-                                .clipShape(Capsule())
-                                .overlay(
-                                    Capsule()
-                                        .stroke(Color.primary, lineWidth: 1)
-                                )
-                                .matchedGeometryEffect(id: time.rawValue, in: animation)
+            // Time selection
+            HStack(spacing: 10) {
+                ForEach(TimeOfDay.allCases) { time in
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            toggleSelection(for: time)
                         }
-                        .animation(.easeInOut, value: timesOfDay)
+                    }) {
+                        Text(time.rawValue)
+                            .font(.system(size: 13))
+                            .padding(.horizontal, 15)
+                            .padding(.vertical, 10)
+                            .background(
+                                timesOfDay.contains(time)
+                                ? Color.primary
+                                : Color.clear
+                            )
+                            .foregroundColor(
+                                timesOfDay.contains(time)
+                                ? (colorScheme == .dark ? Color.black : Color.white)
+                                : Color.primary
+                            )
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.primary, lineWidth: 1)
+                            )
+                            .matchedGeometryEffect(id: time.rawValue, in: animation)
                     }
+                    .animation(.easeInOut, value: timesOfDay)
                 }
+            }
+            .padding(.top, 10)
+
+            Spacer()
+
+            // Progress Bar
+            ProgressView(value: 0.5, total: 1.0)
+                .progressViewStyle(LinearProgressViewStyle())
+                .tint(.primary)
+                .frame(height: 6)
                 .padding(.top, 10)
 
+            // Bottom buttons
+            HStack {
+                NavigationLink(destination: OnboardTimeOnFeet()) {
+                    Text("Skip")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                        .padding()
+                        .frame(width: 100, height: 45)
+                }
+
                 Spacer()
 
-                // Progress Bar
-                ProgressView(value: 0.5, total: 1.0)
-                    .progressViewStyle(LinearProgressViewStyle())
-                    .tint(.primary)
-                    .frame(height: 6)
-                    .padding(.top, 10)
-
-                // Bottom buttons
-                HStack {
-                    NavigationLink(destination: OnboardTimeOnFeet()) {
-                        Text("Skip")
+                if !timesOfDay.isEmpty {
+                    NavigationLink(destination: OnboardPreferredJogDays()) {
+                        Text("Next")
                             .font(.system(size: 14))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.primary)
                             .padding()
-                            .frame(width: 100, height: 45)
+                            .frame(width: 150, height: 45)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .stroke(Color.primary, lineWidth: 1)
+                            )
                     }
-
-                    Spacer()
-
-                    if !timesOfDay.isEmpty {
-                        NavigationLink(destination: OnboardPreferredJogDays()) {
-                            Text("Next")
-                                .font(.system(size: 14))
-                                .foregroundColor(.primary)
-                                .padding()
-                                .frame(width: 150, height: 45)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .stroke(Color.primary, lineWidth: 1)
-                                )
-                        }
-                        .simultaneousGesture(TapGesture().onEnded {
-                            preferencesManager.setTimesOfDay(timesOfDay: timesOfDay)
-                        })
-                        .transition(.scale)
-                    }
+                    .simultaneousGesture(TapGesture().onEnded {
+                        preferencesManager.setTimesOfDay(timesOfDay: timesOfDay)
+                    })
+                    .transition(.scale)
                 }
-                .padding(.bottom, 40)
-                .animation(.easeInOut(duration: 0.3), value: timesOfDay)
             }
-            .padding(30)
+            .padding(.bottom, 40)
+            .animation(.easeInOut(duration: 0.3), value: timesOfDay)
         }
-        .navigationBarHidden(true)
+        .padding(30)
+        .navigationBarBackButtonHidden(true)
     }
 
     private func toggleSelection(for time: TimeOfDay) {
@@ -124,5 +122,7 @@ struct OnboardPreferredJogTime: View {
 }
 
 #Preview {
-    OnboardPreferredJogTime()
+    NavigationStack {
+        OnboardPreferredJogTime()
+    }
 }

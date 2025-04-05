@@ -81,8 +81,6 @@ struct CalendarView: View {
             
             Spacer()
             
-            // Bottom tab bar
-            BottomTabBarView()
         }
         .background(Color(uiColor: .systemBackground))
         .foregroundColor(.primary)

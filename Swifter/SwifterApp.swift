@@ -16,7 +16,7 @@ struct SwifterApp: App {
         WindowGroup {
 //            EditSessionView()
 // Testing().environmentObject(eventStoreManager)
-            CalendarView()
+            OnboardStart()
         }
         .modelContainer(for: [PreferencesModel.self, GoalModel.self, SessionModel.self])
     }

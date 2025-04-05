@@ -9,16 +9,24 @@ import SwiftUI
 import SwiftData
 
 struct OnboardThanksForLettingUsKnow: View {
-    @Environment(\.modelContext) private var modelContext
-    private var preferencesManager: PreferencesManager {
-        PreferencesManager(modelContext: modelContext)
-    }
-    private var goalManager: GoalManager {
-        GoalManager(modelContext: modelContext)
-    }
     
     @AppStorage("isNewUser") private var isNewUser: Bool = true
 
+    @StateObject private var viewModel = OnboardingViewModel()
+
+    @EnvironmentObject private var eventStoreManager: EventStoreManager
+
+    @Environment(\.modelContext) private var modelContext
+    private var goalManager: GoalManager {
+        GoalManager(modelContext: modelContext)
+    }
+    private var sessionManager: JoggingSessionManager {
+        JoggingSessionManager(modelContext: modelContext)
+    }
+    private var preferencesManager: PreferencesManager {
+        PreferencesManager(modelContext: modelContext)
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             Spacer()
@@ -41,6 +49,7 @@ struct OnboardThanksForLettingUsKnow: View {
 
             // Start Jogging Button
             Button {
+                viewModel.scheduleFirstJog(sessionManager: sessionManager, storeManager: eventStoreManager)
                 isNewUser = false
             } label: {
                 Text("Let’s start jogging!")

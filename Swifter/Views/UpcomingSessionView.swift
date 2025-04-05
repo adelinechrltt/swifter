@@ -72,6 +72,9 @@ struct UpcomingSession: View {
                                 Image(systemName: "pencil")
                                     .font(.system(size: 16))
                                     .foregroundColor(Color.primary)
+                                    .onTapGesture {
+                                        viewModel.goalModalShown = true
+                                    }
                             }
                         }
                         .padding(18)
@@ -175,6 +178,9 @@ struct UpcomingSession: View {
 //            .sheet(isPresented: $viewModel.preferencesModalShown){
 //                EditPreferencesModal(isPresented: $viewModel.preferencesModalShown)
 //            }
+            .sheet(isPresented: $viewModel.goalModalShown) {
+                GoalSettingModal(isPresented: $viewModel.goalModalShown, modelContext: modelContext)
+            }
         }.onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 showProgress = true

@@ -12,6 +12,7 @@ final class UpcomingSessionViewModel: ObservableObject {
     @Published var currentGoal: GoalModel
     @Published var nextSession: SessionModel
     @Published var preferencesModalShown: Bool = false
+    @Published var goalModalShown: Bool = false // Add this line
     
     /// init with dummy data
     init(){
@@ -39,5 +40,4 @@ final class UpcomingSessionViewModel: ObservableObject {
                 })!
         }
     }
-    
 }

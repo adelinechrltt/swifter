@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct EditSessionView: View {
+struct EditSessionModal: View {
     
     @EnvironmentObject private var eventStoreManager: EventStoreManager
     @StateObject private var viewModel: EditSessionViewModel
@@ -58,5 +58,5 @@ struct EditSessionView: View {
     }
 
 #Preview {
-    EditSessionView().environmentObject(EventStoreManager())
+    EditSessionModal().environmentObject(EventStoreManager())
 }

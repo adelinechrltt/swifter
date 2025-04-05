@@ -9,101 +9,109 @@ import SwiftUI
 
 struct OnboardPreferredJogTime: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme // Access system theme
+
     private var preferencesManager: PreferencesManager {
         PreferencesManager(modelContext: modelContext)
     }
 
-    @State var timesOfDay: [TimeOfDay] = []
-    
-    var body: some View {
-        NavigationView {
-            VStack(alignment: .leading, spacing: 20) {
-                Spacer()
-                
-                // Title
-                Text("What's your preferred jogging time?")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.black)
-                
-                Text("Select all that apply.")
-                    .font(.system(size: 16))
-                    .foregroundColor(.gray)
-                
-                // Horizontal selection buttons
-                HStack(spacing: 10) {
-                    ForEach(TimeOfDay.allCases) { time in
-                        Button(action: {
-                            toggleSelection(for: time)
-                        }) {
-                            Text(time.rawValue)
-                                .font(.system(size: 13))
-                                .padding(.horizontal, 15)
-                                .padding(.vertical, 10)
-                                .background(
-                                    timesOfDay.contains(time) ? Color.black.opacity(0.8) : Color.clear
-                                )
-                                .foregroundColor(timesOfDay.contains(time) ? .white : .black)
-                                .clipShape(Capsule()) // Rounded fill effect
-                                .overlay(
-                                    Capsule().stroke(Color.black, lineWidth: 1) // Rounded border
-                                )
-                        }
-                    }
-                }
-                
-                Spacer()
-                
-                // Progress Bar
-                ProgressView(value: 0.5, total: 1.0)
-                    .progressViewStyle(LinearProgressViewStyle())
-                    .accentColor(.gray)
-                    .frame(height: 6)
-                    .padding(.top, 10)
-                
-                // Buttons (Skip & Next)
-                HStack {
-                    // Skip Button
-                    NavigationLink(destination: OnboardTimeOnFeet()
-//                                    OnboardPrefferedJogDays(tempPreferences: tempPreferences)
-                    ) {
-                        Text("Skip")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gray)
-                            .padding()
-                            .frame(width: 100, height: 45)
-                    }
-                    
-                    Spacer()
+    @State private var timesOfDay: [TimeOfDay] = []
+    @Namespace private var animation
 
-                    // Next Button (Visible only if a selection is made)
-                    if !timesOfDay.isEmpty {
-                        NavigationLink(destination:
-                                        OnboardPreferredJogDays()
-//                                        OnboardPrefferedJogDays(tempPreferences: tempPreferences)
-                        ) {
-                            Text("Next")
-                                .font(.system(size: 14))
-                                .foregroundColor(.black)
-                                .padding()
-                                .frame(width: 150, height: 45)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .stroke(Color.black, lineWidth: 1)
-                                )
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Spacer()
+
+            Text("What’s your preferred jogging time?")
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(.primary)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+
+            Text("Select all that apply.")
+                .font(.system(size: 16))
+                .foregroundColor(.secondary)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+
+            // Time selection
+            HStack(spacing: 10) {
+                ForEach(TimeOfDay.allCases) { time in
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            toggleSelection(for: time)
                         }
+                    }) {
+                        Text(time.rawValue)
+                            .font(.system(size: 13))
+                            .padding(.horizontal, 15)
+                            .padding(.vertical, 10)
+                            .background(
+                                timesOfDay.contains(time)
+                                ? Color.primary
+                                : Color.clear
+                            )
+                            .foregroundColor(
+                                timesOfDay.contains(time)
+                                ? (colorScheme == .dark ? Color.black : Color.white)
+                                : Color.primary
+                            )
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.primary, lineWidth: 1)
+                            )
+                            .matchedGeometryEffect(id: time.rawValue, in: animation)
                     }
+                    .animation(.easeInOut, value: timesOfDay)
                 }
-                .padding(.bottom, 40)
-                .simultaneousGesture(TapGesture().onEnded { _ in
-                    preferencesManager.setTimesOfDay(timesOfDay: timesOfDay)
-                })
-                
             }
-            .padding(30)
+            .padding(.top, 10)
+
+            Spacer()
+
+            // Progress Bar
+            ProgressView(value: 0.5, total: 1.0)
+                .progressViewStyle(LinearProgressViewStyle())
+                .tint(.primary)
+                .frame(height: 6)
+                .padding(.top, 10)
+
+            // Bottom buttons
+            HStack {
+                NavigationLink(destination: OnboardTimeOnFeet()) {
+                    Text("Skip")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                        .padding()
+                        .frame(width: 100, height: 45)
+                }
+
+                Spacer()
+
+                if !timesOfDay.isEmpty {
+                    NavigationLink(destination: OnboardPreferredJogDays()) {
+                        Text("Next")
+                            .font(.system(size: 14))
+                            .foregroundColor(.primary)
+                            .padding()
+                            .frame(width: 150, height: 45)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .stroke(Color.primary, lineWidth: 1)
+                            )
+                    }
+                    .simultaneousGesture(TapGesture().onEnded {
+                        preferencesManager.setTimesOfDay(timesOfDay: timesOfDay)
+                    })
+                    .transition(.scale)
+                }
+            }
+            .padding(.bottom, 40)
+            .animation(.easeInOut(duration: 0.3), value: timesOfDay)
         }
-        .navigationBarHidden(true)
+        .padding(30)
+        .navigationBarBackButtonHidden(true)
     }
-    
+
     private func toggleSelection(for time: TimeOfDay) {
         if timesOfDay.contains(time) {
             timesOfDay.removeAll { $0 == time }
@@ -114,5 +122,7 @@ struct OnboardPreferredJogTime: View {
 }
 
 #Preview {
-    OnboardPreferredJogTime()
+    NavigationStack {
+        OnboardPreferredJogTime()
+    }
 }

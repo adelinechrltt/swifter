@@ -1,6 +1,32 @@
 import SwiftUI
 
 struct UpcomingSession: View {
+    @State private var showProgress = false
+    
+    @Environment(\.modelContext) private var modelContext
+    private var goalManager: GoalManager {
+        GoalManager(modelContext: modelContext)
+    }
+    private var sessionManager: JoggingSessionManager {
+        JoggingSessionManager(modelContext: modelContext)
+    }
+    
+    @StateObject private var viewModel = UpcomingSessionViewModel()
+    
+    private let formatter1: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "E, dd MMMM yyyy"
+        return formatter
+    }()
+
+    private let formatter2: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:m a"
+        formatter.amSymbol = "AM"
+        formatter.pmSymbol = "PM"
+        return formatter
+    }()
+
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -12,27 +38,29 @@ struct UpcomingSession: View {
                         Text("Upcoming Session")
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(Color.primary)
-                        Text("Next jog session at:")
-                            .font(.system(size: 15))
-                            .foregroundColor(Color.secondary)
-                    }
-                    .padding(.vertical, 30)
-                    
-                    // Session Card
-                    VStack(spacing: 14) {
-                        Text("Tomorrow")
+                        
+                        Text(viewModel.nextSession.startTime.timeIntervalSinceNow > 60*60*24 ? "Next jog session in:" : "Next jogging session at")
                             .font(.system(size: 15))
                             .foregroundColor(Color.secondary)
                         
-                        Text("Mon, 24 Mar")
+                    }
+                    .padding(.bottom, 30)
+                    
+                    // Session Card
+                    VStack(spacing: 14) {
+                        Text(viewModel.nextSession.startTime.timeIntervalSinceNow > 60*60*24 ? "\(Int(ceil(viewModel.nextSession.startTime.timeIntervalSinceNow/86400))) days" : "Tomorrow")
+                            .font(.system(size: 15))
+                            .foregroundColor(Color.secondary)
+                        
+                        Text("\(formatter1.string(from: viewModel.nextSession.startTime))")
                             .font(.system(size: 35, weight: .bold))
                             .foregroundColor(Color.primary)
-                        Text("9AM - 10AM")
+                        Text("\(formatter2.string(from: viewModel.nextSession.startTime)) - \(formatter2.string(from: viewModel.nextSession.endTime))")
                             .font(.system(size: 16))
                             .foregroundColor(Color.secondary)
                         
                         HStack(spacing: 8) {
-                            Text("Goal: Jog Twice in a week")
+                            Text("Goal: Jog \(viewModel.currentGoal.targetFrequency) times in a week")
                                 .font(.system(size: 14))
                                 .padding(.vertical, 10)
                                 .padding(.horizontal, 16)
@@ -43,6 +71,9 @@ struct UpcomingSession: View {
                             Image(systemName: "pencil")
                                 .font(.system(size: 16))
                                 .foregroundColor(Color.primary)
+                                .onTapGesture {
+                                    viewModel.goalModalShown = true
+                                }
                         }
                     }
                     .padding(18)
@@ -85,18 +116,18 @@ struct UpcomingSession: View {
                             .frame(width: 240, height: 240)
                         
                         Circle()
-                            .trim(from: 0.0, to: 0.5)
+                            .trim(from: 0.0, to: showProgress ? Double(viewModel.currentGoal.progress) / Double(viewModel.currentGoal.targetFrequency) : 0.0)
                             .stroke(Color.primary, lineWidth: 10)
                             .rotationEffect(.degrees(-90))
                             .frame(width: 240, height: 240)
-                        
+                            .animation(.easeOut(duration: 1.0).delay(0.2), value: showProgress)
                         
                         VStack(spacing: 8) {
                             Text("This Week")
                                 .font(.system(size: 15))
                                 .foregroundColor(Color.secondary)
                             
-                            Text("1/2")
+                            Text("\(viewModel.currentGoal.progress)/\(viewModel.currentGoal.targetFrequency)")
                                 .font(.system(size: 38, weight: .bold))
                                 .foregroundColor(Color.primary)
                             
@@ -104,17 +135,22 @@ struct UpcomingSession: View {
                                 .font(.system(size: 15))
                                 .foregroundColor(Color.secondary)
                             
-                            Button(action: {}) {
-                                Text("See More")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .padding(.horizontal, 26)
-                                    .padding(.vertical, 10)
-                                    .background(Color(.systemBackground))
+                            Button(action: {
+                                AnalyticsView()
+                            }) {
+                                HStack{
+                                    Text("See More")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .padding(.vertical, 10)
+                                        .background(Color(.systemBackground))
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(Color.primary)
+                                }.padding(.horizontal)
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .stroke(Color.primary, lineWidth: 1.5)
-                                    )
-                                    .foregroundColor(Color.primary)
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .stroke(Color.primary, lineWidth: 1.5)
+                                )
+                                .foregroundColor(Color.primary)
                             }
                             .padding(.top, 12)
                         }
@@ -123,28 +159,41 @@ struct UpcomingSession: View {
                     .padding(.top, -20)
                     
                     Spacer()
-                    
-                    // Bottom Tab Bar
-                    HStack {
-                        Image(systemName: "figure.run")
-                            .font(.system(size: 22))
-                            .foregroundColor(Color.primary)
-                        Spacer()
-                        Image(systemName: "calendar")
-                            .font(.system(size: 22))
-                            .foregroundColor(Color.primary)
-                    }
-                    .padding(.horizontal, 70)
-                    .padding(.vertical, 15)
-                    .background(Color(.secondarySystemBackground))
-                    .frame(width: geometry.size.width)
+                    /// removed tab bar
+                    /// tab bar view will be added in root file
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button{
+                        viewModel.preferencesModalShown = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }.foregroundColor(.primary)
+                }
+            }
+            // TODO: sheet refactor
+           .sheet(isPresented: $viewModel.preferencesModalShown){
+               EditPreferencesModal(isPresented: $viewModel.preferencesModalShown, modelContext: modelContext)
+           }
+            .sheet(isPresented: $viewModel.goalModalShown) {
+                GoalSettingModal(isPresented: $viewModel.goalModalShown, modelContext: modelContext)
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .onAppear {
+            viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                showProgress = true
             }
         }
     }
 }
 
 #Preview {
-    UpcomingSession()
+    NavigationView {
+        UpcomingSession()
+    }
 }

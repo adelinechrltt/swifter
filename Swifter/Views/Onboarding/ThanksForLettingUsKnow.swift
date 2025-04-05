@@ -16,56 +16,64 @@ struct OnboardThanksForLettingUsKnow: View {
     private var goalManager: GoalManager {
         GoalManager(modelContext: modelContext)
     }
+    
+    @AppStorage("isNewUser") private var isNewUser: Bool = true
 
     var body: some View {
-        NavigationView {
-            VStack(alignment: .leading, spacing: 20) {
-                Spacer()
+        VStack(alignment: .leading, spacing: 24) {
+            Spacer()
 
-                Text("Thanks for letting us know!")
-                    .font(.system(size: 36, weight: .bold))
-                    .foregroundColor(.black)
+            // Title
+            Text("Thanks for letting us know!")
+                .font(.system(size: 32, weight: .bold))
+                .foregroundColor(.primary)
+                .transition(.move(edge: .leading).combined(with: .opacity))
+                .animation(.easeInOut(duration: 0.4), value: UUID())
 
-                Text("Your jogging schedule has been updated accordingly.")
-                    .font(.system(size: 19))
-                    .foregroundColor(.black)
-                
-                NavigationLink(destination: PreferencesView()) {
-                    Text("Let's start jogging! ")
-                        .font(.system(size: 14))
-                        .foregroundColor(.black)
-                        .padding()
-                        .frame(width: 180, height: 40)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 25)
-                                .stroke(Color.black, lineWidth: 1)
-                        )
-                }
-                .simultaneousGesture(TapGesture().onEnded { _ in
-                    // TODO: replace this block of code with home menu navigation
-                })
-                
-                Spacer()
-                
-                ProgressView(value: 1, total: 1.0)
-                    .progressViewStyle(LinearProgressViewStyle())
-                    .accentColor(.black)
-                    .frame(height: 4)
-                    .padding(.top, 10)
+            // Subtitle
+            Text("Your jogging schedule has been updated accordingly.")
+                .font(.system(size: 18))
+                .foregroundColor(.secondary)
+                .transition(.opacity)
+                .animation(.easeIn(duration: 0.3), value: UUID())
+
+            Spacer()
+
+            // Start Jogging Button
+            Button {
+                isNewUser = false
+            } label: {
+                Text("Let’s start jogging!")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.primary)
+                    .padding()
+                    .frame(width: 200, height: 50)
+                    .background(
+                        RoundedRectangle(cornerRadius: 25)
+                            .stroke(Color.primary, lineWidth: 1)
+                    )
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(40)
+            .transition(.scale)
+            .animation(.spring(response: 0.4, dampingFraction: 0.6), value: UUID())
+
+            // Progress Bar
+            ProgressView(value: 1.0, total: 1.0)
+                .progressViewStyle(LinearProgressViewStyle())
+                .tint(.primary)
+                .frame(height: 6)
+                .padding(.top, 20)
+
+            Spacer()
         }
+        .padding(40)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemBackground).ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
     }
-    
 }
 
-//#Preview {
-//    OnboardThanksForLettingUsKnow(tempPreferences: PreferencesModel(
-//        timeOfDay: [.morning],
-//        dayOfWeek: [.monday, .wednesday, .friday],
-//        preJogDuration: 15,
-//        postJogDuration: 10
-//    ))
-//}
+#Preview {
+    NavigationStack {
+        OnboardThanksForLettingUsKnow()
+    }
+}

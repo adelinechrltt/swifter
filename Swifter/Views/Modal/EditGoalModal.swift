@@ -6,6 +6,9 @@ struct GoalSettingModal: View {
     @Binding var isPresented: Bool
     @StateObject private var viewModel: EditGoalViewModel
     
+    // Add state for save confirmation alert
+    @State private var showSaveAlert = false
+    
     // Initialize with environment-based model context
     init(isPresented: Binding<Bool>, modelContext: ModelContext) {
         self._isPresented = isPresented
@@ -15,8 +18,8 @@ struct GoalSettingModal: View {
     
     var body: some View {
         ZStack {
-            Color.black.opacity(0.4)
-                .edgesIgnoringSafeArea(.all)
+            // Transparent background that covers the entire screen
+            Color.clear.edgesIgnoringSafeArea(.all)
                 .onTapGesture {
                     isPresented = false
                 }
@@ -30,8 +33,8 @@ struct GoalSettingModal: View {
                             .font(.system(size: 20, weight: .bold))
                         Spacer()
                         Button("Save") {
-                            viewModel.saveGoal()
-                            isPresented = false
+                            // Show confirmation alert instead of saving directly
+                            showSaveAlert = true
                         }
                         .font(.title3)
                     }
@@ -51,7 +54,7 @@ struct GoalSettingModal: View {
                                     Text("-")
                                         .font(.title2)
                                         .frame(width: 40, height: 30)
-                                        .background(Color(UIColor.secondarySystemBackground)) // Use adaptive background
+                                        .background(Color(UIColor.secondarySystemBackground)) 
                                         .cornerRadius(8)
                                 }
                                 
@@ -67,7 +70,7 @@ struct GoalSettingModal: View {
                                     Text("+")
                                         .font(.title2)
                                         .frame(width: 40, height: 30)
-                                        .background(Color(UIColor.secondarySystemBackground)) // Use adaptive background
+                                        .background(Color(UIColor.secondarySystemBackground)) 
                                         .cornerRadius(8)
                                 }
                             }
@@ -85,7 +88,7 @@ struct GoalSettingModal: View {
                                 .labelsHidden()
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color(UIColor.secondarySystemBackground)) // Use adaptive background
+                                .background(Color(UIColor.secondarySystemBackground))
                                 .cornerRadius(8)
                         }
                         
@@ -101,20 +104,32 @@ struct GoalSettingModal: View {
                                 .labelsHidden()
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color(UIColor.secondarySystemBackground)) // Use adaptive background
+                                .background(Color(UIColor.secondarySystemBackground))
                                 .cornerRadius(8)
                         }
                     }
                 }
                 .padding(20)
-                .background(Color(UIColor.systemBackground)) // Use adaptive background
+                .background(Color(UIColor.systemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 20))
                 .shadow(radius: 10)
                 .padding(.horizontal, 20)
                 .frame(maxWidth: 800)
+                .alert(isPresented: $showSaveAlert) {
+                    Alert(
+                        title: Text("Save Goal"),
+                        message: Text("Are you sure you want to save your weekly goal?"),
+                        primaryButton: .default(Text("Save")) {
+                            viewModel.saveGoal()
+                            isPresented = false
+                        },
+                        secondaryButton: .cancel()
+                    )
+                }
             }
             .transition(.move(edge: .bottom))
         }
+        .background(Color.black.opacity(0.4).edgesIgnoringSafeArea(.all))
     }
 }
 
@@ -126,11 +141,12 @@ struct GoalSettingModal_Preview: PreviewProvider {
         @State private var targetFrequency: Int = 3
         @State private var startDate: Date = Date().addingTimeInterval(-7*24*60*60) // 7 days ago
         @State private var endDate: Date = Date().addingTimeInterval(30*24*60*60)   // 30 days ahead
+        @State private var showSaveAlert = false
         
         var body: some View {
             ZStack {
-                Color.black.opacity(0.4)
-                    .edgesIgnoringSafeArea(.all)
+                // Transparent background that covers the entire screen
+                Color.clear.edgesIgnoringSafeArea(.all)
                     .onTapGesture {
                         isPresented = false
                     }
@@ -144,7 +160,7 @@ struct GoalSettingModal_Preview: PreviewProvider {
                                 .font(.system(size: 20, weight: .bold))
                             Spacer()
                             Button("Save") {
-                                isPresented = false
+                                showSaveAlert = true
                             }
                             .font(.title3)
                         }
@@ -225,9 +241,20 @@ struct GoalSettingModal_Preview: PreviewProvider {
                     .shadow(radius: 10)
                     .padding(.horizontal, 20)
                     .frame(maxWidth: 800)
+                    .alert(isPresented: $showSaveAlert) {
+                        Alert(
+                            title: Text("Save Goal"),
+                            message: Text("Are you sure you want to save your weekly goal?"),
+                            primaryButton: .default(Text("Save")) {
+                                isPresented = false
+                            },
+                            secondaryButton: .cancel()
+                        )
+                    }
                 }
                 .transition(.move(edge: .bottom))
             }
+            .background(Color.black.opacity(0.4).edgesIgnoringSafeArea(.all))
         }
     }
     

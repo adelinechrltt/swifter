@@ -195,27 +195,31 @@ final class EventStoreManager: ObservableObject {
         return nil
     }
     
-    func nextDate(for targetDay: DayOfWeek, from startDate: Date) -> Date? {
+    func findDayOfWeek(date: Date, duration: TimeInterval, preferences: PreferencesModel, goal: GoalModel) -> [Date]?{
         let calendar = Calendar.current
-        
-        /// retrieve the current day
-        let currentDay = calendar.component(.weekday, from: startDate)
-        
-        /// calculate amount of days from present to a given day of week
-        var daysAhead = targetDay.rawValue - currentDay
-        if daysAhead < 0 { daysAhead += 7 }
-        return calendar.date(byAdding: .day, value: daysAhead, to: startDate)
-    }
 
-    
-    func findDayOfWeek(date: Date, duration: TimeInterval, preferences: PreferencesModel) -> [Date]?{
-        
-        for i in 0...7{
-            if let newDate = Calendar.current.date(byAdding: .day, value: i, to: date),
-               let availableTime = findSlotInDay(date: newDate, duration: duration, preferences: preferences) {
+        /// iterate through preferred days
+        for i in 0...7 {
+            guard let tempDay = calendar.date(byAdding: .day, value: i, to: date) else { continue }
+
+            let weekdayNumber = calendar.component(.weekday, from: tempDay)
+            guard let weekdayEnum = DayOfWeek(rawValue: weekdayNumber) else { continue }
+
+            if preferences.preferredDaysOfWeek?.contains(weekdayEnum) == true,
+                let availableTime = findSlotInDay(date: tempDay, duration: duration, preferences: preferences) {
                 return availableTime
             }
         }
+        
+        /// iterate through all days
+        for i in 0...7 {
+            guard let tempDay = calendar.date(byAdding: .day, value: i, to: date) else { continue }
+
+            if let availableTime = findSlotInDay(date: tempDay, duration: duration, preferences: preferences) {
+                return availableTime
+            }
+        }
+        
         return nil
     }
 }

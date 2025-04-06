@@ -3,12 +3,17 @@ import SwiftUI
 struct UpcomingSession: View {
     @State private var showProgress = false
     
+    @EnvironmentObject private var eventStoreManager: EventStoreManager
+    
     @Environment(\.modelContext) private var modelContext
     private var goalManager: GoalManager {
         GoalManager(modelContext: modelContext)
     }
     private var sessionManager: JoggingSessionManager {
         JoggingSessionManager(modelContext: modelContext)
+    }
+    private var preferencesManager: PreferencesManager {
+        PreferencesManager(modelContext: modelContext)
     }
     
     @StateObject private var viewModel = UpcomingSessionViewModel()
@@ -84,7 +89,9 @@ struct UpcomingSession: View {
                     
                     // Action Buttons
                     HStack(spacing: 12) {
-                        Button(action: {}) {
+                        Button(action: {
+                            viewModel.rescheduleSessions(eventStoreManager: eventStoreManager, preferencesManager: preferencesManager, sessionManager: sessionManager)
+                        }) {
                             Text("Reschedule")
                                 .font(.system(size: 15, weight: .medium))
                                 .frame(maxWidth: .infinity)
@@ -135,9 +142,7 @@ struct UpcomingSession: View {
                                 .font(.system(size: 15))
                                 .foregroundColor(Color.secondary)
                             
-                            Button(action: {
-                                AnalyticsView()
-                            }) {
+                            NavigationLink(destination: AnalyticsView()){
                                 HStack{
                                     Text("See More")
                                         .font(.system(size: 12, weight: .medium))
@@ -159,8 +164,6 @@ struct UpcomingSession: View {
                     .padding(.top, -20)
                     
                     Spacer()
-                    /// removed tab bar
-                    /// tab bar view will be added in root file
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
             }

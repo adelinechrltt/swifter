@@ -195,12 +195,12 @@ final class EventStoreManager: ObservableObject {
         return nil
     }
     
-    func findDayOfWeek(date: Date, duration: TimeInterval, preferences: PreferencesModel, goal: GoalModel) -> [Date]?{
+    func findDayOfWeek(duration: TimeInterval, preferences: PreferencesModel, goal: GoalModel) -> [Date]?{
         let calendar = Calendar.current
 
         /// iterate through preferred days
         for i in 0...7 {
-            guard let tempDay = calendar.date(byAdding: .day, value: i, to: date) else { continue }
+            guard let tempDay = calendar.date(byAdding: .day, value: i, to: goal.startDate) else { continue }
 
             let weekdayNumber = calendar.component(.weekday, from: tempDay)
             guard let weekdayEnum = DayOfWeek(rawValue: weekdayNumber) else { continue }
@@ -213,7 +213,7 @@ final class EventStoreManager: ObservableObject {
         
         /// iterate through all days
         for i in 0...7 {
-            guard let tempDay = calendar.date(byAdding: .day, value: i, to: date) else { continue }
+            guard let tempDay = calendar.date(byAdding: .day, value: i, to: goal.startDate) else { continue }
 
             if let availableTime = findSlotInDay(date: tempDay, duration: duration, preferences: preferences) {
                 return availableTime

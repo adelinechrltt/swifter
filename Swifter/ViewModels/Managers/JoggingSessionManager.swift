@@ -106,4 +106,13 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
         }
     }
     
+    /// so other viewmodels can save context after updating a session
+    func saveContext() {
+        do {
+            try modelContext.save()
+            print("context saved")
+        } catch {
+            print("error bro: \(error.localizedDescription)")
+        }
+    }
 }

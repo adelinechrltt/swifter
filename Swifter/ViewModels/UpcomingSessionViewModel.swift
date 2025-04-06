@@ -13,7 +13,10 @@ final class UpcomingSessionViewModel: ObservableObject {
     @Published var nextPreJog: SessionModel?
     @Published var nextJog: SessionModel
     @Published var nextPostJog: SessionModel?
-    
+
+    /// no need to use published wrapper here
+    /// because computed property uses published variables
+    /// so if the published variables' values change, so will the computed property's
     var nextStart: Date {
         if let preJog = nextPreJog {
             return min(preJog.startTime, nextJog.startTime)
@@ -66,4 +69,55 @@ final class UpcomingSessionViewModel: ObservableObject {
         self.timeUntil = nextStart.timeIntervalSinceNow
         self.days = Int(ceil(timeUntil / 86400))
     }
+    
+    func rescheduleSessions(
+        eventStoreManager: EventStoreManager,
+        preferencesManager: PreferencesManager,
+        sessionManager: JoggingSessionManager
+    ) {
+        guard let preferences = preferencesManager.fetchPreferences() else { return }
+
+        let totalDuration = nextEnd.timeIntervalSince(nextStart)
+        
+        if let newTimes = eventStoreManager.findDayOfWeek(duration: totalDuration, preferences: preferences, goal: currentGoal) {
+            
+            let newStart = newTimes[0]
+            var cursor = newStart
+            
+            /// reschedule prejog
+            if let preJog = nextPreJog {
+                let duration = preJog.endTime.timeIntervalSince(preJog.startTime)
+                let newEnd = cursor + duration
+                eventStoreManager.setEventTimes(id: preJog.calendarEventID, newStart: cursor, newEnd: newEnd)
+                preJog.startTime = cursor
+                preJog.endTime = newEnd
+                cursor = newEnd
+            }
+            
+            /// reschedule jog
+            let jogDuration = nextJog.endTime.timeIntervalSince(nextJog.startTime)
+            let jogEnd = cursor + jogDuration
+            eventStoreManager.setEventTimes(id: nextJog.calendarEventID, newStart: cursor, newEnd: jogEnd)
+            nextJog.startTime = cursor
+            nextJog.endTime = jogEnd
+            cursor = jogEnd
+
+            /// reschedule postjog
+            if let postJog = nextPostJog {
+                let duration = postJog.endTime.timeIntervalSince(postJog.startTime)
+                let newEnd = cursor + duration
+                eventStoreManager.setEventTimes(id: postJog.calendarEventID, newStart: cursor, newEnd: newEnd)
+                postJog.startTime = cursor
+                postJog.endTime = newEnd
+                cursor = newEnd
+            }
+
+            sessionManager.saveContext()
+            
+            print("✅ Sessions successfully rescheduled!")
+        } else {
+            print("❌ Could not find a suitable time slot for rescheduling.")
+        }
+    }
+
 }

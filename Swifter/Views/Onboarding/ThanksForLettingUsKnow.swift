@@ -78,6 +78,9 @@ struct OnboardThanksForLettingUsKnow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.systemBackground).ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
+        .onAppear{
+            viewModel.fetchData(goalManager: goalManager, preferencesManager: preferencesManager)
+        }
     }
 }
 

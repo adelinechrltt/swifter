@@ -39,7 +39,8 @@ final class OnboardingViewModel: ObservableObject {
         let duration: Int
         if (preJog > 0 && postJog > 0){
             duration = timeOnFeet + preJog + postJog
-            if let availDate = storeManager.findDayOfWeek(date: Date(), duration: TimeInterval(duration*60)){
+//            print("prejog and postjog")
+            if let availDate = storeManager.findDayOfWeek(date: Date(), duration: TimeInterval(duration*60), preferences: preferences){
                 /// create prejog event
                 sessionManager.createNewSession(
                     storeManager: storeManager,
@@ -51,17 +52,18 @@ final class OnboardingViewModel: ObservableObject {
                     storeManager: storeManager,
                     start: availDate[0]+TimeInterval(preJog*60),
                     end: availDate[0]+TimeInterval(preJog*60)+TimeInterval(timeOnFeet*60),
-                    sessionType: SessionType.prejog)
+                    sessionType: SessionType.jogging)
                 /// create postjog event
                 sessionManager.createNewSession(
                     storeManager: storeManager,
                     start: availDate[0]+TimeInterval(preJog*60)+TimeInterval(timeOnFeet*60),
                     end: availDate[0]+TimeInterval(preJog*60)+TimeInterval(timeOnFeet*60)+TimeInterval(postJog*60),
-                    sessionType: SessionType.prejog)
+                    sessionType: SessionType.postjog)
             }
         } else if (preJog > 0) {
             duration = timeOnFeet + preJog
-            if let availDate = storeManager.findDayOfWeek(date: Date(), duration: TimeInterval(duration*60)){
+//            print("prejog")
+            if let availDate = storeManager.findDayOfWeek(date: Date(), duration: TimeInterval(duration*60), preferences: preferences){
                 /// create prejog event
                 sessionManager.createNewSession(
                     storeManager: storeManager,
@@ -73,11 +75,12 @@ final class OnboardingViewModel: ObservableObject {
                     storeManager: storeManager,
                     start: availDate[0]+TimeInterval(preJog*60),
                     end: availDate[0]+TimeInterval(preJog*60)+TimeInterval(timeOnFeet*60),
-                    sessionType: SessionType.prejog)
+                    sessionType: SessionType.jogging)
             }
         } else if (postJog > 0){
             duration = timeOnFeet + postJog
-            if let availDate = storeManager.findDayOfWeek(date: Date(), duration: TimeInterval(duration*60)){
+//            print("postjog")
+            if let availDate = storeManager.findDayOfWeek(date: Date(), duration: TimeInterval(duration*60), preferences: preferences){
                 /// create jog event
                 sessionManager.createNewSession(
                     storeManager: storeManager,
@@ -93,7 +96,7 @@ final class OnboardingViewModel: ObservableObject {
             }
         } else {
             duration = timeOnFeet
-            if let availDate = storeManager.findDayOfWeek(date: Date(), duration: TimeInterval(duration*60)){
+            if let availDate = storeManager.findDayOfWeek(date: Date(), duration: TimeInterval(duration*60), preferences: preferences){
                 /// create jog event
                 sessionManager.createNewSession(
                     storeManager: storeManager,
@@ -102,5 +105,6 @@ final class OnboardingViewModel: ObservableObject {
                     sessionType: SessionType.jogging)
             }
         }
+        print(duration)
     }
 }

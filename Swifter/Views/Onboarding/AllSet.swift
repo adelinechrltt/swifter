@@ -73,7 +73,15 @@ struct OnboardAllSet: View {
 
                 // Maybe Later Button
                 Button {
-                    viewModel.scheduleFirstJog(sessionManager: sessionManager, storeManager: eventStoreManager)
+                    eventStoreManager.eventStore.requestAccess(to: .event) { granted, error in
+                        DispatchQueue.main.async {
+                            if granted {
+                                viewModel.scheduleFirstJog(sessionManager: sessionManager, storeManager: eventStoreManager)
+                            } else {
+                                print("❌ Calendar access not granted.")
+                            }
+                        }
+                    }
                     isNewUser = false
                 } label: { // TODO: Replace EmptyView() with your HomePageView
                     HStack(spacing: 5) {

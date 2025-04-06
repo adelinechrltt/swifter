@@ -163,19 +163,19 @@ final class EventStoreManager: ObservableObject {
         var end: Date
         if (preferences.preferredTimesOfDay.contains(.morning)){
             start = calendar.date(bySettingHour: 6, minute: 0, second: 0, of: date)!
-            end = calendar.date(bySettingHour: 11, minute: 0, second: 0, of: date)!
+            end = calendar.date(bySettingHour: 11, minute: 59, second: 59, of: date)!
             if let available = findAvailableSlot(events: events, start: start, end: end, duration: duration) {
                 return available
             }
         } else if (preferences.preferredTimesOfDay.contains(.noon)){
             start = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: date)!
-            end = calendar.date(bySettingHour: 14, minute: 0, second: 0, of: date)!
+            end = calendar.date(bySettingHour: 14, minute: 59, second: 59, of: date)!
             if let available = findAvailableSlot(events: events, start: start, end: end, duration: duration) {
                 return available
             }
         } else if (preferences.preferredTimesOfDay.contains(.afternoon)){
             start = calendar.date(bySettingHour: 15, minute: 0, second: 0, of: date)!
-            end = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: date)!
+            end = calendar.date(bySettingHour: 18, minute: 59, second: 59, of: date)!
             if let available = findAvailableSlot(events: events, start: start, end: end, duration: duration) {
                 return available
             }

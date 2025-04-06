@@ -49,7 +49,15 @@ struct OnboardThanksForLettingUsKnow: View {
 
             // Start Jogging Button
             Button {
-                viewModel.scheduleFirstJog(sessionManager: sessionManager, storeManager: eventStoreManager)
+                eventStoreManager.eventStore.requestAccess(to: .event) { granted, error in
+                    DispatchQueue.main.async {
+                        if granted {
+                            viewModel.scheduleFirstJog(sessionManager: sessionManager, storeManager: eventStoreManager)
+                        } else {
+                            print("❌ Calendar access not granted.")
+                        }
+                    }
+                }
                 isNewUser = false
             } label: {
                 Text("Let’s start jogging!")

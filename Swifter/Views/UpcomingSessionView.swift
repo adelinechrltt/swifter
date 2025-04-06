@@ -183,6 +183,8 @@ struct UpcomingSession: View {
         }
         .navigationBarBackButtonHidden(true)
         .onAppear {
+            viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 showProgress = true
             }

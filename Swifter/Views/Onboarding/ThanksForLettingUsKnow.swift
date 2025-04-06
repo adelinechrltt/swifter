@@ -16,6 +16,8 @@ struct OnboardThanksForLettingUsKnow: View {
     private var goalManager: GoalManager {
         GoalManager(modelContext: modelContext)
     }
+    
+    @AppStorage("isNewUser") private var isNewUser: Bool = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -38,7 +40,9 @@ struct OnboardThanksForLettingUsKnow: View {
             Spacer()
 
             // Start Jogging Button
-            NavigationLink(destination: UpcomingSession()) {
+            Button {
+                isNewUser = false
+            } label: {
                 Text("Let’s start jogging!")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.primary)
@@ -49,9 +53,6 @@ struct OnboardThanksForLettingUsKnow: View {
                             .stroke(Color.primary, lineWidth: 1)
                     )
             }
-            .simultaneousGesture(TapGesture().onEnded { _ in
-                // TODO: Replace this with home menu navigation
-            })
             .transition(.scale)
             .animation(.spring(response: 0.4, dampingFraction: 0.6), value: UUID())
 

@@ -39,7 +39,7 @@ struct UpcomingSession: View {
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(Color.primary)
                         
-                        Text(viewModel.nextSession.startTime.timeIntervalSinceNow > 60*60*24 ? "Next jog session in:" : "Next jogging session at")
+                        Text(viewModel.nextStart.timeIntervalSinceNow > 60*60*24 ? "Next jog session in:" : "Next jogging session at")
                             .font(.system(size: 15))
                             .foregroundColor(Color.secondary)
                         
@@ -48,14 +48,14 @@ struct UpcomingSession: View {
                     
                     // Session Card
                     VStack(spacing: 14) {
-                        Text(viewModel.nextSession.startTime.timeIntervalSinceNow > 60*60*24 ? "\(Int(ceil(viewModel.nextSession.startTime.timeIntervalSinceNow/86400))) days" : "Tomorrow")
+                        Text(viewModel.timeUntil > 60 * 60 * 24 ? "\(viewModel.days) days" : "Tomorrow")
                             .font(.system(size: 15))
                             .foregroundColor(Color.secondary)
                         
-                        Text("\(formatter1.string(from: viewModel.nextSession.startTime))")
+                        Text("\(formatter1.string(from: viewModel.nextStart))")
                             .font(.system(size: 35, weight: .bold))
                             .foregroundColor(Color.primary)
-                        Text("\(formatter2.string(from: viewModel.nextSession.startTime)) - \(formatter2.string(from: viewModel.nextSession.endTime))")
+                        Text("\(formatter2.string(from: viewModel.nextStart)) - \(formatter2.string(from: viewModel.nextEnd))")
                             .font(.system(size: 16))
                             .foregroundColor(Color.secondary)
                         
@@ -184,7 +184,7 @@ struct UpcomingSession: View {
         .navigationBarBackButtonHidden(true)
         .onAppear {
             viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-            
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 showProgress = true
             }

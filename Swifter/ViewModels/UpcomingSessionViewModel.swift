@@ -39,9 +39,7 @@ final class UpcomingSessionViewModel: ObservableObject {
 
     /// init with dummy data
     init(){
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd"
-        self.currentGoal = GoalModel(targetFrequency: 3, startDate: formatter.date(from: "2025/01/01")!, endDate: formatter.date(from: "2025/03/01")!)
+        self.currentGoal = GoalModel(targetFrequency: 3, startDate: Date(), endDate: Date()+3600*48+30*60)
         
         self.nextJog = SessionModel(startTime: Date()+3600*48, endTime: Date()+3600*48+30*60, calendarEventID: "lorem ipsum", sessionType: .jogging)
         
@@ -52,7 +50,9 @@ final class UpcomingSessionViewModel: ObservableObject {
     func fetchData(goalManager: GoalManager, sessionManager: JoggingSessionManager) {
         if let goals = goalManager.fetchGoals() {
             let sortedGoals = goals.sorted(by: { $0.startDate > $1.startDate })
-            self.currentGoal = sortedGoals.first!
+            if let currGoal = sortedGoals.first {
+                self.currentGoal = currGoal
+            }
         }
           
         let sessions = sessionManager.fetchAllSessions()

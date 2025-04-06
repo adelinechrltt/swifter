@@ -68,7 +68,7 @@ class PreferencesManager: ObservableObject {
         
         do {
             try modelContext.save()
-            print("✅ New pre-jog time saved: \(myPreferences?.postJogDuration) minutes")
+            print("✅ New post-jog time saved: \(myPreferences?.postJogDuration) minutes")
         } catch {
             print("❌ Failed: \(error)")
            }
@@ -81,7 +81,7 @@ class PreferencesManager: ObservableObject {
         
         do {
             try modelContext.save()
-            print("✅ New pre-jog time saved: \(myPreferences?.preferredTimesOfDay)")
+            print("✅ New times of day saved: \(myPreferences?.preferredTimesOfDay)")
         } catch {
             print("❌ Failed: \(error)")
            }
@@ -94,7 +94,7 @@ class PreferencesManager: ObservableObject {
         
         do {
             try modelContext.save()
-            print("✅ New pre-jog time saved: \(myPreferences?.preferredDaysOfWeek)")
+            print("✅ New days of week saved: \(myPreferences?.preferredDaysOfWeek)")
         } catch {
             print("❌ Failed: \(error)")
            }

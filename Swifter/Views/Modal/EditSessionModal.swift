@@ -44,7 +44,7 @@ struct EditSessionModal: View {
                 DurationPicker(pickerLabel: "Post-jog", startTime: $viewModel.startPostjog, endTime: $viewModel.endPostjog)
                 
                 Button {
-                    viewModel.eventStoreManager.findAvailableSlot(date: Date(), duration: 3600)
+//                    viewModel.eventStoreManager.findAvailableSlot(date: Date(), duration: 3600)
                 } label: {
                     Text("Auto schedule")
                 }

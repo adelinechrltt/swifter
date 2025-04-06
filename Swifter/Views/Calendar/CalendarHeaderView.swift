@@ -296,20 +296,24 @@ struct EventBlockView: View {
     let onTap: () -> Void 
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) { // Added minimal spacing
+        VStack(alignment: .leading, spacing: 2) { // Change horizontal alignment to .leading
             Text(event.title)
                 .font(.subheadline)
                 .fontWeight(.medium)
                 .foregroundColor(.primary)
                 .lineLimit(1)
+                // Text alignment follows VStack alignment (.leading)
 
             Text("\(formatTime(event.startDate)) - \(formatTime(event.endDate))")
                 .font(.caption)
                 .foregroundColor(.primary.opacity(0.7))
+                // Text alignment follows VStack alignment (.leading)
         }
         .padding(.horizontal, 8)
         // No vertical padding here
-        .frame(width: width, height: calculateHeight(), alignment: .topLeading) // Ensure frame aligns top
+        // Align the VStack itself to the leading edge horizontally.
+        // The VStack will manage vertical distribution internally.
+        .frame(width: width, height: calculateHeight(), alignment: .leading) // Change frame alignment to .leading
         .background(
             RoundedRectangle(cornerRadius: 6)
                 .fill(event.color.opacity(0.3))

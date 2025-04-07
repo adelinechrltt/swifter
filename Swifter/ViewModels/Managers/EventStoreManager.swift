@@ -61,9 +61,9 @@ final class EventStoreManager: ObservableObject {
         
         do {
             try eventStore.save(event, span: .thisEvent)
-            print("✅ Jogging event saved successfully!")
+            print("new jogging event saved")
         } catch {
-            print("❌ Error saving event: \(error.localizedDescription)")
+            print("error saving calendar event: \(error.localizedDescription)")
             return nil
         }
         

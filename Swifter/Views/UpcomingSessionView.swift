@@ -101,7 +101,9 @@ struct UpcomingSession: View {
                                 .cornerRadius(18)
                         }
                         
-                        Button(action: {}) {
+                        Button(action: {
+                            viewModel.markAsComplete(sessionManager: sessionManager)
+                        }) {
                             Text("Mark as Done")
                                 .font(.system(size: 15, weight: .semibold))
                                 .frame(maxWidth: .infinity)

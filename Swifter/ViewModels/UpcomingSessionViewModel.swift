@@ -113,11 +113,21 @@ final class UpcomingSessionViewModel: ObservableObject {
             }
 
             sessionManager.saveContext()
-            
-            print("✅ Sessions successfully rescheduled!")
-        } else {
-            print("❌ Could not find a suitable time slot for rescheduling.")
+            print("reschedule success")
         }
+    }
+    
+    func markAsComplete(sessionManager: JoggingSessionManager) {
+        currentGoal.progress += 1
+        if let prejog = nextPreJog{
+            prejog.status = isCompleted.completed
+        }
+        if let postjog = nextPostJog {
+            postjog.status = isCompleted.completed
+        }
+        nextJog.status = isCompleted.completed
+        
+        sessionManager.saveContext()
     }
 
 }

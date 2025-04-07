@@ -102,7 +102,8 @@ struct UpcomingSession: View {
                         }
                         
                         Button(action: {
-                            viewModel.markAsComplete(sessionManager: sessionManager)
+                            viewModel.markSessionAsComplete(sessionManager: sessionManager, goalManager: goalManager)
+                            viewModel.checkIfGoalCompleted() ? viewModel.completedGoalAlertShown = true : nil
                         }) {
                             Text("Mark as Done")
                                 .font(.system(size: 15, weight: .semibold))
@@ -192,6 +193,17 @@ struct UpcomingSession: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .alert(isPresented: $viewModel.completedGoalAlertShown){
+            Alert(
+                title: Text("Weekly jogging goal completed! 🥳"),
+                message: Text("Congratulations! Let's keep up the pace by setting your next weekly goal."),
+                dismissButton: .default(Text("OK")) {
+                    viewModel.markGoalAsComplete(goalManager: goalManager)
+                    viewModel.createNewGoal(goalManager: goalManager)
+                    viewModel.goalModalShown = true
+                }
+            )
+        }
         .onAppear {
             viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
 

@@ -16,18 +16,26 @@ class GoalManager: ObservableObject {
         self.modelContext = modelContext
     }
     
-    func createNewGoal(targetFreq: Int, startingDate: Date, endingDate: Date){
+    func saveContext() {
+        do {
+            try modelContext.save()
+        } catch {
+            print("❌ Failed to save preferences: \(error)")
+        }
+    }
+    
+    func createNewGoal(targetFreq: Int, startingDate: Date, endingDate: Date) -> GoalModel? {
         let myGoal = GoalModel(targetFrequency: targetFreq, startDate: startingDate, endDate: endingDate)
         modelContext.insert(myGoal)
         
         do {
             try modelContext.save()
             print("✅ Preference saved successfully")
-            print(fetchGoals())
+            return myGoal
         } catch {
             print("❌ Failed to save preferences: \(error)")
+            return nil
         }
-        
     }
     
     func fetchGoals() -> [GoalModel]? {

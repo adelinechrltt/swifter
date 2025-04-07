@@ -39,6 +39,7 @@ final class UpcomingSessionViewModel: ObservableObject {
     
     @Published var preferencesModalShown: Bool = false
     @Published var goalModalShown: Bool = false
+    @Published var completedGoalAlertShown: Bool = false
 
     /// init with dummy data
     init(){
@@ -117,7 +118,7 @@ final class UpcomingSessionViewModel: ObservableObject {
         }
     }
     
-    func markAsComplete(sessionManager: JoggingSessionManager) {
+    func markSessionAsComplete(sessionManager: JoggingSessionManager, goalManager: GoalManager) {
         currentGoal.progress += 1
         if let prejog = nextPreJog{
             prejog.status = isCompleted.completed
@@ -128,6 +129,24 @@ final class UpcomingSessionViewModel: ObservableObject {
         nextJog.status = isCompleted.completed
         
         sessionManager.saveContext()
+    }
+    
+    func markGoalAsComplete(goalManager: GoalManager) {
+        self.currentGoal.status = GoalStatus.completed
+        goalManager.saveContext()
+    }
+    
+    func checkIfGoalCompleted() -> Bool{
+        return currentGoal.progress >= currentGoal.targetFrequency
+    }
+    
+    func createNewGoal(goalManager: GoalManager){
+        if let myGoal = goalManager.createNewGoal(
+            targetFreq: currentGoal.targetFrequency,
+            startingDate: currentGoal.endDate + 7*24*60*60,
+            endingDate: currentGoal.endDate + 14*24*60*60){
+            self.currentGoal = myGoal
+        }
     }
 
 }

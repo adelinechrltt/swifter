@@ -64,6 +64,11 @@ class CalendarViewModel: ObservableObject {
         var newEvents = [Int: [Event]]()
         
         for ekEvent in ekEvents {
+            // Add this check to skip all-day events
+            if ekEvent.isAllDay {
+                continue 
+            }
+            
             let day = calendar.component(.day, from: ekEvent.startDate)
             
             // Create color from calendar color

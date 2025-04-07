@@ -13,7 +13,7 @@ final class UpcomingSessionViewModel: ObservableObject {
     @Published var nextPreJog: SessionModel?
     @Published var nextJog: SessionModel
     @Published var nextPostJog: SessionModel?
-
+    
     /// no need to use published wrapper here
     /// because computed property uses published variables
     /// so if the published variables' values change, so will the computed property's
@@ -24,7 +24,7 @@ final class UpcomingSessionViewModel: ObservableObject {
             return nextJog.startTime
         }
     }
-
+    
     var nextEnd: Date {
         if let postJog = nextPostJog {
             return max(postJog.endTime, nextJog.endTime)
@@ -32,7 +32,7 @@ final class UpcomingSessionViewModel: ObservableObject {
             return nextJog.endTime
         }
     }
-
+    
     /// dummy data
     var timeUntil = TimeInterval(60)
     var days = 4
@@ -40,7 +40,7 @@ final class UpcomingSessionViewModel: ObservableObject {
     @Published var preferencesModalShown: Bool = false
     @Published var goalModalShown: Bool = false
     @Published var completedGoalAlertShown: Bool = false
-
+    
     /// init with dummy data
     init(){
         self.currentGoal = GoalModel(targetFrequency: 3, startDate: Date(), endDate: Date()+3600*48+30*60)
@@ -49,7 +49,6 @@ final class UpcomingSessionViewModel: ObservableObject {
         
         self.currentGoal.progress = 2
     }
-
     
     func fetchData(goalManager: GoalManager, sessionManager: JoggingSessionManager) {
         if let goals = goalManager.fetchGoals() {
@@ -58,11 +57,11 @@ final class UpcomingSessionViewModel: ObservableObject {
                 self.currentGoal = currGoal
             }
         }
-          
+        
         let sessions = sessionManager.fetchAllSessions()
             .filter { $0.status == isCompleted.incomplete}
             .sorted(by: { $0.startTime < $1.startTime })
-
+        
         self.nextPreJog = sessions.first(where: { $0.sessionType == .prejog })
         self.nextJog = sessions.first(where: { $0.sessionType == .jogging }) ?? self.nextJog
         self.nextPostJog = sessions.first(where: { $0.sessionType == .postjog })
@@ -71,13 +70,15 @@ final class UpcomingSessionViewModel: ObservableObject {
         self.days = Int(ceil(timeUntil / 86400))
     }
     
+    
+    /// session functions
     func rescheduleSessions(
         eventStoreManager: EventStoreManager,
         preferencesManager: PreferencesManager,
         sessionManager: JoggingSessionManager
     ) {
         guard let preferences = preferencesManager.fetchPreferences() else { return }
-
+        
         let totalDuration = nextEnd.timeIntervalSince(nextStart)
         
         if let newTimes = eventStoreManager.findDayOfWeek(duration: totalDuration, preferences: preferences, goal: currentGoal) {
@@ -102,7 +103,7 @@ final class UpcomingSessionViewModel: ObservableObject {
             nextJog.startTime = cursor
             nextJog.endTime = jogEnd
             cursor = jogEnd
-
+            
             /// reschedule postjog
             if let postJog = nextPostJog {
                 let duration = postJog.endTime.timeIntervalSince(postJog.startTime)
@@ -112,7 +113,7 @@ final class UpcomingSessionViewModel: ObservableObject {
                 postJog.endTime = newEnd
                 cursor = newEnd
             }
-
+            
             sessionManager.saveContext()
             print("reschedule success")
         }
@@ -131,15 +132,100 @@ final class UpcomingSessionViewModel: ObservableObject {
         sessionManager.saveContext()
     }
     
-    func markGoalAsComplete(goalManager: GoalManager) {
-        self.currentGoal.status = GoalStatus.completed
-        goalManager.saveContext()
+    func wipeAllSessionsRelatedToGoal(sessionManager: JoggingSessionManager) {
+        let goalStart = currentGoal.startDate
+        let goalEnd = currentGoal.endDate
+        
+        let sessionsToDelete = sessionManager.fetchAllSessions().filter { session in
+            session.startTime >= goalStart && session.startTime <= goalEnd
+        }
+        
+        sessionsToDelete.forEach { session in
+            sessionManager.deleteSession(session: session)
+        }
     }
     
-    func checkIfGoalCompleted() -> Bool{
-        return currentGoal.progress >= currentGoal.targetFrequency
+    func createNewSession(sessionManager: JoggingSessionManager, storeManager: EventStoreManager, preferencesManager: PreferencesManager){
+        guard let preferences = preferencesManager.fetchPreferences() else {
+            return
+        }
+        
+        let timeOnFeet = preferences.jogDuration
+        let preJog = preferences.preJogDuration
+        let postJog = preferences.postJogDuration
+        
+        let duration: Int
+        if (preJog > 0 && postJog > 0){
+            duration = timeOnFeet + preJog + postJog
+            //            print("prejog and postjog")
+            if let availDate = storeManager.findDayOfWeek(duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
+                /// create prejog event
+                sessionManager.createNewSession(
+                    storeManager: storeManager,
+                    start: availDate[0],
+                    end: availDate[0]+TimeInterval(preJog*60),
+                    sessionType: SessionType.prejog)
+                /// create jog event
+                sessionManager.createNewSession(
+                    storeManager: storeManager,
+                    start: availDate[0]+TimeInterval(preJog*60),
+                    end: availDate[0]+TimeInterval(preJog*60)+TimeInterval(timeOnFeet*60),
+                    sessionType: SessionType.jogging)
+                /// create postjog event
+                sessionManager.createNewSession(
+                    storeManager: storeManager,
+                    start: availDate[0]+TimeInterval(preJog*60)+TimeInterval(timeOnFeet*60),
+                    end: availDate[0]+TimeInterval(preJog*60)+TimeInterval(timeOnFeet*60)+TimeInterval(postJog*60),
+                    sessionType: SessionType.postjog)
+            }
+        } else if (preJog > 0) {
+            duration = timeOnFeet + preJog
+            //            print("prejog")
+            if let availDate = storeManager.findDayOfWeek(duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
+                /// create prejog event
+                sessionManager.createNewSession(
+                    storeManager: storeManager,
+                    start: availDate[0],
+                    end: availDate[0]+TimeInterval(preJog*60),
+                    sessionType: SessionType.prejog)
+                /// create jog event
+                sessionManager.createNewSession(
+                    storeManager: storeManager,
+                    start: availDate[0]+TimeInterval(preJog*60),
+                    end: availDate[0]+TimeInterval(preJog*60)+TimeInterval(timeOnFeet*60),
+                    sessionType: SessionType.jogging)
+            }
+        } else if (postJog > 0){
+            duration = timeOnFeet + postJog
+            //            print("postjog")
+            if let availDate = storeManager.findDayOfWeek(duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
+                /// create jog event
+                sessionManager.createNewSession(
+                    storeManager: storeManager,
+                    start: availDate[0],
+                    end: availDate[0]+TimeInterval(timeOnFeet*60),
+                    sessionType: SessionType.jogging)
+                /// create post jog event
+                sessionManager.createNewSession(
+                    storeManager: storeManager,
+                    start: availDate[0]+TimeInterval(timeOnFeet*60),
+                    end: availDate[0]+TimeInterval(timeOnFeet*60)+TimeInterval(postJog*60),
+                    sessionType: SessionType.postjog)
+            }
+        } else {
+            duration = timeOnFeet
+            if let availDate = storeManager.findDayOfWeek(duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
+                /// create jog event
+                sessionManager.createNewSession(
+                    storeManager: storeManager,
+                    start: availDate[0],
+                    end: availDate[0]+TimeInterval(timeOnFeet*60),
+                    sessionType: SessionType.jogging)
+            }
+        }
     }
     
+    /// goal functions
     func createNewGoal(goalManager: GoalManager){
         if let myGoal = goalManager.createNewGoal(
             targetFreq: currentGoal.targetFrequency,
@@ -148,5 +234,13 @@ final class UpcomingSessionViewModel: ObservableObject {
             self.currentGoal = myGoal
         }
     }
-
+    
+    func markGoalAsComplete(goalManager: GoalManager) {
+        self.currentGoal.status = GoalStatus.completed
+        goalManager.saveContext()
+    }
+    
+    func checkIfGoalCompleted() -> Bool{
+        return currentGoal.progress >= currentGoal.targetFrequency
+    }
 }

@@ -47,6 +47,7 @@ class GoalManager: ObservableObject {
         goalToEdit.targetFrequency = targetFreq
         goalToEdit.startDate = startingDate
         goalToEdit.endDate = endingDate
+        goalToEdit.progress = 0
             
         do {
             try modelContext.save()

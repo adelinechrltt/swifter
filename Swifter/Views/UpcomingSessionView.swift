@@ -103,7 +103,6 @@ struct UpcomingSession: View {
                         
                         Button(action: {
                             viewModel.markSessionAsComplete(sessionManager: sessionManager, goalManager: goalManager)
-                            viewModel.checkIfGoalCompleted() ? viewModel.completedGoalAlertShown = true : nil
                         }) {
                             Text("Mark as Done")
                                 .font(.system(size: 15, weight: .semibold))
@@ -189,7 +188,14 @@ struct UpcomingSession: View {
             .sheet(isPresented: $viewModel.goalModalShown) {
                 GoalSettingModal(
                     isPresented: $viewModel.goalModalShown,
-                    goalToEdit: viewModel.currentGoal)
+                    goalToEdit: viewModel.currentGoal,
+                    onSave:
+                        {
+                            viewModel.wipeAllSessionsRelatedToGoal(sessionManager: sessionManager)
+                            viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
+                            viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+                        }
+                )
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -203,6 +209,14 @@ struct UpcomingSession: View {
                     viewModel.goalModalShown = true
                 }
             )
+        }
+        .onChange(of: viewModel.currentGoal.progress) { _ in
+            if viewModel.checkIfGoalCompleted() == true {
+                viewModel.completedGoalAlertShown = true
+            } else {
+                viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
+                viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+            }
         }
         .onAppear {
             viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)

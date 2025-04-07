@@ -5,20 +5,22 @@ struct GoalSettingModal: View {
     //modal
     @Binding var isPresented: Bool
     @StateObject private var viewModel: EditGoalViewModel
-        let goalToEdit: GoalModel
+    let goalToEdit: GoalModel
+    let onSave: () -> Void
+    
+    @Environment(\.modelContext) private var modelContext
+    private var goalManager: GoalManager {
+        GoalManager(modelContext: modelContext)
+    }
+    
+    @State private var showSaveAlert = false
 
-        @Environment(\.modelContext) private var modelContext
-        private var goalManager: GoalManager {
-            GoalManager(modelContext: modelContext)
-        }
-
-        @State private var showSaveAlert = false
-
-        init(isPresented: Binding<Bool>, goalToEdit: GoalModel) {
-            self._isPresented = isPresented
-            self.goalToEdit = goalToEdit
-            _viewModel = StateObject(wrappedValue: EditGoalViewModel())
-        }
+    init(isPresented: Binding<Bool>, goalToEdit: GoalModel, onSave: @escaping () -> Void) {
+        self._isPresented = isPresented
+        self.goalToEdit = goalToEdit
+        _viewModel = StateObject(wrappedValue: EditGoalViewModel())
+        self.onSave = onSave
+    }
     
     var body: some View {
         ZStack {
@@ -125,6 +127,7 @@ struct GoalSettingModal: View {
                         message: Text("Are you sure you want to save your weekly goal?"),
                         primaryButton: .default(Text("Save")) {
                             viewModel.saveGoal(goalManager: goalManager, goalToEdit: goalToEdit)
+                            onSave()
                             isPresented = false
                         },
                         secondaryButton: .cancel()

@@ -106,6 +106,16 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
         }
     }
     
+    func deleteSession(session: SessionModel){
+        modelContext.delete(session)
+        do {
+               try modelContext.save()
+               print("successfully deleted")
+           } catch {
+               print("error \(error.localizedDescription)")
+           }
+    }
+    
     /// so other viewmodels can save context after updating a session
     func saveContext() {
         do {

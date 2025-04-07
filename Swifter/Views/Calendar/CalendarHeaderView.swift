@@ -182,33 +182,56 @@ struct EventsTimelineView: View {
     @State private var previousMagnification: CGFloat = 1.0
 
     var body: some View {
-        ScrollView {
-            ZStack(alignment: .topLeading) {
-                // Base hour grid
-                HourGridView(formatHour: formatHour, hourHeight: timelineHourHeight) // Use state height
+        ScrollViewReader { proxy in
+            ScrollView {
+                ZStack(alignment: .topLeading) {
+                    // Base hour grid
+                    HourGridView(formatHour: formatHour, hourHeight: timelineHourHeight) // Use state height
 
-                // Events overlay
-                EventsOverlayView(
-                    events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay),
-                    formatTime: formatTime,
-                    hourHeight: timelineHourHeight, // Use state height
-                    onEventTapped: onEventTapped
-                )
+                    // Events overlay
+                    EventsOverlayView(
+                        events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay),
+                        formatTime: formatTime,
+                        hourHeight: timelineHourHeight, // Use state height
+                        onEventTapped: onEventTapped
+                    )
+                }
+                .frame(height: 24 * timelineHourHeight) // Use dynamic height
             }
-            .frame(height: 24 * timelineHourHeight) // Use dynamic height
+            .gesture(
+                MagnificationGesture()
+                    .onChanged { value in
+                        let delta = value / previousMagnification
+                        currentMagnification *= delta
+                        timelineHourHeight = max(minTimelineHourHeight, timelineHourHeight * delta) // Apply zoom and clamp
+                        previousMagnification = value
+                    }
+                    .onEnded { value in
+                        previousMagnification = 1.0 // Reset for next gesture
+                    }
+            )
+            .onChange(of: selectedDay) { newDay in
+                scrollToFirstEvent(day: newDay, proxy: proxy)
+            }
+            .onAppear {
+                scrollToFirstEvent(day: selectedDay, proxy: proxy)
+            }
         }
-        .gesture(
-            MagnificationGesture()
-                .onChanged { value in
-                    let delta = value / previousMagnification
-                    currentMagnification *= delta
-                    timelineHourHeight = max(minTimelineHourHeight, timelineHourHeight * delta) // Apply zoom and clamp
-                    previousMagnification = value
+    }
+
+    // Helper function to scroll
+    private func scrollToFirstEvent(day: Int, proxy: ScrollViewProxy) {
+        let events = viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: day)
+        if let firstEvent = events.sorted(by: { $0.startDate < $1.startDate }).first {
+            let calendar = Calendar.current
+            let hour = calendar.component(.hour, from: firstEvent.startDate)
+            let targetHour = max(0, hour - 1)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation {
+                    proxy.scrollTo(targetHour, anchor: .top)
                 }
-                .onEnded { value in
-                    previousMagnification = 1.0 // Reset for next gesture
-                }
-        )
+            }
+        }
     }
 }
 
@@ -233,6 +256,7 @@ struct HourGridView: View {
                     Divider() // Divider is now at the bottom boundary of the hour slot
                 }
                 .frame(height: hourHeight) // Ensure each slot maintains the correct height
+                .id(hour) // <<< Add ID for scrolling
             }
         }
         .padding(.horizontal)

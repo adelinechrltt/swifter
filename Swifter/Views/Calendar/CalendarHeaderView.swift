@@ -174,7 +174,7 @@ struct EventsTimelineView: View {
     let selectedDay: Int
     let formatHour: (Int) -> String
     let formatTime: (Date) -> String
-    let hourHeight: CGFloat = 100.0 // Increased hour height
+    let hourHeight: CGFloat = 200.0 // Increased hour height
     let onEventTapped: (Event) -> Void // Add this new parameter
     
     var body: some View {

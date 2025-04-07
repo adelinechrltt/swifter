@@ -186,7 +186,9 @@ struct UpcomingSession: View {
                })
            }
             .sheet(isPresented: $viewModel.goalModalShown) {
-                GoalSettingModal(isPresented: $viewModel.goalModalShown, modelContext: modelContext)
+                GoalSettingModal(
+                    isPresented: $viewModel.goalModalShown,
+                    goalToEdit: viewModel.currentGoal)
             }
         }
         .navigationBarBackButtonHidden(true)

@@ -5,16 +5,20 @@ struct GoalSettingModal: View {
     //modal
     @Binding var isPresented: Bool
     @StateObject private var viewModel: EditGoalViewModel
-    
-    // Add state for save confirmation alert
-    @State private var showSaveAlert = false
-    
-    // Initialize with environment-based model context
-    init(isPresented: Binding<Bool>, modelContext: ModelContext) {
-        self._isPresented = isPresented
-        let goalManager = GoalManager(modelContext: modelContext)
-        _viewModel = StateObject(wrappedValue: EditGoalViewModel(goalManager: goalManager))
-    }
+        let goalToEdit: GoalModel
+
+        @Environment(\.modelContext) private var modelContext
+        private var goalManager: GoalManager {
+            GoalManager(modelContext: modelContext)
+        }
+
+        @State private var showSaveAlert = false
+
+        init(isPresented: Binding<Bool>, goalToEdit: GoalModel) {
+            self._isPresented = isPresented
+            self.goalToEdit = goalToEdit
+            _viewModel = StateObject(wrappedValue: EditGoalViewModel())
+        }
     
     var body: some View {
         ZStack {
@@ -120,7 +124,7 @@ struct GoalSettingModal: View {
                         title: Text("Save Goal"),
                         message: Text("Are you sure you want to save your weekly goal?"),
                         primaryButton: .default(Text("Save")) {
-                            viewModel.saveGoal()
+                            viewModel.saveGoal(goalManager: goalManager, goalToEdit: goalToEdit)
                             isPresented = false
                         },
                         secondaryButton: .cancel()
@@ -130,6 +134,9 @@ struct GoalSettingModal: View {
             .transition(.move(edge: .bottom))
         }
         .background(Color.black.opacity(0.4).edgesIgnoringSafeArea(.all))
+        .onAppear {
+            viewModel.fetchData(prevGoal: goalToEdit)
+        }
     }
 }
 

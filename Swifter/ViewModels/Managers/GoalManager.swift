@@ -35,21 +35,19 @@ class GoalManager: ObservableObject {
         return try? modelContext.fetch(goals)
     }
 
-    func updateGoal(targetFreq: Int, startingDate: Date, endingDate: Date) {
-        if let goals = fetchGoals(), let firstGoal = goals.first {
-            firstGoal.targetFrequency = targetFreq
-            firstGoal.startDate = startingDate
-            firstGoal.endDate = endingDate
+    func updateGoal(goalToEdit: GoalModel, targetFreq: Int, startingDate: Date, endingDate: Date) {
+        goalToEdit.targetFrequency = targetFreq
+        goalToEdit.startDate = startingDate
+        goalToEdit.endDate = endingDate
             
-            do {
-                try modelContext.save()
-                print("✅ Goal updated successfully")
-                print("Target frequency: \(firstGoal.targetFrequency)")
-                print("Start date: \(firstGoal.startDate)")
-                print("End date: \(firstGoal.endDate)")
-            } catch {
-                print("❌ Failed to update goal: \(error)")
-            }
+        do {
+            try modelContext.save()
+            print("✅ Goal updated successfully")
+            print("Target frequency: \(goalToEdit.targetFrequency)")
+            print("Start date: \(goalToEdit.startDate)")
+            print("End date: \(goalToEdit.endDate)")
+        } catch {
+            print("❌ Failed to update goal: \(error)")
         }
     }
 }

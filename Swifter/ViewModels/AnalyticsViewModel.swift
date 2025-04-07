@@ -12,14 +12,21 @@ final class AnalyticsViewModel: ObservableObject {
     
     @Published var weeklyProgress: [(category: String, value: Int)]
     @Published var goals: [GoalModel]
-    @Published var goalChartData: [(category: String, value: Int)]
+    @Published var goalChartData: [(category: String, value: Float)]
     @Published var monthlyJogs: Int
     @Published var totalJogs: Int
     
     init(){
         weeklyProgress = []
-        goals = []
-        goalChartData = [(category: "", value: 0)]
+        goals = [
+            GoalModel(targetFrequency: 10, startDate: Date(), endDate: Date()+60*60*24*7),
+                 GoalModel(targetFrequency: 15, startDate: Date()+60*60*24*8, endDate: Date()+60*60*24*14),
+                 GoalModel(targetFrequency: 20, startDate: Date()+60*60*24*15, endDate: Date()+60*60*24*21),
+                 GoalModel(targetFrequency: 30, startDate: Date()+60*60*24*22, endDate: Date()+60*60*24*28),
+                 GoalModel(targetFrequency: 25, startDate: Date()+60*60*24*29, endDate: Date()+60*60*24*35)
+            ]
+        goalChartData = [(category: "Completed goals", value: 5),
+                         (category: "Incomplete goals", value: 0)]
         monthlyJogs = 0
         totalJogs = 0
     }
@@ -27,26 +34,15 @@ final class AnalyticsViewModel: ObservableObject {
     func fetchGoalData(goalManager: GoalManager){
         if let goalTemp = goalManager.fetchGoals() {
             self.goals = goalTemp
-        } else {
-            
-            /// dummy data
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy/MM/dd"
-
-            goals = [
-                GoalModel(targetFrequency: 10, startDate: formatter.date(from: "2025/01/01")!, endDate: formatter.date(from: "2025/03/01")!),
-                     GoalModel(targetFrequency: 15, startDate: formatter.date(from: "2025/02/20")!, endDate: formatter.date(from: "2025/05/20")!),
-                     GoalModel(targetFrequency: 20, startDate: formatter.date(from: "2025/03/01")!, endDate: formatter.date(from: "2025/06/01")!),
-                     GoalModel(targetFrequency: 30, startDate: formatter.date(from: "2025/01/01")!, endDate: formatter.date(from: "2025/07/01")!),
-                     GoalModel(targetFrequency: 25, startDate: formatter.date(from: "2025/02/15")!, endDate: formatter.date(from: "2025/04/15")!)
-            ]
         }
         
-        self.weeklyProgress = [(category: "Completed", value: goals.sorted { $0.startDate < $1.startDate }.first!.progress),
-                          (category: "Incomplete", value: goals.sorted { $0.startDate < $1.startDate }.first!.targetFrequency - goals.sorted { $0.startDate < $1.startDate }.first!.progress)]
+        if let currentGoal = goals.sorted(by: { $0.startDate < $1.startDate }).first {
+            self.weeklyProgress = [(category: "Completed", value: currentGoal.progress),
+                                   (category: "Incomplete", value: currentGoal.targetFrequency - currentGoal.progress)]
+        }
         
-        self.goalChartData = [(category: "Completed goals", value: goals.filter { $0.status == GoalStatus.completed}.count),
-        (category: "Incomplete goals", value: goals.filter { $0.status == GoalStatus.incomplete}.count)]
+        self.goalChartData = [(category: "Completed goals", value: Float(goals.filter { $0.status == GoalStatus.completed}.count)+0.2),
+                              (category: "Incomplete goals", value: Float(goals.filter { $0.status == GoalStatus.incomplete}.count)+0.2)]
     }
     
     func fetchSessionData(sessionManager: JoggingSessionManager){

@@ -117,12 +117,12 @@ struct AnalyticsView: View {
                 {
                     VStack {
                         HStack{
-                            Text("\(viewModel.goalChartData[0].value)").font(.title3.bold())
+                            Text("\(String(format: "%.0f", viewModel.goalChartData[0].value))").font(.title3.bold())
                             Text((viewModel.goalChartData[0].value)>1 ? "completed goals" : "completed goal")
                         }
                         HStack{
                             if viewModel.weeklyProgress.count >= 2 {
-                                Text("\(viewModel.goalChartData[1].value)")
+                                Text("\(String(format: "%.0f", viewModel.goalChartData[1].value))").font(.title3.bold())
                                 Text((viewModel.goalChartData[1].value)>1 ? "completed goals" : "completed goal")
                             } else {
                                 Text("Progress unavailable")

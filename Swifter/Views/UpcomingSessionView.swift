@@ -180,7 +180,10 @@ struct UpcomingSession: View {
             }
             // TODO: sheet refactor
            .sheet(isPresented: $viewModel.preferencesModalShown){
-               EditPreferencesModal(isPresented: $viewModel.preferencesModalShown, modelContext: modelContext)
+               EditPreferencesModal(isPresented: $viewModel.preferencesModalShown, modelContext: modelContext, onSave: {
+                   viewModel.rescheduleSessions(eventStoreManager: eventStoreManager, preferencesManager: preferencesManager, sessionManager: sessionManager)
+                   viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+               })
            }
             .sheet(isPresented: $viewModel.goalModalShown) {
                 GoalSettingModal(isPresented: $viewModel.goalModalShown, modelContext: modelContext)

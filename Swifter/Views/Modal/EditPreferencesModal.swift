@@ -20,10 +20,13 @@ struct EditPreferencesModal: View {
     private var currentPreference: PreferencesModel? {
         preferences.first
     }
-
-    init(isPresented: Binding<Bool>, modelContext: ModelContext) {
+    
+    var onSave: () -> Void
+    
+    init(isPresented: Binding<Bool>, modelContext: ModelContext, onSave: @escaping () -> Void) {
         self._isPresented = isPresented
         self.modelContext = modelContext
+        self.onSave = onSave
     }
 
     var body: some View {
@@ -106,6 +109,7 @@ struct EditPreferencesModal: View {
                                 message: Text("Are you sure you want to save your preferences?"),
                                 primaryButton: .default(Text("OK")) {
                                     updatePreference()
+                                    onSave()
                                     isPresented = false
                                 },
                                 secondaryButton: .cancel()
@@ -242,5 +246,6 @@ struct DayButton: View {
         }
     }()
 
-    return EditPreferencesModal(isPresented: .constant(true), modelContext: container.mainContext)
+    return EditPreferencesModal(isPresented: .constant(true), modelContext: container.mainContext,
+                                onSave: {})
 }

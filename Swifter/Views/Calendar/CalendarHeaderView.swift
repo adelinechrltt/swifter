@@ -174,25 +174,41 @@ struct EventsTimelineView: View {
     let selectedDay: Int
     let formatHour: (Int) -> String
     let formatTime: (Date) -> String
-    let hourHeight: CGFloat = 200.0 // Increased hour height
-    let onEventTapped: (Event) -> Void // Add this new parameter
-    
+    @Binding var timelineHourHeight: CGFloat // Use binding
+    let minTimelineHourHeight: CGFloat // Receive minimum height
+    let onEventTapped: (Event) -> Void
+
+    @State private var currentMagnification: CGFloat = 1.0
+    @State private var previousMagnification: CGFloat = 1.0
+
     var body: some View {
         ScrollView {
             ZStack(alignment: .topLeading) {
                 // Base hour grid
-                HourGridView(formatHour: formatHour, hourHeight: hourHeight) // Pass hourHeight
+                HourGridView(formatHour: formatHour, hourHeight: timelineHourHeight) // Use state height
 
                 // Events overlay
                 EventsOverlayView(
                     events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay),
                     formatTime: formatTime,
-                    hourHeight: hourHeight, // Pass hourHeight
-                    onEventTapped: onEventTapped // Pass onEventTapped
+                    hourHeight: timelineHourHeight, // Use state height
+                    onEventTapped: onEventTapped
                 )
             }
-            .frame(height: 24 * hourHeight) // Use hourHeight constant
+            .frame(height: 24 * timelineHourHeight) // Use dynamic height
         }
+        .gesture(
+            MagnificationGesture()
+                .onChanged { value in
+                    let delta = value / previousMagnification
+                    currentMagnification *= delta
+                    timelineHourHeight = max(minTimelineHourHeight, timelineHourHeight * delta) // Apply zoom and clamp
+                    previousMagnification = value
+                }
+                .onEnded { value in
+                    previousMagnification = 1.0 // Reset for next gesture
+                }
+        )
     }
 }
 

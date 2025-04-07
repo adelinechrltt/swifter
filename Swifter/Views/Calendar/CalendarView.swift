@@ -35,6 +35,10 @@ struct CalendarView: View {
     @State private var selectedEvent: Event? = nil
     @StateObject private var eventStoreManager = EventStoreManager()
     
+    // State for zoomable timeline hour height
+    @State private var timelineHourHeight: CGFloat = 200.0 // Initial height
+    private let minTimelineHourHeight: CGFloat = 200.0 // Minimum height
+    
     var body: some View {
         VStack(spacing: 0) {
             // Month and year header
@@ -77,6 +81,8 @@ struct CalendarView: View {
                     selectedDay: selectedDay ?? 1,
                     formatHour: formatHour,
                     formatTime: formatTime,
+                    timelineHourHeight: $timelineHourHeight, // Pass binding
+                    minTimelineHourHeight: minTimelineHourHeight, // Pass minimum
                     onEventTapped: { event in
                         selectedEvent = event
                         showEditSessionModal = true

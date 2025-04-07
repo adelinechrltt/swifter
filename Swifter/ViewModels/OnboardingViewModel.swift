@@ -15,7 +15,6 @@ final class OnboardingViewModel: ObservableObject {
     /// init with dummy data
     init() {
         self.currentGoal = GoalModel(targetFrequency: 3, startDate: Date(), endDate: Date()+3600*48+30*60)
-        
         self.preferences = PreferencesModel(timeOnFeet: 25)
     }
     
@@ -103,6 +102,5 @@ final class OnboardingViewModel: ObservableObject {
                     sessionType: SessionType.jogging)
             }
         }
-//        print(duration)
     }
 }

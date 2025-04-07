@@ -175,7 +175,8 @@ struct EventsTimelineView: View {
     let formatHour: (Int) -> String
     let formatTime: (Date) -> String
     let hourHeight: CGFloat = 100.0 // Increased hour height
-
+    let onEventTapped: (Event) -> Void // Add this new parameter
+    
     var body: some View {
         ScrollView {
             ZStack(alignment: .topLeading) {
@@ -186,7 +187,8 @@ struct EventsTimelineView: View {
                 EventsOverlayView(
                     events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay),
                     formatTime: formatTime,
-                    hourHeight: hourHeight // Pass hourHeight
+                    hourHeight: hourHeight, // Pass hourHeight
+                    onEventTapped: onEventTapped // Pass onEventTapped
                 )
             }
             .frame(height: 24 * hourHeight) // Use hourHeight constant
@@ -202,19 +204,19 @@ struct HourGridView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(0..<24) { hour in
-                VStack(alignment: .leading, spacing: 0) {
-                    // Hour label at the beginning of the hour slot
+                VStack(alignment: .leading, spacing: 0) { // Use VStack to structure content within the hour slot
                     HStack {
                         Text(formatHour(hour))
+                            .font(.caption)
                             .foregroundColor(.gray)
                             .frame(width: 70, alignment: .leading)
+                            .padding(.top, 4) // Add slight padding from the top for the label
                         Spacer()
                     }
-                    .padding(.vertical, 8)
-                    .frame(height: hourHeight) // Use hourHeight constant
-
-                    Divider()
+                    Spacer() // Pushes the Divider to the bottom of the VStack
+                    Divider() // Divider is now at the bottom boundary of the hour slot
                 }
+                .frame(height: hourHeight) // Ensure each slot maintains the correct height
             }
         }
         .padding(.horizontal)
@@ -226,7 +228,8 @@ struct EventsOverlayView: View {
     let events: [Event]
     let formatTime: (Date) -> String
     let hourHeight: CGFloat // Receive hourHeight
-
+    let onEventTapped: (Event) -> Void // Add this new parameter
+    
     var body: some View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width - 70 // Subtract hour label width
@@ -253,7 +256,11 @@ struct EventsOverlayView: View {
                             EventBlockView(
                                 event: event,
                                 formatTime: formatTime,
-                                width: eventCount > 1 ? (availableWidth / CGFloat(eventCount)) - 4 : availableWidth
+                                width: eventCount > 1 ? (availableWidth / CGFloat(eventCount)) - 4 : availableWidth,
+                                hourHeight: hourHeight,
+                                onTap: {
+                                    onEventTapped(event)
+                                }
                             )
                         }
                     }
@@ -275,9 +282,8 @@ struct EventsOverlayView: View {
         // Position is the number of hours * hourHeight + the minute fraction of an hour
         let exactYPosition = CGFloat(hour) * hourHeight + (CGFloat(minute) / 60.0) * hourHeight
         
-        // Add a small offset (e.g., 1 point) to push the block slightly below the hour line
-        let verticalOffset: CGFloat = 1.0 
-        return exactYPosition + verticalOffset
+        // No adjustment needed here if HourGridView lines are precise
+        return exactYPosition 
     }
 }
 
@@ -286,28 +292,35 @@ struct EventBlockView: View {
     let event: Event
     let formatTime: (Date) -> String
     let width: CGFloat
-    let hourHeight: CGFloat = 100.0 // Define or receive hourHeight
+    let hourHeight: CGFloat 
+    let onTap: () -> Void 
 
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 2) { // Change horizontal alignment to .leading
             Text(event.title)
                 .font(.subheadline)
                 .fontWeight(.medium)
                 .foregroundColor(.primary)
                 .lineLimit(1)
+                // Text alignment follows VStack alignment (.leading)
 
             Text("\(formatTime(event.startDate)) - \(formatTime(event.endDate))")
                 .font(.caption)
                 .foregroundColor(.primary.opacity(0.7))
+                // Text alignment follows VStack alignment (.leading)
         }
         .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .frame(width: width, alignment: .leading)
-        .frame(height: calculateHeight()) // Use the updated calculateHeight
+        // No vertical padding here
+        // Align the VStack itself to the leading edge horizontally.
+        // The VStack will manage vertical distribution internally.
+        .frame(width: width, height: calculateHeight(), alignment: .leading) // Change frame alignment to .leading
         .background(
             RoundedRectangle(cornerRadius: 6)
                 .fill(event.color.opacity(0.3))
         )
+        .onTapGesture {
+            onTap() 
+        }
     }
     
     // Calculate accurate height based on event duration

@@ -30,6 +30,11 @@ struct CalendarView: View {
     @State private var showMonthPicker = false
     @State private var showYearPicker = false
     
+    // New state variables for edit modal
+    @State private var showEditSessionModal = false
+    @State private var selectedEvent: Event? = nil
+    @StateObject private var eventStoreManager = EventStoreManager()
+    
     var body: some View {
         VStack(spacing: 0) {
             // Month and year header
@@ -71,7 +76,11 @@ struct CalendarView: View {
                     currentMonth: currentMonth,
                     selectedDay: selectedDay ?? 1,
                     formatHour: formatHour,
-                    formatTime: formatTime
+                    formatTime: formatTime,
+                    onEventTapped: { event in
+                        selectedEvent = event
+                        showEditSessionModal = true
+                    }
                 )
             } else {
                 CalendarAccessView(checkAccess: {
@@ -88,6 +97,10 @@ struct CalendarView: View {
         .onAppear(perform: onAppearHandler)
         .onChange(of: currentMonth, perform: onMonthChangeHandler)
         .onChange(of: currentYear, perform: onYearChangeHandler)
+        .sheet(isPresented: $showEditSessionModal) {
+            EditSessionModal()
+                .environmentObject(eventStoreManager)
+        }
     }
     
     // MARK: - Event Handlers

@@ -4,8 +4,9 @@ struct UpcomingSession: View {
     @State private var showProgress = false
     
     @EnvironmentObject private var eventStoreManager: EventStoreManager
-    
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) var colorScheme
+
     private var goalManager: GoalManager {
         GoalManager(modelContext: modelContext)
     }
@@ -26,17 +27,17 @@ struct UpcomingSession: View {
 
     private let formatter2: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.dateFormat = "h:m a"
+        formatter.dateFormat = "h:mm a"
         formatter.amSymbol = "AM"
         formatter.pmSymbol = "PM"
         return formatter
     }()
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                Color(.systemBackground).ignoresSafeArea()
-                
+        ZStack {
+            Color(.systemBackground).ignoresSafeArea()
+
+            GeometryReader { geometry in
                 VStack(spacing: 0) {
                     // Header
                     VStack(spacing: 6) {
@@ -47,7 +48,6 @@ struct UpcomingSession: View {
                         Text(viewModel.nextStart.timeIntervalSinceNow > 60*60*24 ? "Next jog session in:" : "Next jogging session at")
                             .font(.system(size: 15))
                             .foregroundColor(Color.secondary)
-                        
                     }
                     .padding(.bottom, 30)
                     
@@ -55,14 +55,14 @@ struct UpcomingSession: View {
                     VStack(spacing: 14) {
                         Text(viewModel.timeUntil > 60 * 60 * 24 ? "\(viewModel.days) days" : "Tomorrow")
                             .font(.system(size: 15))
-                            .foregroundColor(Color.secondary)
+                            .foregroundColor(Color.white)
                         
                         Text("\(formatter1.string(from: viewModel.nextStart))")
                             .font(.system(size: 35, weight: .bold))
-                            .foregroundColor(Color.primary)
+                            .foregroundColor(Color.white)
                         Text("\(formatter2.string(from: viewModel.nextStart)) - \(formatter2.string(from: viewModel.nextEnd))")
                             .font(.system(size: 16))
-                            .foregroundColor(Color.secondary)
+                            .foregroundColor(Color.white)
                         
                         HStack(spacing: 8) {
                             Text("Goal: Jog \(viewModel.currentGoal.targetFrequency) times in a week")
@@ -71,11 +71,11 @@ struct UpcomingSession: View {
                                 .padding(.horizontal, 16)
                                 .background(Color(.systemFill))
                                 .cornerRadius(12)
-                                .foregroundColor(Color.primary)
+                                .foregroundColor(Color.white)
                             
                             Image(systemName: "pencil")
-                                .font(.system(size: 16))
-                                .foregroundColor(Color.primary)
+                                .font(.system(size: 22.5))
+                                .foregroundColor(Color.white)
                                 .onTapGesture {
                                     viewModel.goalModalShown = true
                                 }
@@ -83,7 +83,9 @@ struct UpcomingSession: View {
                     }
                     .padding(18)
                     .frame(maxWidth: geometry.size.width * 0.9)
-                    .background(Color(.secondarySystemBackground))
+                    .background(
+                        Color(uiColor: colorScheme == .dark ? .systemGray6 : .black)
+                    )
                     .cornerRadius(20)
                     .padding(.bottom, 28)
                     
@@ -95,23 +97,25 @@ struct UpcomingSession: View {
                             Text("Reschedule")
                                 .font(.system(size: 15, weight: .medium))
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
+                                .padding(.vertical, 22)
                                 .background(Color(.tertiarySystemFill))
                                 .foregroundColor(Color.primary)
                                 .cornerRadius(18)
                         }
-                        
+                        .contentShape(Rectangle())
+
                         Button(action: {
                             viewModel.markSessionAsComplete(sessionManager: sessionManager, goalManager: goalManager)
                         }) {
                             Text("Mark as Done")
                                 .font(.system(size: 15, weight: .semibold))
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
+                                .padding(.vertical, 22)
                                 .background(Color.primary)
                                 .foregroundColor(Color(.systemBackground))
                                 .cornerRadius(18)
                         }
+                        .contentShape(Rectangle())
                     }
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
@@ -144,19 +148,17 @@ struct UpcomingSession: View {
                                 .font(.system(size: 15))
                                 .foregroundColor(Color.secondary)
                             
-                            NavigationLink(destination: AnalyticsView()){
-                                HStack{
+                            NavigationLink(destination: AnalyticsView()) {
+                                HStack {
                                     Text("See More")
                                         .font(.system(size: 12, weight: .medium))
                                         .padding(.vertical, 10)
-                                        .background(Color(.systemBackground))
                                     Image(systemName: "chevron.right")
                                         .foregroundColor(Color.primary)
-                                }.padding(.horizontal)
-                                    .overlay(
-                                    RoundedRectangle(cornerRadius: 15)
-                                        .stroke(Color.primary, lineWidth: 1.5)
-                                )
+                                }
+                                .padding(.horizontal)
+                                .background(Color(.tertiarySystemFill))
+                                .cornerRadius(15)
                                 .foregroundColor(Color.primary)
                             }
                             .padding(.top, 12)
@@ -167,39 +169,37 @@ struct UpcomingSession: View {
                     
                     Spacer()
                 }
-                .frame(maxHeight: .infinity, alignment: .top)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button{
-                        viewModel.preferencesModalShown = true
-                    } label: {
-                        Image(systemName: "gearshape")
-                    }.foregroundColor(.primary)
-                }
-            }
-            // TODO: sheet refactor
-           .sheet(isPresented: $viewModel.preferencesModalShown){
-               EditPreferencesModal(isPresented: $viewModel.preferencesModalShown, modelContext: modelContext, onSave: {
-                   viewModel.rescheduleSessions(eventStoreManager: eventStoreManager, preferencesManager: preferencesManager, sessionManager: sessionManager)
-                   viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-               })
-           }
-            .sheet(isPresented: $viewModel.goalModalShown) {
-                GoalSettingModal(
-                    isPresented: $viewModel.goalModalShown,
-                    goalToEdit: viewModel.currentGoal,
-                    onSave:
-                        {
-                            viewModel.wipeAllSessionsRelatedToGoal(sessionManager: sessionManager)
-                            viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
-                            viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-                        }
-                )
             }
         }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    viewModel.preferencesModalShown = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .foregroundColor(.primary)
+            }
+        }
+        .sheet(isPresented: $viewModel.preferencesModalShown) {
+            EditPreferencesModal(isPresented: $viewModel.preferencesModalShown, modelContext: modelContext, onSave: {
+                viewModel.rescheduleSessions(eventStoreManager: eventStoreManager, preferencesManager: preferencesManager, sessionManager: sessionManager)
+                viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+            })
+        }
+        .sheet(isPresented: $viewModel.goalModalShown) {
+            GoalSettingModal(
+                isPresented: $viewModel.goalModalShown,
+                goalToEdit: viewModel.currentGoal,
+                onSave: {
+                    viewModel.wipeAllSessionsRelatedToGoal(sessionManager: sessionManager)
+                    viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
+                    viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+                }
+            )
+        }
         .navigationBarBackButtonHidden(true)
-        .alert(isPresented: $viewModel.completedGoalAlertShown){
+        .alert(isPresented: $viewModel.completedGoalAlertShown) {
             Alert(
                 title: Text("Weekly jogging goal completed! 🥳"),
                 message: Text("Congratulations! Let's keep up the pace by setting your next weekly goal."),
@@ -211,7 +211,7 @@ struct UpcomingSession: View {
             )
         }
         .onChange(of: viewModel.currentGoal.progress) { _ in
-            if viewModel.checkIfGoalCompleted() == true {
+            if viewModel.checkIfGoalCompleted() {
                 viewModel.completedGoalAlertShown = true
             } else {
                 viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
@@ -220,7 +220,6 @@ struct UpcomingSession: View {
         }
         .onAppear {
             viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 showProgress = true
             }
@@ -228,8 +227,10 @@ struct UpcomingSession: View {
     }
 }
 
+// Preview
 #Preview {
     NavigationView {
         UpcomingSession()
+            .environmentObject(EventStoreManager())
     }
 }

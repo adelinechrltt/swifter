@@ -93,6 +93,17 @@ class CalendarViewModel: ObservableObject {
     }
     
     func hasEventsOnDay(day: Int) -> Bool {
-        return events[day]?.isEmpty == false
+        // Check if there are any events for the day
+        guard let dayEvents = events[day], !dayEvents.isEmpty else {
+            return false
+        }
+        
+        // Check if any event title contains jogging-related keywords
+        let joggingKeywords = ["Pre-jogging", "Jogging", "Post-jogging"]
+        return dayEvents.contains { event in
+            joggingKeywords.contains { keyword in
+                event.title.contains(keyword)
+            }
+        }
     }
 }

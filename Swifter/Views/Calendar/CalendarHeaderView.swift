@@ -292,49 +292,75 @@ struct EventBlockView: View {
     let event: Event
     let formatTime: (Date) -> String
     let width: CGFloat
-    let hourHeight: CGFloat 
-    let onTap: () -> Void 
+    let hourHeight: CGFloat
+    let onTap: () -> Void
+
+    // Define a threshold for switching layout
+    private let heightThreshold: CGFloat = 50.0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) { // Change horizontal alignment to .leading
-            Text(event.title)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.primary)
-                .lineLimit(1)
-                // Text alignment follows VStack alignment (.leading)
+        let calculatedHeight = calculateHeight()
+        let isSmall = calculatedHeight < heightThreshold
 
-            Text("\(formatTime(event.startDate)) - \(formatTime(event.endDate))")
-                .font(.caption)
-                .foregroundColor(.primary.opacity(0.7))
-                // Text alignment follows VStack alignment (.leading)
+        Group {
+            if isSmall {
+                // Horizontal layout for small blocks
+                HStack(alignment: .center, spacing: 4) {
+                    Text(event.title)
+                        .font(.caption) // Use smaller font if needed
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                        .truncationMode(.tail) // Truncate title if too long
+                    Spacer() // Push time to the right
+                    Text("\(formatTime(event.startDate))-\(formatTime(event.endDate))")
+                        .font(.caption2) // Use smaller font if needed
+                        .foregroundColor(.primary.opacity(0.7))
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false) // Prevent time from wrapping
+                }
+                .padding(.horizontal, 6) // Adjust padding for horizontal layout
+                .padding(.vertical, 4) // Add some vertical padding
+            } else {
+                // Vertical layout for larger blocks
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(event.title)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                        .lineLimit(2) // Allow title to wrap slightly if needed
+
+                    Text("\(formatTime(event.startDate)) - \(formatTime(event.endDate))")
+                        .font(.caption)
+                        .foregroundColor(.primary.opacity(0.7))
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4) // Add consistent vertical padding
+            }
         }
-        .padding(.horizontal, 8)
-        // No vertical padding here
-        // Align the VStack itself to the leading edge horizontally.
-        // The VStack will manage vertical distribution internally.
-        .frame(width: width, height: calculateHeight(), alignment: .leading) // Change frame alignment to .leading
+        .frame(width: width, height: calculatedHeight, alignment: .leading) // Align left horizontally, center vertically
         .background(
             RoundedRectangle(cornerRadius: 6)
                 .fill(event.color.opacity(0.3))
         )
+        .clipped() // Clip content if it overflows the frame
         .onTapGesture {
-            onTap() 
+            onTap()
         }
     }
-    
+
     // Calculate accurate height based on event duration
     private func calculateHeight() -> CGFloat {
         let calendar = Calendar.current
-        
+
         let startHour = calendar.component(.hour, from: event.startDate)
         let startMinute = calendar.component(.minute, from: event.startDate)
         let endHour = calendar.component(.hour, from: event.endDate)
         let endMinute = calendar.component(.minute, from: event.endDate)
-        
+
         // Calculate total duration in minutes
         var durationInMinutes: CGFloat = 0
-        
+
         if endHour < startHour || (endHour == startHour && endMinute <= startMinute) {
             // Event crosses midnight
             let minutesToMidnight = CGFloat((24 - startHour) * 60 - startMinute)
@@ -346,7 +372,7 @@ struct EventBlockView: View {
             let endTotalMinutes = CGFloat(endHour * 60 + endMinute)
             durationInMinutes = endTotalMinutes - startTotalMinutes
         }
-        
+
         // Convert minutes to height - hourHeight represents 60 minutes
         // Ensure minimum height for visibility (adjust if needed with larger hourHeight)
         let calculatedHeight = durationInMinutes / 60.0 * hourHeight // Use hourHeight constant

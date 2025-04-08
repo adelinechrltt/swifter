@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct EditPreferencesModal: View {
     @Binding var isPresented: Bool
@@ -30,104 +31,93 @@ struct EditPreferencesModal: View {
     }
 
     var body: some View {
-        ZStack {
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .edgesIgnoringSafeArea(.all)
-                .onTapGesture { isPresented = false }
-
-            VStack {
-                Spacer()
-
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        // Header
-                        HStack {
-                            Button(action: { isPresented = false }) {
-                                Image(systemName: "chevron.left")
-                                    .font(.title2)
-                                    .foregroundColor(.primary)
-                            }
-                            Spacer()
-                            Text("Edit Preferences")
-                                .font(.headline)
-                            Spacer()
+        VStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Header
+                    HStack {
+                        Button(action: { isPresented = false }) {
+                            Image(systemName: "chevron.left")
+                                .font(.title2)
+                                .foregroundColor(.primary)
                         }
+                        Spacer()
+                        Text("Edit Preferences")
+                            .font(.headline)
+                        Spacer()
+                    }
 
-                        VStack(alignment: .leading, spacing: 15) {
-                            Text("Avg Time On Feet (Required)").font(.subheadline).bold()
-                            Stepper("\(avgTimeOnFeet) minutes", value: $avgTimeOnFeet, in: 5...120, step: 5)
-                                .onChange(of: avgTimeOnFeet) { _, _ in updatePreference() }
+                    VStack(alignment: .leading, spacing: 15) {
+                        Text("Avg Time On Feet (Required)").font(.subheadline).bold()
+                        Stepper("\(avgTimeOnFeet) minutes", value: $avgTimeOnFeet, in: 5...120, step: 5)
+                            .onChange(of: avgTimeOnFeet) { _, _ in updatePreference() }
 
-                            Text("Avg Pre Jog Duration").font(.subheadline).bold()
-                            Stepper("\(preJogDuration) minutes", value: $preJogDuration, in: 0...60, step: 5)
-                                .onChange(of: preJogDuration) { _, _ in updatePreference() }
+                        Text("Avg Pre Jog Duration").font(.subheadline).bold()
+                        Stepper("\(preJogDuration) minutes", value: $preJogDuration, in: 0...60, step: 5)
+                            .onChange(of: preJogDuration) { _, _ in updatePreference() }
 
-                            Text("Avg Post Jog Duration").font(.subheadline).bold()
-                            Stepper("\(postJogDuration) minutes", value: $postJogDuration, in: 0...60, step: 5)
-                                .onChange(of: postJogDuration) { _, _ in updatePreference() }
+                        Text("Avg Post Jog Duration").font(.subheadline).bold()
+                        Stepper("\(postJogDuration) minutes", value: $postJogDuration, in: 0...60, step: 5)
+                            .onChange(of: postJogDuration) { _, _ in updatePreference() }
 
-                            Text("Preferred Times of Day").font(.subheadline).bold()
+                        Text("Preferred Times of Day").font(.subheadline).bold()
 
-                            LazyVGrid(columns: columns, spacing: 8) {
-                                ForEach(TimeOfDay.allCases) { time in
-                                    TimeButton(
-                                        title: time.rawValue,
-                                        isSelected: selectedTimesOfDay.contains(time),
-                                        action: { toggleTimeOfDay(time) }
-                                    )
-                                }
-                            }
-
-                            Text("Preferred Days of the Week").font(.subheadline).bold()
-
-                            LazyVGrid(columns: columns, spacing: 8) {
-                                ForEach(DayOfWeek.allCases) { day in
-                                    DayButton(
-                                        title: day.name.prefix(3),
-                                        isSelected: selectedDaysOfWeek.contains(day),
-                                        action: { toggleDayOfWeek(day) }
-                                    )
-                                }
+                        LazyVGrid(columns: columns, spacing: 8) {
+                            ForEach(TimeOfDay.allCases) { time in
+                                TimeButton(
+                                    title: time.rawValue,
+                                    isSelected: selectedTimesOfDay.contains(time),
+                                    action: { toggleTimeOfDay(time) }
+                                )
                             }
                         }
 
-                        Button(action: {
-                            showSaveAlert = true
-                        }) {
-                            Text("Save")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.accentColor)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
-                        .padding(.top, 10)
-                        .alert(isPresented: $showSaveAlert) {
-                            Alert(
-                                title: Text("Save Changes?"),
-                                message: Text("Are you sure you want to save your preferences?"),
-                                primaryButton: .default(Text("OK")) {
-                                    updatePreference()
-                                    onSave()
-                                    isPresented = false
-                                },
-                                secondaryButton: .cancel()
-                            )
+                        Text("Preferred Days of the Week").font(.subheadline).bold()
+
+                        LazyVGrid(columns: columns, spacing: 8) {
+                            ForEach(DayOfWeek.allCases) { day in
+                                DayButton(
+                                    title: day.name.prefix(3),
+                                    isSelected: selectedDaysOfWeek.contains(day),
+                                    action: { toggleDayOfWeek(day) }
+                                )
+                            }
                         }
                     }
-                    .padding(20)
-                    .background(Color(.systemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+
+                    Button(action: {
+                        showSaveAlert = true
+                    }) {
+                        Text("Save")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.accentColor)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                    .padding(.top, 10)
+                    .alert(isPresented: $showSaveAlert) {
+                        Alert(
+                            title: Text("Save Changes?"),
+                            message: Text("Are you sure you want to save your preferences?"),
+                            primaryButton: .default(Text("OK")) {
+                                updatePreference()
+                                onSave()
+                                isPresented = false
+                            },
+                            secondaryButton: .cancel()
+                        )
+                    }
                 }
-                .padding(.horizontal, 20)
-                .frame(maxHeight: UIScreen.main.bounds.height * 0.75)
+                .padding(20)
+                .background(Color(.systemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 20))
             }
-            .frame(maxWidth: 700)
-            .transition(.move(edge: .bottom))
-            .onAppear {
-                loadPreferenceData()
-            }
+            .padding(.horizontal, 20)
+        }
+        .frame(maxWidth: 700)
+        .onAppear {
+            loadPreferenceData()
         }
     }
 

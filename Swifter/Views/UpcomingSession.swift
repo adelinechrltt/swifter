@@ -21,7 +21,7 @@ struct UpcomingSession: View {
     
     private let formatter1: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.dateFormat = "E, dd MMMM yyyy"
+        formatter.dateFormat = "E, dd MMM yyyy"
         return formatter
     }()
 
@@ -188,7 +188,7 @@ struct UpcomingSession: View {
             })
         }
         .sheet(isPresented: $viewModel.goalModalShown) {
-            GoalSettingModal(
+            EditGoalModal(
                 isPresented: $viewModel.goalModalShown,
                 goalToEdit: viewModel.currentGoal,
                 onSave: {

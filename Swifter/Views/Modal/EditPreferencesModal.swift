@@ -20,9 +20,9 @@ struct EditPreferencesModal: View {
     private var currentPreference: PreferencesModel? {
         preferences.first
     }
-    
+
     var onSave: () -> Void
-    
+
     init(isPresented: Binding<Bool>, modelContext: ModelContext, onSave: @escaping () -> Void) {
         self._isPresented = isPresented
         self.modelContext = modelContext
@@ -31,8 +31,8 @@ struct EditPreferencesModal: View {
 
     var body: some View {
         ZStack {
-            // Transparent modal background
-            Color.black.opacity(0.4)
+            Rectangle()
+                .fill(.ultraThinMaterial)
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture { isPresented = false }
 
@@ -41,7 +41,7 @@ struct EditPreferencesModal: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
-                        // Title & Back
+                        // Header
                         HStack {
                             Button(action: { isPresented = false }) {
                                 Image(systemName: "chevron.left")
@@ -117,9 +117,8 @@ struct EditPreferencesModal: View {
                         }
                     }
                     .padding(20)
-                    .background(Color(.systemBackground)) // ADAPTIVE BG
+                    .background(Color(.systemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .shadow(radius: 10)
                 }
                 .padding(.horizontal, 20)
                 .frame(maxHeight: UIScreen.main.bounds.height * 0.75)
@@ -246,6 +245,5 @@ struct DayButton: View {
         }
     }()
 
-    return EditPreferencesModal(isPresented: .constant(true), modelContext: container.mainContext,
-                                onSave: {})
+    return EditPreferencesModal(isPresented: .constant(true), modelContext: container.mainContext, onSave: {})
 }

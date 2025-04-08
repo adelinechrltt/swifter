@@ -121,6 +121,7 @@ struct UpcomingSession: View {
                             if flag == true {
                                 viewModel.completedGoalAlertShown = true
                             } else {
+                                print("flag is false?")
                                 viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
                             }
                         }) {
@@ -234,32 +235,6 @@ struct UpcomingSession: View {
                     )
 =======
             }
-        }.toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    viewModel.preferencesModalShown = true
-                } label: {
-                    Image(systemName: "gearshape")
-                }
-                .foregroundColor(.primary)
-            }
-        }
-        .sheet(isPresented: $viewModel.preferencesModalShown) {
-            EditPreferencesModal(isPresented: $viewModel.preferencesModalShown, modelContext: modelContext, onSave: {
-                viewModel.rescheduleSessions(eventStoreManager: eventStoreManager, preferencesManager: preferencesManager, sessionManager: sessionManager)
-                viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-            })
-        }
-        .sheet(isPresented: $viewModel.goalModalShown) {
-            GoalSettingModal(
-                isPresented: $viewModel.goalModalShown,
-                goalToEdit: viewModel.currentGoal,
-                onSave: {
-                    viewModel.wipeAllSessionsRelatedToGoal(sessionManager: sessionManager)
-                    viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
-                    viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-                }
-            )
         }
         .navigationBarBackButtonHidden(true)
         .alert(isPresented: $viewModel.completedGoalAlertShown) {

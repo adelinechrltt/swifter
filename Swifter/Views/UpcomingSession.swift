@@ -6,11 +6,6 @@ struct UpcomingSession: View {
     @EnvironmentObject private var eventStoreManager: EventStoreManager
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) var colorScheme
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 7ed8c89 (update upcoming session ui and modals)
     private var goalManager: GoalManager {
         GoalManager(modelContext: modelContext)
     }
@@ -40,11 +35,6 @@ struct UpcomingSession: View {
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
-<<<<<<< HEAD
-            
-=======
-
->>>>>>> 7ed8c89 (update upcoming session ui and modals)
             GeometryReader { geometry in
                 VStack(spacing: 0) {
                     // Header
@@ -111,11 +101,6 @@ struct UpcomingSession: View {
                                 .cornerRadius(18)
                         }
                         .contentShape(Rectangle())
-<<<<<<< HEAD
-                        
-=======
-
->>>>>>> 7ed8c89 (update upcoming session ui and modals)
                         Button(action: {
                             let flag = viewModel.markSessionAsComplete(sessionManager: sessionManager, goalManager: goalManager)
                             if flag == true {
@@ -221,19 +206,6 @@ struct UpcomingSession: View {
                         
                     }
                 )
-<<<<<<< HEAD
-                .navigationBarBackButtonHidden(true)
-                .alert(isPresented: $viewModel.completedGoalAlertShown) {
-                    Alert(
-                        title: Text("Weekly jogging goal completed! 🥳"),
-                        message: Text("Congratulations! Let's keep up the pace by setting your next weekly goal."),
-                        dismissButton: .default(Text("OK")) {
-                            viewModel.markGoalAsComplete(goalManager: goalManager)
-                            viewModel.createNewGoal(goalManager: goalManager)
-                            viewModel.goalModalShown = true
-                        }
-                    )
-=======
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -245,18 +217,18 @@ struct UpcomingSession: View {
                     viewModel.markGoalAsComplete(goalManager: goalManager)
                     viewModel.createNewGoal(goalManager: goalManager)
                     viewModel.goalModalShown = true
->>>>>>> 7ed8c89 (update upcoming session ui and modals)
-                }
-                //        .onChange(of: viewModel.currentGoal.progress) { _ in
-                //            guard !viewModel.checkIfGoalCompleted() else {
-                //                viewModel.completedGoalAlertShown = true
-                //                return
-                //            }
-                //
-                //            viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
-                //            viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-                //        }
-                .onAppear {
+                })
+            //        .onChange(of: viewModel.currentGoal.progress) { _ in
+            //            guard !viewModel.checkIfGoalCompleted() else {
+            //                viewModel.completedGoalAlertShown = true
+            //                return
+            //            }
+            //
+            //            viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
+            //            viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+            //        }
+        }
+        .onAppear {
                     viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
                     
                     eventStoreManager.eventStore.requestAccess(to: .event) { granted, error in
@@ -273,24 +245,9 @@ struct UpcomingSession: View {
                         }
                     }
                 }
-<<<<<<< HEAD
             }
         }
-    }
-}
-    
 
-// Preview
-=======
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    showProgress = true
-                }            }
-        }
-    }
-}
-
->>>>>>> 7ed8c89 (update upcoming session ui and modals)
 #Preview {
     NavigationView {
         UpcomingSession()

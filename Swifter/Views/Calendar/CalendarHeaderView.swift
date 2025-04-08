@@ -19,80 +19,116 @@ struct CalendarHeaderView: View {
     
     var body: some View {
         HStack {
-            // Month with picker
-            Button(action: {
-                showMonthPicker = true
-            }) {
-                Text("\(monthName(currentMonth))")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-            }
-            .sheet(isPresented: $showMonthPicker) {
-                VStack(spacing: 20) {
-                    Text("Select Month")
-                        .font(.headline)
-                        .padding(.top)
-                    
-                    Picker("Month", selection: $currentMonth) {
-                        ForEach(1...12, id: \.self) { month in
-                            Text(monthName(month))
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    
-                    Button("Done") {
-                        showMonthPicker = false
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.accentColor)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding(.horizontal)
+            // Month and Year together
+            HStack(spacing: 8) { // Group month and year
+                // Month with picker
+                Button(action: {
+                    showMonthPicker = true
+                }) {
+                    Text("\(monthName(currentMonth))")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
                 }
-                .presentationDetents([.height(250)])
+                .sheet(isPresented: $showMonthPicker) {
+                    VStack(spacing: 20) {
+                        Text("Select Month")
+                            .font(.headline)
+                            .padding(.top)
+                        
+                        Picker("Month", selection: $currentMonth) {
+                            ForEach(1...12, id: \.self) { month in
+                                Text(monthName(month))
+                            }
+                        }
+                        .pickerStyle(.wheel)
+                        
+                        Button("Done") {
+                            showMonthPicker = false
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                    }
+                    .presentationDetents([.height(250)])
+                }
+                
+                // Year with picker (now next to month)
+                Button(action: {
+                    showYearPicker = true
+                }) {
+                    Text(String(format: "%d", currentYear))
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                }
+                .sheet(isPresented: $showYearPicker) {
+                    VStack(spacing: 20) {
+                        Text("Select Year")
+                            .font(.headline)
+                            .padding(.top)
+                        
+                        Picker("Year", selection: $currentYear) {
+                            ForEach((currentYear-10)...(currentYear+10), id: \.self) { year in
+                                Text(String(format: "%d", year))
+                            }
+                        }
+                        .pickerStyle(.wheel)
+                        
+                        Button("Done") {
+                            showYearPicker = false
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                    }
+                    .presentationDetents([.height(250)])
+                }
             }
             
-            Spacer()
+            Spacer() // Pushes chevrons to the right
             
-            // Year with picker
-            Button(action: {
-                showYearPicker = true
-            }) {
-                Text(String(format: "%d", currentYear))
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-            }
-            .sheet(isPresented: $showYearPicker) {
-                VStack(spacing: 20) {
-                    Text("Select Year")
-                        .font(.headline)
-                        .padding(.top)
-                    
-                    Picker("Year", selection: $currentYear) {
-                        ForEach((currentYear-10)...(currentYear+10), id: \.self) { year in
-                            Text(String(format: "%d", year))
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    
-                    Button("Done") {
-                        showYearPicker = false
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.accentColor)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding(.horizontal)
+            // Month navigation chevrons
+            HStack(spacing: 20) {
+                Button(action: {
+                    changeMonth(by: -1)
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.title2)
+                        .foregroundColor(.primary)
                 }
-                .presentationDetents([.height(250)])
+                
+                Button(action: {
+                    changeMonth(by: 1)
+                }) {
+                    Image(systemName: "chevron.right")
+                        .font(.title2)
+                        .foregroundColor(.primary)
+                }
             }
         }
         .padding(.horizontal)
         .padding(.top)
+    }
+
+    // Helper function to change month and year
+    private func changeMonth(by amount: Int) {
+        let newMonth = currentMonth + amount
+        if newMonth > 12 {
+            currentMonth = 1
+            currentYear += 1
+        } else if newMonth < 1 {
+            currentMonth = 12
+            currentYear -= 1
+        } else {
+            currentMonth = newMonth
+        }
     }
 }
 
@@ -174,25 +210,153 @@ struct EventsTimelineView: View {
     let selectedDay: Int
     let formatHour: (Int) -> String
     let formatTime: (Date) -> String
-    let hourHeight: CGFloat = 100.0 // Increased hour height
-    let onEventTapped: (Event) -> Void // Add this new parameter
+    
+    // Zoom state management
+    @State private var hourHeight: CGFloat = 200.0
+    @State private var lastScale: CGFloat = 1.0
+    private let baselineHourHeight: CGFloat = 200.0
+    private let maxHourHeight: CGFloat = 400.0
+    
+    // State for autoscrolling
+    @State private var targetScrollAnchorId: String? = nil // ID of the anchor to scroll to
+    @State private var didScrollForDay = false // Flag to prevent multiple scrolls for the same day
+    
+    // Define anchor spacing for scroll points
+    private let anchorSpacing: CGFloat = 50 // Adjust spacing as needed
+    
+    let onEventTapped: (Event) -> Void
     
     var body: some View {
-        ScrollView {
-            ZStack(alignment: .topLeading) {
-                // Base hour grid
-                HourGridView(formatHour: formatHour, hourHeight: hourHeight) // Pass hourHeight
+        VStack(spacing: 0) {
+            ScrollViewReader { proxy in // Add ScrollViewReader
+                ScrollView {
+                    // Fetch events for the current view state
+                    let events = viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay)
+                    
+                    ZStack(alignment: .topLeading) {
+                        // Invisible anchors for scrolling targets
+                        VStack(spacing: 0) {
+                            // Create anchors covering the full 24-hour height based on current hourHeight
+                            ForEach(0..<Int(ceil(24 * hourHeight / anchorSpacing)), id: \.self) { index in
+                                Color.clear
+                                    .frame(height: anchorSpacing)
+                                    .id("anchor_\(Int(CGFloat(index) * anchorSpacing))") // Unique ID based on Y position
+                            }
+                        }
+                        .frame(height: 24 * hourHeight) // Ensure anchors cover the full scrollable height
 
-                // Events overlay
-                EventsOverlayView(
-                    events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay),
-                    formatTime: formatTime,
-                    hourHeight: hourHeight, // Pass hourHeight
-                    onEventTapped: onEventTapped // Pass onEventTapped
-                )
+                        // Base hour grid
+                        HourGridView(formatHour: formatHour, hourHeight: hourHeight)
+                        
+                        // Events overlay
+                        EventsOverlayView(
+                            events: events,
+                            formatTime: formatTime,
+                            hourHeight: hourHeight,
+                            onEventTapped: onEventTapped
+                        )
+                    }
+                    .frame(height: 24 * hourHeight)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hourHeight)
+                    .gesture(
+                        MagnificationGesture()
+                            .onChanged { value in
+                                let delta = value / lastScale
+                                lastScale = value
+                                
+                                // Calculate new height, respecting min/max bounds
+                                let newHeight = hourHeight * delta
+                                hourHeight = min(max(newHeight, baselineHourHeight), maxHourHeight)
+                            }
+                            .onEnded { _ in
+                                // Reset the last scale when gesture ends
+                                lastScale = 1.0
+                            }
+                    )
+                }
+                .onChange(of: targetScrollAnchorId) { oldId, newId in // Scroll when anchor ID changes
+                    if let anchorId = newId {
+                        // Use DispatchQueue to ensure scrolling happens after the view update
+                        DispatchQueue.main.async {
+                           withAnimation {
+                                // Scroll to the anchor point slightly above the event
+                                proxy.scrollTo(anchorId, anchor: .top)
+                           }
+                        }
+                    }
+                }
+                .onAppear { // Scroll on initial appearance
+                    findAndSetScrollTarget(events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay))
+                }
+                .onChange(of: selectedDay) { // Reset and scroll when day changes
+                    didScrollForDay = false // Reset flag for the new day
+                    findAndSetScrollTarget(events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay))
+                }
+                 .onChange(of: hourHeight) { // Re-calculate scroll target if zoom changes
+                     // Recalculate target based on new hourHeight if a target was previously set
+                     if targetScrollAnchorId != nil {
+                         findAndSetScrollTarget(events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay), forceRecalculate: true)
+                     }
+                 }
             }
-            .frame(height: 24 * hourHeight) // Use hourHeight constant
         }
+    }
+    
+    // Find the first jogging-related event and set the scroll target anchor ID
+    private func findAndSetScrollTarget(events: [Event], forceRecalculate: Bool = false) {
+        // Only scroll automatically once per day selection unless forced by zoom
+        guard !didScrollForDay || forceRecalculate else { return }
+
+        if let joggingEvent = findFirstJoggingEvent(events: events) {
+            let targetY = calculateScrollTargetPosition(for: joggingEvent.startDate)
+            // Find the nearest anchor ID at or just above the target position
+            let anchorY = floor(targetY / anchorSpacing) * anchorSpacing
+            let newAnchorId = "anchor_\(Int(anchorY))"
+            
+            // Only update if the anchor ID changes or if forced
+            if newAnchorId != targetScrollAnchorId || forceRecalculate {
+                 targetScrollAnchorId = newAnchorId
+            }
+
+            if !forceRecalculate {
+                 didScrollForDay = true // Mark as scrolled for this day
+            }
+        } else {
+             targetScrollAnchorId = nil // No target event found, clear the target
+        }
+    }
+    
+    // Find the first chronologically occurring jogging-related event
+    private func findFirstJoggingEvent(events: [Event]) -> Event? {
+        // Sort events by start time to ensure "first" is chronological
+        let sortedEvents = events.sorted { $0.startDate < $1.startDate }
+        
+        return sortedEvents.first { event in
+            let title = event.title.lowercased()
+            // Check for variations of jogging keywords
+            return title.contains("pre-jogging") ||
+                   title.contains("jogging") ||
+                   title.contains("post-jogging") ||
+                   title.contains("prejog") ||
+                   title.contains("jog") ||
+                   title.contains("postjog")
+        }
+    }
+    
+    // Calculate the target Y position for scrolling (positioning the event slightly below the top edge)
+    private func calculateScrollTargetPosition(for date: Date) -> CGFloat {
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: date)
+        let minute = calendar.component(.minute, from: date)
+        
+        // Calculate exact Y position of the event's top edge within the scroll content
+        let eventTopY = CGFloat(hour) * hourHeight + (CGFloat(minute) / 60.0) * hourHeight
+        
+        // Calculate target scroll position (e.g., 50 points above the event top to give context)
+        // Ensure the target position doesn't go below 0
+        let targetY = max(0, eventTopY - 50)
+        
+        return targetY
     }
 }
 
@@ -292,34 +456,57 @@ struct EventBlockView: View {
     let event: Event
     let formatTime: (Date) -> String
     let width: CGFloat
-    let hourHeight: CGFloat 
-    let onTap: () -> Void 
+    let hourHeight: CGFloat
+    let onTap: () -> Void
+    
+    // Define a threshold height to switch layout
+    private let minimumHeightForVStackLayout: CGFloat = 40.0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) { // Change horizontal alignment to .leading
-            Text(event.title)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.primary)
-                .lineLimit(1)
-                // Text alignment follows VStack alignment (.leading)
+        let calculatedHeight = calculateHeight()
+        
+        Group {
+            if calculatedHeight >= minimumHeightForVStackLayout {
+                // Use VStack for taller blocks
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(event.title)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
 
-            Text("\(formatTime(event.startDate)) - \(formatTime(event.endDate))")
-                .font(.caption)
-                .foregroundColor(.primary.opacity(0.7))
-                // Text alignment follows VStack alignment (.leading)
+                    Text("\(formatTime(event.startDate)) - \(formatTime(event.endDate))")
+                        .font(.caption)
+                        .foregroundColor(.primary.opacity(0.7))
+                }
+            } else {
+                // Use HStack for shorter blocks
+                HStack(spacing: 4) {
+                    Text(event.title)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Text("\(formatTime(event.startDate))")
+                        .font(.caption)
+                        .foregroundColor(.primary.opacity(0.7))
+                        .lineLimit(1)
+                }
+            }
         }
         .padding(.horizontal, 8)
-        // No vertical padding here
-        // Align the VStack itself to the leading edge horizontally.
-        // The VStack will manage vertical distribution internally.
-        .frame(width: width, height: calculateHeight(), alignment: .leading) // Change frame alignment to .leading
+        .padding(.vertical, 4)
+        .frame(width: width, height: calculatedHeight, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 6)
                 .fill(event.color.opacity(0.3))
         )
+        .clipped()
         .onTapGesture {
-            onTap() 
+            onTap()
         }
     }
     
@@ -348,9 +535,8 @@ struct EventBlockView: View {
         }
         
         // Convert minutes to height - hourHeight represents 60 minutes
-        // Ensure minimum height for visibility (adjust if needed with larger hourHeight)
-        let calculatedHeight = durationInMinutes / 60.0 * hourHeight // Use hourHeight constant
-        return max(30.0, calculatedHeight) // Keep a minimum height or adjust as needed
+        let calculatedHeight = durationInMinutes / 60.0 * hourHeight
+        return max(30.0, calculatedHeight) // Keep a minimum height for visibility
     }
 }
 

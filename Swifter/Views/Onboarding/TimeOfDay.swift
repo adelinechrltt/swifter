@@ -69,7 +69,7 @@ struct OnboardPreferredJogTime: View {
             Spacer()
 
             // Progress Bar
-            ProgressView(value: 0.5, total: 1.0)
+            ProgressView(value: 0.6, total: 1.0)
                 .progressViewStyle(LinearProgressViewStyle())
                 .tint(.primary)
                 .frame(height: 6)
@@ -77,7 +77,7 @@ struct OnboardPreferredJogTime: View {
 
             // Bottom buttons
             HStack {
-                NavigationLink(destination: OnboardTimeOnFeet()) {
+                NavigationLink(destination: OnboardPreferredJogDays()) {
                     Text("Skip")
                         .font(.system(size: 14))
                         .foregroundColor(.secondary)

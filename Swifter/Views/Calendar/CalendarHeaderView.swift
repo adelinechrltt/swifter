@@ -19,80 +19,116 @@ struct CalendarHeaderView: View {
     
     var body: some View {
         HStack {
-            // Month with picker
-            Button(action: {
-                showMonthPicker = true
-            }) {
-                Text("\(monthName(currentMonth))")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-            }
-            .sheet(isPresented: $showMonthPicker) {
-                VStack(spacing: 20) {
-                    Text("Select Month")
-                        .font(.headline)
-                        .padding(.top)
-                    
-                    Picker("Month", selection: $currentMonth) {
-                        ForEach(1...12, id: \.self) { month in
-                            Text(monthName(month))
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    
-                    Button("Done") {
-                        showMonthPicker = false
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.accentColor)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding(.horizontal)
+            // Month and Year together
+            HStack(spacing: 8) { // Group month and year
+                // Month with picker
+                Button(action: {
+                    showMonthPicker = true
+                }) {
+                    Text("\(monthName(currentMonth))")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
                 }
-                .presentationDetents([.height(250)])
+                .sheet(isPresented: $showMonthPicker) {
+                    VStack(spacing: 20) {
+                        Text("Select Month")
+                            .font(.headline)
+                            .padding(.top)
+                        
+                        Picker("Month", selection: $currentMonth) {
+                            ForEach(1...12, id: \.self) { month in
+                                Text(monthName(month))
+                            }
+                        }
+                        .pickerStyle(.wheel)
+                        
+                        Button("Done") {
+                            showMonthPicker = false
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                    }
+                    .presentationDetents([.height(250)])
+                }
+                
+                // Year with picker (now next to month)
+                Button(action: {
+                    showYearPicker = true
+                }) {
+                    Text(String(format: "%d", currentYear))
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                }
+                .sheet(isPresented: $showYearPicker) {
+                    VStack(spacing: 20) {
+                        Text("Select Year")
+                            .font(.headline)
+                            .padding(.top)
+                        
+                        Picker("Year", selection: $currentYear) {
+                            ForEach((currentYear-10)...(currentYear+10), id: \.self) { year in
+                                Text(String(format: "%d", year))
+                            }
+                        }
+                        .pickerStyle(.wheel)
+                        
+                        Button("Done") {
+                            showYearPicker = false
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                    }
+                    .presentationDetents([.height(250)])
+                }
             }
             
-            Spacer()
+            Spacer() // Pushes chevrons to the right
             
-            // Year with picker
-            Button(action: {
-                showYearPicker = true
-            }) {
-                Text(String(format: "%d", currentYear))
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-            }
-            .sheet(isPresented: $showYearPicker) {
-                VStack(spacing: 20) {
-                    Text("Select Year")
-                        .font(.headline)
-                        .padding(.top)
-                    
-                    Picker("Year", selection: $currentYear) {
-                        ForEach((currentYear-10)...(currentYear+10), id: \.self) { year in
-                            Text(String(format: "%d", year))
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    
-                    Button("Done") {
-                        showYearPicker = false
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.accentColor)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding(.horizontal)
+            // Month navigation chevrons
+            HStack(spacing: 20) {
+                Button(action: {
+                    changeMonth(by: -1)
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.title2)
+                        .foregroundColor(.primary)
                 }
-                .presentationDetents([.height(250)])
+                
+                Button(action: {
+                    changeMonth(by: 1)
+                }) {
+                    Image(systemName: "chevron.right")
+                        .font(.title2)
+                        .foregroundColor(.primary)
+                }
             }
         }
         .padding(.horizontal)
         .padding(.top)
+    }
+
+    // Helper function to change month and year
+    private func changeMonth(by amount: Int) {
+        let newMonth = currentMonth + amount
+        if newMonth > 12 {
+            currentMonth = 1
+            currentYear += 1
+        } else if newMonth < 1 {
+            currentMonth = 12
+            currentYear -= 1
+        } else {
+            currentMonth = newMonth
+        }
     }
 }
 

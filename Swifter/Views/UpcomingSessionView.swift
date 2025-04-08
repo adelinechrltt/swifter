@@ -23,7 +23,7 @@ struct UpcomingSession: View {
         formatter.dateFormat = "E, dd MMMM yyyy"
         return formatter
     }()
-
+    
     private let formatter2: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:m a"
@@ -31,7 +31,7 @@ struct UpcomingSession: View {
         formatter.pmSymbol = "PM"
         return formatter
     }()
-
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -102,7 +102,12 @@ struct UpcomingSession: View {
                         }
                         
                         Button(action: {
-                            viewModel.markSessionAsComplete(sessionManager: sessionManager, goalManager: goalManager)
+                            let flag = viewModel.markSessionAsComplete(sessionManager: sessionManager, goalManager: goalManager)
+                            if flag == true {
+                                viewModel.completedGoalAlertShown = true
+                            } else {
+                                viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
+                            }
                         }) {
                             Text("Mark as Done")
                                 .font(.system(size: 15, weight: .semibold))
@@ -154,10 +159,10 @@ struct UpcomingSession: View {
                                         .foregroundColor(Color.primary)
                                 }.padding(.horizontal)
                                     .overlay(
-                                    RoundedRectangle(cornerRadius: 15)
-                                        .stroke(Color.primary, lineWidth: 1.5)
-                                )
-                                .foregroundColor(Color.primary)
+                                        RoundedRectangle(cornerRadius: 15)
+                                            .stroke(Color.primary, lineWidth: 1.5)
+                                    )
+                                    .foregroundColor(Color.primary)
                             }
                             .padding(.top, 12)
                         }
@@ -179,22 +184,26 @@ struct UpcomingSession: View {
                 }
             }
             // TODO: sheet refactor
-           .sheet(isPresented: $viewModel.preferencesModalShown){
-               EditPreferencesModal(isPresented: $viewModel.preferencesModalShown, modelContext: modelContext, onSave: {
-                   viewModel.rescheduleSessions(eventStoreManager: eventStoreManager, preferencesManager: preferencesManager, sessionManager: sessionManager)
-                   viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-               })
-           }
+            .sheet(isPresented: $viewModel.preferencesModalShown){
+                EditPreferencesModal(isPresented: $viewModel.preferencesModalShown, modelContext: modelContext, onSave: {
+                    viewModel.rescheduleSessions(eventStoreManager: eventStoreManager, preferencesManager: preferencesManager, sessionManager: sessionManager)
+                    viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+                })
+            }
             .sheet(isPresented: $viewModel.goalModalShown) {
                 GoalSettingModal(
                     isPresented: $viewModel.goalModalShown,
                     goalToEdit: viewModel.currentGoal,
-                    onSave:
+                    onPreSave:
                         {
                             viewModel.wipeAllSessionsRelatedToGoal(sessionManager: sessionManager, eventStoreManager: eventStoreManager)
-                            viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
                             viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-                        }
+                        },
+                    onPostSave: {
+                        viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
+                        viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+                        
+                    }
                 )
             }
         }
@@ -210,24 +219,34 @@ struct UpcomingSession: View {
                 }
             )
         }
-        .onChange(of: viewModel.currentGoal.progress) { _ in
-            if viewModel.checkIfGoalCompleted() == true {
-                viewModel.completedGoalAlertShown = true
-            } else {
-                viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
-                viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-            }
-        }
+//        .onChange(of: viewModel.currentGoal.progress) { _ in
+//            guard !viewModel.checkIfGoalCompleted() else {
+//                viewModel.completedGoalAlertShown = true
+//                return
+//            }
+//            
+//            viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
+//            viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+//        }
         .onAppear {
             viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                showProgress = true
+            
+            eventStoreManager.eventStore.requestAccess(to: .event) { granted, error in
+                DispatchQueue.main.async {
+                    if granted {
+                        //                                viewModel.scheduleFirstJog(sessionManager: sessionManager, storeManager: eventStoreManager)
+                    } else {
+                        print("❌ Calendar access not granted.")
+                    }
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    showProgress = true
+                }
             }
         }
     }
 }
-
 #Preview {
     NavigationView {
         UpcomingSession()

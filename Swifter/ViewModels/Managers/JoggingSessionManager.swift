@@ -53,14 +53,33 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
         return try? modelContext.fetch(descriptor).first
     }
     
+    func latestSession(for goal: GoalModel) -> SessionModel? {
+        let startDate = goal.startDate
+        let endDate = goal.endDate
+        
+        let fetchRequest = FetchDescriptor<SessionModel>(
+            predicate: #Predicate {
+                $0.startTime >= startDate && $0.startTime <= endDate
+            }
+        )
+
+        do {
+            let sessions = try modelContext.fetch(fetchRequest)
+            return sessions.sorted { $0.endTime > $1.endTime }.first
+        } catch {
+            print("Error fetching sessions within goal period: \(error)")
+            return nil
+        }
+    }
+    
     func createNewSession(storeManager: EventStoreManager, start: Date, end: Date, sessionType: SessionType) -> PersistentIdentifier? {
         if let id = storeManager.createNewEvent(eventTitle: sessionType.rawValue, startTime: start, endTime: end) {
             let newSession = SessionModel(startTime: start, endTime: end, calendarEventID: id, sessionType: sessionType)
             modelContext.insert(newSession)
             do {
                 try modelContext.save()
-                print("created new session \(newSession) with ID \(newSession.persistentModelID)")
-                print("time: \(newSession.startTime) - \(newSession.endTime)")
+//                print("created new session \(newSession) with ID \(newSession.persistentModelID)")
+//                print("time: \(newSession.startTime) - \(newSession.endTime)")
                 return newSession.persistentModelID
             } catch {
                 print("error bro")

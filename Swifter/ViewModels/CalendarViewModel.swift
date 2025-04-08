@@ -64,6 +64,11 @@ class CalendarViewModel: ObservableObject {
         var newEvents = [Int: [Event]]()
         
         for ekEvent in ekEvents {
+            //skip all-day events
+            if ekEvent.isAllDay {
+                continue
+            }
+            
             let day = calendar.component(.day, from: ekEvent.startDate)
             
             // Create color from calendar color
@@ -93,6 +98,16 @@ class CalendarViewModel: ObservableObject {
     }
     
     func hasEventsOnDay(day: Int) -> Bool {
-        return events[day]?.isEmpty == false
+        guard let dayEvents = events[day], !dayEvents.isEmpty else {
+            return false
+        }
+
+        // filter jogging events
+        let joggingKeywords = ["Pre-jogging", "Jogging", "Post-jogging"]
+        return dayEvents.contains { event in
+            joggingKeywords.contains { keyword in
+                event.title.contains(keyword)
+            }
+        }
     }
 }

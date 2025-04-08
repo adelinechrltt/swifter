@@ -192,7 +192,7 @@ struct UpcomingSession: View {
                 isPresented: $viewModel.goalModalShown,
                 goalToEdit: viewModel.currentGoal,
                 onSave: {
-                    viewModel.wipeAllSessionsRelatedToGoal(sessionManager: sessionManager)
+                    viewModel.wipeAllSessionsRelatedToGoal(sessionManager: sessionManager, eventStoreManager: eventStoreManager)
                     viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
                     viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
                 }

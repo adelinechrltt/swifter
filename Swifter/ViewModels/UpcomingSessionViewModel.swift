@@ -132,7 +132,7 @@ final class UpcomingSessionViewModel: ObservableObject {
         sessionManager.saveContext()
     }
     
-    func wipeAllSessionsRelatedToGoal(sessionManager: JoggingSessionManager) {
+    func wipeAllSessionsRelatedToGoal(sessionManager: JoggingSessionManager, eventStoreManager: EventStoreManager) {
         let goalStart = currentGoal.startDate
         let goalEnd = currentGoal.endDate
         
@@ -141,7 +141,7 @@ final class UpcomingSessionViewModel: ObservableObject {
         }
         
         sessionsToDelete.forEach { session in
-            sessionManager.deleteSession(session: session)
+            sessionManager.deleteSession(session: session, eventStoreManager: eventStoreManager)
         }
     }
     

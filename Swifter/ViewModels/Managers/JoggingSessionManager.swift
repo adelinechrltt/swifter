@@ -106,7 +106,9 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
         }
     }
     
-    func deleteSession(session: SessionModel){
+    func deleteSession(session: SessionModel, eventStoreManager: EventStoreManager){
+        let calendarEventID = session.calendarEventID
+        
         modelContext.delete(session)
         do {
                try modelContext.save()
@@ -114,6 +116,8 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
            } catch {
                print("error \(error.localizedDescription)")
            }
+        
+        eventStoreManager.deleteSessionById(id: calendarEventID)
     }
     
     /// so other viewmodels can save context after updating a session

@@ -94,6 +94,18 @@ final class EventStoreManager: ObservableObject {
         }
     }
     
+    func deleteSessionById(id: String){
+        if let event = findEventById(id: id){
+            do {
+                try eventStore.remove(event, span: .thisEvent, commit: true)
+                print("calendar event deleted")
+            } catch {
+                print("error bro \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    /// algorithm functions
     func findAvailableSlot(
         events: [EKEvent],
         start: Date,

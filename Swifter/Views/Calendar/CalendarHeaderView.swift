@@ -174,7 +174,7 @@ struct EventsTimelineView: View {
     let selectedDay: Int
     let formatHour: (Int) -> String
     let formatTime: (Date) -> String
-    let hourHeight: CGFloat = 100.0 // Increased hour height
+    let hourHeight: CGFloat = 200.0 // Increased hour height
     let onEventTapped: (Event) -> Void // Add this new parameter
     
     var body: some View {
@@ -292,34 +292,57 @@ struct EventBlockView: View {
     let event: Event
     let formatTime: (Date) -> String
     let width: CGFloat
-    let hourHeight: CGFloat 
-    let onTap: () -> Void 
+    let hourHeight: CGFloat
+    let onTap: () -> Void
+    
+    // Define a threshold height to switch layout
+    private let minimumHeightForVStackLayout: CGFloat = 40.0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) { // Change horizontal alignment to .leading
-            Text(event.title)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.primary)
-                .lineLimit(1)
-                // Text alignment follows VStack alignment (.leading)
+        let calculatedHeight = calculateHeight()
+        
+        Group {
+            if calculatedHeight >= minimumHeightForVStackLayout {
+                // Use VStack for taller blocks
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(event.title)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
 
-            Text("\(formatTime(event.startDate)) - \(formatTime(event.endDate))")
-                .font(.caption)
-                .foregroundColor(.primary.opacity(0.7))
-                // Text alignment follows VStack alignment (.leading)
+                    Text("\(formatTime(event.startDate)) - \(formatTime(event.endDate))")
+                        .font(.caption)
+                        .foregroundColor(.primary.opacity(0.7))
+                }
+            } else {
+                // Use HStack for shorter blocks
+                HStack(spacing: 4) {
+                    Text(event.title)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Text("\(formatTime(event.startDate))")
+                        .font(.caption)
+                        .foregroundColor(.primary.opacity(0.7))
+                        .lineLimit(1)
+                }
+            }
         }
         .padding(.horizontal, 8)
-        // No vertical padding here
-        // Align the VStack itself to the leading edge horizontally.
-        // The VStack will manage vertical distribution internally.
-        .frame(width: width, height: calculateHeight(), alignment: .leading) // Change frame alignment to .leading
+        .padding(.vertical, 4)
+        .frame(width: width, height: calculatedHeight, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 6)
                 .fill(event.color.opacity(0.3))
         )
+        .clipped()
         .onTapGesture {
-            onTap() 
+            onTap()
         }
     }
     
@@ -348,9 +371,8 @@ struct EventBlockView: View {
         }
         
         // Convert minutes to height - hourHeight represents 60 minutes
-        // Ensure minimum height for visibility (adjust if needed with larger hourHeight)
-        let calculatedHeight = durationInMinutes / 60.0 * hourHeight // Use hourHeight constant
-        return max(30.0, calculatedHeight) // Keep a minimum height or adjust as needed
+        let calculatedHeight = durationInMinutes / 60.0 * hourHeight
+        return max(30.0, calculatedHeight) // Keep a minimum height for visibility
     }
 }
 

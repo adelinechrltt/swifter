@@ -181,43 +181,146 @@ struct EventsTimelineView: View {
     private let baselineHourHeight: CGFloat = 200.0
     private let maxHourHeight: CGFloat = 400.0
     
+    // State for autoscrolling
+    @State private var targetScrollAnchorId: String? = nil // ID of the anchor to scroll to
+    @State private var didScrollForDay = false // Flag to prevent multiple scrolls for the same day
+    
+    // Define anchor spacing for scroll points
+    private let anchorSpacing: CGFloat = 50 // Adjust spacing as needed
+    
     let onEventTapped: (Event) -> Void
     
     var body: some View {
         VStack(spacing: 0) {
-            // Timeline scroll view with pinch gesture
-            ScrollView {
-                ZStack(alignment: .topLeading) {
-                    // Base hour grid
-                    HourGridView(formatHour: formatHour, hourHeight: hourHeight)
+            ScrollViewReader { proxy in // Add ScrollViewReader
+                ScrollView {
+                    // Fetch events for the current view state
+                    let events = viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay)
                     
-                    // Events overlay
-                    EventsOverlayView(
-                        events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay),
-                        formatTime: formatTime,
-                        hourHeight: hourHeight,
-                        onEventTapped: onEventTapped
+                    ZStack(alignment: .topLeading) {
+                        // Invisible anchors for scrolling targets
+                        VStack(spacing: 0) {
+                            // Create anchors covering the full 24-hour height based on current hourHeight
+                            ForEach(0..<Int(ceil(24 * hourHeight / anchorSpacing)), id: \.self) { index in
+                                Color.clear
+                                    .frame(height: anchorSpacing)
+                                    .id("anchor_\(Int(CGFloat(index) * anchorSpacing))") // Unique ID based on Y position
+                            }
+                        }
+                        .frame(height: 24 * hourHeight) // Ensure anchors cover the full scrollable height
+
+                        // Base hour grid
+                        HourGridView(formatHour: formatHour, hourHeight: hourHeight)
+                        
+                        // Events overlay
+                        EventsOverlayView(
+                            events: events,
+                            formatTime: formatTime,
+                            hourHeight: hourHeight,
+                            onEventTapped: onEventTapped
+                        )
+                    }
+                    .frame(height: 24 * hourHeight)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hourHeight)
+                    .gesture(
+                        MagnificationGesture()
+                            .onChanged { value in
+                                let delta = value / lastScale
+                                lastScale = value
+                                
+                                // Calculate new height, respecting min/max bounds
+                                let newHeight = hourHeight * delta
+                                hourHeight = min(max(newHeight, baselineHourHeight), maxHourHeight)
+                            }
+                            .onEnded { _ in
+                                // Reset the last scale when gesture ends
+                                lastScale = 1.0
+                            }
                     )
                 }
-                .frame(height: 24 * hourHeight)
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hourHeight)
-                .gesture(
-                    MagnificationGesture()
-                        .onChanged { value in
-                            let delta = value / lastScale
-                            lastScale = value
-                            
-                            // Calculate new height, respecting min/max bounds
-                            let newHeight = hourHeight * delta
-                            hourHeight = min(max(newHeight, baselineHourHeight), maxHourHeight)
+                .onChange(of: targetScrollAnchorId) { oldId, newId in // Scroll when anchor ID changes
+                    if let anchorId = newId {
+                        // Use DispatchQueue to ensure scrolling happens after the view update
+                        DispatchQueue.main.async {
+                           withAnimation {
+                                // Scroll to the anchor point slightly above the event
+                                proxy.scrollTo(anchorId, anchor: .top)
+                           }
                         }
-                        .onEnded { _ in
-                            // Reset the last scale when gesture ends
-                            lastScale = 1.0
-                        }
-                )
+                    }
+                }
+                .onAppear { // Scroll on initial appearance
+                    findAndSetScrollTarget(events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay))
+                }
+                .onChange(of: selectedDay) { // Reset and scroll when day changes
+                    didScrollForDay = false // Reset flag for the new day
+                    findAndSetScrollTarget(events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay))
+                }
+                 .onChange(of: hourHeight) { // Re-calculate scroll target if zoom changes
+                     // Recalculate target based on new hourHeight if a target was previously set
+                     if targetScrollAnchorId != nil {
+                         findAndSetScrollTarget(events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay), forceRecalculate: true)
+                     }
+                 }
             }
         }
+    }
+    
+    // Find the first jogging-related event and set the scroll target anchor ID
+    private func findAndSetScrollTarget(events: [Event], forceRecalculate: Bool = false) {
+        // Only scroll automatically once per day selection unless forced by zoom
+        guard !didScrollForDay || forceRecalculate else { return }
+
+        if let joggingEvent = findFirstJoggingEvent(events: events) {
+            let targetY = calculateScrollTargetPosition(for: joggingEvent.startDate)
+            // Find the nearest anchor ID at or just above the target position
+            let anchorY = floor(targetY / anchorSpacing) * anchorSpacing
+            let newAnchorId = "anchor_\(Int(anchorY))"
+            
+            // Only update if the anchor ID changes or if forced
+            if newAnchorId != targetScrollAnchorId || forceRecalculate {
+                 targetScrollAnchorId = newAnchorId
+            }
+
+            if !forceRecalculate {
+                 didScrollForDay = true // Mark as scrolled for this day
+            }
+        } else {
+             targetScrollAnchorId = nil // No target event found, clear the target
+        }
+    }
+    
+    // Find the first chronologically occurring jogging-related event
+    private func findFirstJoggingEvent(events: [Event]) -> Event? {
+        // Sort events by start time to ensure "first" is chronological
+        let sortedEvents = events.sorted { $0.startDate < $1.startDate }
+        
+        return sortedEvents.first { event in
+            let title = event.title.lowercased()
+            // Check for variations of jogging keywords
+            return title.contains("pre-jogging") ||
+                   title.contains("jogging") ||
+                   title.contains("post-jogging") ||
+                   title.contains("prejog") ||
+                   title.contains("jog") ||
+                   title.contains("postjog")
+        }
+    }
+    
+    // Calculate the target Y position for scrolling (positioning the event slightly below the top edge)
+    private func calculateScrollTargetPosition(for date: Date) -> CGFloat {
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: date)
+        let minute = calendar.component(.minute, from: date)
+        
+        // Calculate exact Y position of the event's top edge within the scroll content
+        let eventTopY = CGFloat(hour) * hourHeight + (CGFloat(minute) / 60.0) * hourHeight
+        
+        // Calculate target scroll position (e.g., 50 points above the event top to give context)
+        // Ensure the target position doesn't go below 0
+        let targetY = max(0, eventTopY - 50)
+        
+        return targetY
     }
 }
 

@@ -107,6 +107,7 @@ final class EventStoreManager: ObservableObject {
     
     /// algorithm functions
     func findAvailableSlot(
+        currDate: Date,
         events: [EKEvent],
         start: Date,
         end: Date,
@@ -140,16 +141,18 @@ final class EventStoreManager: ObservableObject {
             possibleTimes.append((lastEndTime, end))
         }
         
+        let validSlots = possibleTimes.filter { $0.start > currDate }
+        
         /// if no possible time then return check other day to the function caller
-        guard !possibleTimes.isEmpty else {
+        guard !validSlots.isEmpty else {
             print("No free time available to schedule jog.")
             return nil
         }
         
-        return [possibleTimes.first!.start, possibleTimes.first!.start + duration]
+        return [validSlots.first!.start, validSlots.first!.start + duration]
     }
     
-    func findSlotInDay(date: Date, duration: TimeInterval, preferences: PreferencesModel) -> [Date]?{
+    func findSlotInDay(currDate: Date, date: Date, duration: TimeInterval, preferences: PreferencesModel) -> [Date]?{
         let calendar = Calendar.current
         
         /// day constraints definition as:
@@ -176,58 +179,62 @@ final class EventStoreManager: ObservableObject {
         if (preferences.preferredTimesOfDay.contains(.morning)){
             start = calendar.date(bySettingHour: 6, minute: 0, second: 0, of: date)!
             end = calendar.date(bySettingHour: 11, minute: 59, second: 59, of: date)!
-            if let available = findAvailableSlot(events: events, start: start, end: end, duration: duration) {
+            if let available = findAvailableSlot(currDate: currDate, events: events, start: start, end: end, duration: duration) {
                 return available
             }
         } else if (preferences.preferredTimesOfDay.contains(.noon)){
             start = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: date)!
             end = calendar.date(bySettingHour: 14, minute: 59, second: 59, of: date)!
-            if let available = findAvailableSlot(events: events, start: start, end: end, duration: duration) {
+            if let available = findAvailableSlot(currDate: currDate, events: events, start: start, end: end, duration: duration) {
                 return available
             }
         } else if (preferences.preferredTimesOfDay.contains(.afternoon)){
             start = calendar.date(bySettingHour: 15, minute: 0, second: 0, of: date)!
             end = calendar.date(bySettingHour: 18, minute: 59, second: 59, of: date)!
-            if let available = findAvailableSlot(events: events, start: start, end: end, duration: duration) {
+            if let available = findAvailableSlot(currDate: currDate, events: events, start: start, end: end, duration: duration) {
                 return available
             }
         } else if (preferences.preferredTimesOfDay.contains(.evening)){
             start = calendar.date(bySettingHour: 19, minute: 0, second: 0, of: date)!
             end = calendar.date(bySettingHour: 21, minute: 0, second: 0, of: date)!
-            if let available = findAvailableSlot(events: events, start: start, end: end, duration: duration) {
+            if let available = findAvailableSlot(currDate: currDate, events: events, start: start, end: end, duration: duration) {
                 return available
             }
         }
         
         /// iterate through the whole day if all preferred timeslots are unavailable
-        if let available = findAvailableSlot(events: events, start: startOfDay, end: endOfDay, duration: duration) {
+        if let available = findAvailableSlot(currDate: currDate, events: events, start: startOfDay, end: endOfDay, duration: duration) {
             return available
         }
         
         return nil
     }
     
-    func findDayOfWeek(duration: TimeInterval, preferences: PreferencesModel, goal: GoalModel) -> [Date]?{
+    func findDayOfWeek(currDate: Date, duration: TimeInterval, preferences: PreferencesModel, goal: GoalModel) -> [Date]?{
         let calendar = Calendar.current
 
         /// iterate through preferred days
         for i in 0...7 {
-            guard let tempDay = calendar.date(byAdding: .day, value: i, to: goal.startDate) else { continue }
+            guard let tempDay = calendar.date(byAdding: .day, value: i, to: currDate) else { continue }
 
+            if(tempDay<goal.startDate || tempDay>goal.endDate) { continue }
+            
             let weekdayNumber = calendar.component(.weekday, from: tempDay)
             guard let weekdayEnum = DayOfWeek(rawValue: weekdayNumber) else { continue }
 
             if preferences.preferredDaysOfWeek?.contains(weekdayEnum) == true,
-                let availableTime = findSlotInDay(date: tempDay, duration: duration, preferences: preferences) {
+                let availableTime = findSlotInDay(currDate: currDate, date: tempDay, duration: duration, preferences: preferences) {
                 return availableTime
             }
         }
         
         /// iterate through all days
         for i in 0...7 {
-            guard let tempDay = calendar.date(byAdding: .day, value: i, to: goal.startDate) else { continue }
+            guard let tempDay = calendar.date(byAdding: .day, value: i, to: currDate) else { continue }
 
-            if let availableTime = findSlotInDay(date: tempDay, duration: duration, preferences: preferences) {
+            if(tempDay<goal.startDate || tempDay>goal.endDate) { continue }
+
+            if let availableTime = findSlotInDay(currDate: currDate, date: tempDay, duration: duration, preferences: preferences) {
                 return availableTime
             }
         }

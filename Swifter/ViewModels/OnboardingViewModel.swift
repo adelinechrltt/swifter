@@ -37,7 +37,7 @@ final class OnboardingViewModel: ObservableObject {
         if (preJog > 0 && postJog > 0){
             duration = timeOnFeet + preJog + postJog
 //            print("prejog and postjog")
-            if let availDate = storeManager.findDayOfWeek(duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
+            if let availDate = storeManager.findDayOfWeek(currDate: Date(), duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
                 /// create prejog event
                 sessionManager.createNewSession(
                     storeManager: storeManager,
@@ -60,7 +60,7 @@ final class OnboardingViewModel: ObservableObject {
         } else if (preJog > 0) {
             duration = timeOnFeet + preJog
 //            print("prejog")
-            if let availDate = storeManager.findDayOfWeek(duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
+            if let availDate = storeManager.findDayOfWeek(currDate: Date(), duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
                 /// create prejog event
                 sessionManager.createNewSession(
                     storeManager: storeManager,
@@ -77,7 +77,7 @@ final class OnboardingViewModel: ObservableObject {
         } else if (postJog > 0){
             duration = timeOnFeet + postJog
 //            print("postjog")
-            if let availDate = storeManager.findDayOfWeek(duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
+            if let availDate = storeManager.findDayOfWeek(currDate: Date(), duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
                 /// create jog event
                 sessionManager.createNewSession(
                     storeManager: storeManager,
@@ -93,7 +93,7 @@ final class OnboardingViewModel: ObservableObject {
             }
         } else {
             duration = timeOnFeet
-            if let availDate = storeManager.findDayOfWeek(duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
+            if let availDate = storeManager.findDayOfWeek(currDate: Date(), duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
                 /// create jog event
                 sessionManager.createNewSession(
                     storeManager: storeManager,

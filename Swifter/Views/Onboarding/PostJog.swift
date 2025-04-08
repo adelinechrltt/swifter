@@ -78,7 +78,7 @@ struct OnboardPostJogTime: View {
 
             // Navigation Buttons
             HStack {
-                NavigationLink(destination: EmptyView()) {
+                NavigationLink(destination: OnboardPreferredJogTime()) {
                     Text("Skip")
                         .font(.system(size: 14))
                         .foregroundColor(.secondary)
@@ -108,7 +108,7 @@ struct OnboardPostJogTime: View {
             .padding(.bottom, 100)
 
             // Progress Bar
-            ProgressView(value: 0.5, total: 1.0)
+            ProgressView(value: 0.4, total: 1.0)
                 .progressViewStyle(LinearProgressViewStyle())
                 .tint(.primary)
                 .frame(height: 4)

@@ -67,7 +67,7 @@ struct OnboardPreferredJogDays: View {
             Spacer()
 
             // Progress Bar
-            ProgressView(value: 0.5, total: 1.0)
+            ProgressView(value: 0.8, total: 1.0)
                 .progressViewStyle(LinearProgressViewStyle())
                 .tint(.gray)
                 .frame(height: 6)
@@ -75,9 +75,7 @@ struct OnboardPreferredJogDays: View {
 
             // Buttons (Skip & Next)
             HStack {
-                Button(action: {
-                    // Handle skip action
-                }) {
+                NavigationLink(destination: OnboardThanksForLettingUsKnow()) {
                     Text("Skip")
                         .font(.system(size: 14))
                         .foregroundColor(.secondary)

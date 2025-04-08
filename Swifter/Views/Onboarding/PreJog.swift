@@ -105,7 +105,7 @@ struct OnboardPreJogTime: View {
             .padding(.bottom, 100)
 
             // Progress Bar
-            ProgressView(value: 0.25, total: 1.0)
+            ProgressView(value: 0.2, total: 1.0)
                 .progressViewStyle(LinearProgressViewStyle())
                 .tint(.primary)
                 .frame(height: 4)

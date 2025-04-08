@@ -53,6 +53,19 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
         return try? modelContext.fetch(descriptor).first
     }
     
+    /// fetch session by Calendar Event ID
+    func fetchSessionByCalendarEventId(calendarId: String) -> SessionModel? {
+        let predicate = #Predicate<SessionModel> { session in
+            session.calendarEventID == calendarId
+        }
+        
+        let descriptor = FetchDescriptor<SessionModel>(
+            predicate: predicate
+        )
+
+        return try? modelContext.fetch(descriptor).first
+    }
+    
     func createNewSession(storeManager: EventStoreManager, start: Date, end: Date, sessionType: SessionType) -> PersistentIdentifier? {
         if let id = storeManager.createNewEvent(eventTitle: sessionType.rawValue, startTime: start, endTime: end) {
             let newSession = SessionModel(startTime: start, endTime: end, calendarEventID: id, sessionType: sessionType)

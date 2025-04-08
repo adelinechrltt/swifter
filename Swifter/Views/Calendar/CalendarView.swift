@@ -7,17 +7,21 @@
 
 import SwiftUI
 import EventKit
+import SwiftData  
 
 struct Event: Identifiable {
     var id = UUID()
     var title: String
-    var startDate: Date // Changed from time: String
-    var endDate: Date   // Added endDate
+    var startDate: Date
+    var endDate: Date
     var color: Color = .blue
+    var calendarEventID: String? // Store the EventKit ID
+    var sessionID: PersistentIdentifier? // Store associated session ID if available
 }
 
 struct CalendarView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.modelContext) private var modelContext  
     
     // ViewModel to manage calendar data
     @StateObject private var viewModel = CalendarViewModel()
@@ -98,8 +102,16 @@ struct CalendarView: View {
         .onChange(of: currentMonth, perform: onMonthChangeHandler)
         .onChange(of: currentYear, perform: onYearChangeHandler)
         .sheet(isPresented: $showEditSessionModal) {
-            EditSessionModal()
-                .environmentObject(eventStoreManager)
+            if let event = selectedEvent {
+                // Find corresponding session model if exists
+                let session = findSessionForEvent(event)
+                EditSessionModal(session: session)
+                    .environmentObject(eventStoreManager)
+            } else {
+                // New event
+                EditSessionModal()
+                    .environmentObject(eventStoreManager)
+            }
         }
     }
     
@@ -260,6 +272,20 @@ struct CalendarView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: date)
+    }
+    
+    private func findSessionForEvent(_ event: Event) -> SessionModel? {
+        let sessionManager = JoggingSessionManager(modelContext: modelContext)
+        // This method would need to match the event to a session
+        // You might need to store more info in the Event struct or use date/title matching
+        return sessionManager.fetchAllSessions().first { session in
+            // Compare dates (with some tolerance for slight differences)
+            let startTimeMatches = abs(session.startTime.timeIntervalSince(event.startDate)) < 60
+            let endTimeMatches = abs(session.endTime.timeIntervalSince(event.endDate)) < 60
+            let titleMatches = event.title.contains(session.sessionType.rawValue)
+            
+            return startTimeMatches && endTimeMatches && titleMatches
+        }
     }
 }
 

@@ -9,64 +9,109 @@ import Foundation
 import SwiftUI
 
 struct EditSessionModal: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     
     @EnvironmentObject private var eventStoreManager: EventStoreManager
     @StateObject private var viewModel: EditSessionViewModel
     
-    @State private var showAlert = false
-    @State private var showEventEditor = false
-    @State private var errorText = ""
-    @State private var showSaveAlert = false // 🔹 Added state for alert
+    @State private var showSaveAlert = false
     
-    // init to inject environment object
-    init() {
-        let manager = EventStoreManager()
-        _viewModel = StateObject(wrappedValue: EditSessionViewModel(eventStoreManager: manager))
+    // Init with optional session parameter
+    init(session: SessionModel? = nil) {
+        _viewModel = StateObject(wrappedValue: EditSessionViewModel(
+            session: session
+        ))
     }
     
     var body: some View {
         NavigationStack {
-            VStack {
-                HStack {
-                    Text("Edit Session")
-                        .font(.title)
-                        .fontWeight(.bold)
-                    Spacer()
-                    Button {
-                        showSaveAlert = true 
-                    } label: {
-                        Text("Save")
+            VStack(spacing: 20) {
+                // Session title
+                Text(viewModel.sessionTitle)
+                    .font(.headline)
+                    .padding(.top)
+                
+                // Single time picker for session start/end
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Session Time")
+                        .font(.headline)
+                    
+                    VStack(alignment: .leading) {
+                        DatePicker("Start", selection: $viewModel.startTime)
+                            .datePickerStyle(.compact)
+                            .padding(.bottom, 8)
+                        
+                        DatePicker("End", selection: $viewModel.endTime)
+                            .datePickerStyle(.compact)
                     }
+                    .padding()
+                    .background(Color(UIColor.secondarySystemBackground))
+                    .cornerRadius(12)
                 }
+                .padding(.horizontal)
                 
-                DurationPicker(pickerLabel: "Pre-jog", startTime: $viewModel.startPrejog, endTime: $viewModel.endPrejog)
-                DurationPicker(pickerLabel: "Jog", startTime: $viewModel.startJog, endTime: $viewModel.endJog)
-                DurationPicker(pickerLabel: "Post-jog", startTime: $viewModel.startPostjog, endTime: $viewModel.endPostjog)
+                // Duration display
+                let duration = viewModel.endTime.timeIntervalSince(viewModel.startTime)
+                Text("Duration: \(formattedDuration(seconds: duration))")
+                    .foregroundColor(.secondary)
                 
-                Button {
-//                    viewModel.eventStoreManager.findAvailableSlot(date: Date(), duration: 3600)
-                } label: {
-                    Text("Auto schedule")
-                }
+                Spacer()
             }
             .padding()
-            .alert("Save Session?", isPresented: $showSaveAlert) { // 🔹 Alert config
+            .navigationTitle("Edit Session")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        showSaveAlert = true
+                    }
+                }
+            }
+            .alert("Save Changes", isPresented: $showSaveAlert) {
                 Button("Cancel", role: .cancel) {}
-                Button("OK") {
-                    viewModel.createNewEvent(
-                        eventTitle: "Jogging",
-                        startTime: viewModel.startJog,
-                        endTime: viewModel.endJog
-                    )
-                    showEventEditor = false
+                Button("Save") {
+                    if viewModel.currentSession != nil {
+                        // Update existing session
+                        if viewModel.saveSessionChanges() {
+                            dismiss()
+                        }
+                    } else {
+                        // Create new session
+                        if viewModel.createNewEvent() != nil {
+                            dismiss()
+                        }
+                    }
                 }
             } message: {
-                Text("Do you want to save the updated session?")
+                Text("Do you want to save these changes to your session?")
             }
+            .onAppear {
+                viewModel.eventStoreManager = eventStoreManager
+                viewModel.sessionManager = JoggingSessionManager(modelContext: modelContext)
+            }
+        }
+    }
+    
+    private func formattedDuration(seconds: TimeInterval) -> String {
+        let minutes = Int(seconds) / 60
+        let hours = minutes / 60
+        let remainingMinutes = minutes % 60
+        
+        if hours > 0 {
+            return "\(hours)h \(remainingMinutes)m"
+        } else {
+            return "\(minutes) minutes"
         }
     }
 }
 
 #Preview {
-    EditSessionModal().environmentObject(EventStoreManager())
+    EditSessionModal()
+        .environmentObject(EventStoreManager())
 }

@@ -76,7 +76,7 @@ struct OnboardAllSet: View {
                     eventStoreManager.eventStore.requestAccess(to: .event) { granted, error in
                         DispatchQueue.main.async {
                             if granted {
-                                viewModel.scheduleFirstJog(sessionManager: sessionManager, storeManager: eventStoreManager)
+//                                viewModel.scheduleFirstJog(sessionManager: sessionManager, storeManager: eventStoreManager)
                             } else {
                                 print("❌ Calendar access not granted.")
                             }

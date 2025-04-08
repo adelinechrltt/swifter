@@ -6,7 +6,7 @@ struct UpcomingSession: View {
     @EnvironmentObject private var eventStoreManager: EventStoreManager
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) var colorScheme
-
+    
     private var goalManager: GoalManager {
         GoalManager(modelContext: modelContext)
     }
@@ -24,7 +24,7 @@ struct UpcomingSession: View {
         formatter.dateFormat = "E, dd MMMM yyyy"
         return formatter
     }()
-
+    
     private let formatter2: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
@@ -32,11 +32,11 @@ struct UpcomingSession: View {
         formatter.pmSymbol = "PM"
         return formatter
     }()
-
+    
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
-
+            
             GeometryReader { geometry in
                 VStack(spacing: 0) {
                     // Header
@@ -103,9 +103,14 @@ struct UpcomingSession: View {
                                 .cornerRadius(18)
                         }
                         .contentShape(Rectangle())
-
+                        
                         Button(action: {
-                            viewModel.markSessionAsComplete(sessionManager: sessionManager, goalManager: goalManager)
+                            let flag = viewModel.markSessionAsComplete(sessionManager: sessionManager, goalManager: goalManager)
+                            if flag == true {
+                                viewModel.completedGoalAlertShown = true
+                            } else {
+                                viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
+                            }
                         }) {
                             Text("Mark as Done")
                                 .font(.system(size: 15, weight: .semibold))
@@ -155,11 +160,12 @@ struct UpcomingSession: View {
                                         .padding(.vertical, 10)
                                     Image(systemName: "chevron.right")
                                         .foregroundColor(Color.primary)
-                                }
-                                .padding(.horizontal)
-                                .background(Color(.tertiarySystemFill))
-                                .cornerRadius(15)
-                                .foregroundColor(Color.primary)
+                                }.padding(.horizontal)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 15)
+                                            .stroke(Color.primary, lineWidth: 1.5)
+                                    )
+                                    .foregroundColor(Color.primary)
                             }
                             .padding(.top, 12)
                         }
@@ -169,63 +175,82 @@ struct UpcomingSession: View {
                     
                     Spacer()
                 }
+                .frame(maxHeight: .infinity, alignment: .top)
             }
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    viewModel.preferencesModalShown = true
-                } label: {
-                    Image(systemName: "gearshape")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button{
+                        viewModel.preferencesModalShown = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }.foregroundColor(.primary)
                 }
-                .foregroundColor(.primary)
             }
-        }
-        .sheet(isPresented: $viewModel.preferencesModalShown) {
-            EditPreferencesModal(isPresented: $viewModel.preferencesModalShown, modelContext: modelContext, onSave: {
-                viewModel.rescheduleSessions(eventStoreManager: eventStoreManager, preferencesManager: preferencesManager, sessionManager: sessionManager)
-                viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-            })
-        }
-        .sheet(isPresented: $viewModel.goalModalShown) {
-            GoalSettingModal(
-                isPresented: $viewModel.goalModalShown,
-                goalToEdit: viewModel.currentGoal,
-                onSave: {
-                    viewModel.wipeAllSessionsRelatedToGoal(sessionManager: sessionManager, eventStoreManager: eventStoreManager)
-                    viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
+            // TODO: sheet refactor
+            .sheet(isPresented: $viewModel.preferencesModalShown){
+                EditPreferencesModal(isPresented: $viewModel.preferencesModalShown, modelContext: modelContext, onSave: {
+                    viewModel.rescheduleSessions(eventStoreManager: eventStoreManager, preferencesManager: preferencesManager, sessionManager: sessionManager)
                     viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-                }
-            )
-        }
-        .navigationBarBackButtonHidden(true)
-        .alert(isPresented: $viewModel.completedGoalAlertShown) {
-            Alert(
-                title: Text("Weekly jogging goal completed! 🥳"),
-                message: Text("Congratulations! Let's keep up the pace by setting your next weekly goal."),
-                dismissButton: .default(Text("OK")) {
-                    viewModel.markGoalAsComplete(goalManager: goalManager)
-                    viewModel.createNewGoal(goalManager: goalManager)
-                    viewModel.goalModalShown = true
-                }
-            )
-        }
-        .onChange(of: viewModel.currentGoal.progress) { _ in
-            if viewModel.checkIfGoalCompleted() {
-                viewModel.completedGoalAlertShown = true
-            } else {
-                viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
-                viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+                })
             }
-        }
-        .onAppear {
-            viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                showProgress = true
+            .sheet(isPresented: $viewModel.goalModalShown) {
+                GoalSettingModal(
+                    isPresented: $viewModel.goalModalShown,
+                    goalToEdit: viewModel.currentGoal,
+                    onPreSave:
+                        {
+                            viewModel.wipeAllSessionsRelatedToGoal(sessionManager: sessionManager, eventStoreManager: eventStoreManager)
+                            viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+                        },
+                    onPostSave: {
+                        viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
+                        viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+                        
+                    }
+                )
+                .navigationBarBackButtonHidden(true)
+                .alert(isPresented: $viewModel.completedGoalAlertShown) {
+                    Alert(
+                        title: Text("Weekly jogging goal completed! 🥳"),
+                        message: Text("Congratulations! Let's keep up the pace by setting your next weekly goal."),
+                        dismissButton: .default(Text("OK")) {
+                            viewModel.markGoalAsComplete(goalManager: goalManager)
+                            viewModel.createNewGoal(goalManager: goalManager)
+                            viewModel.goalModalShown = true
+                        }
+                    )
+                }
+                //        .onChange(of: viewModel.currentGoal.progress) { _ in
+                //            guard !viewModel.checkIfGoalCompleted() else {
+                //                viewModel.completedGoalAlertShown = true
+                //                return
+                //            }
+                //
+                //            viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
+                //            viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+                //        }
+                .onAppear {
+                    viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+                    
+                    eventStoreManager.eventStore.requestAccess(to: .event) { granted, error in
+                        DispatchQueue.main.async {
+                            if granted {
+                                //                                viewModel.scheduleFirstJog(sessionManager: sessionManager, storeManager: eventStoreManager)
+                            } else {
+                                print("❌ Calendar access not granted.")
+                            }
+                        }
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            showProgress = true
+                        }
+                    }
+                }
             }
         }
     }
 }
+    
 
 // Preview
 #Preview {

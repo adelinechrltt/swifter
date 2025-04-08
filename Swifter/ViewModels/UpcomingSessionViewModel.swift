@@ -55,6 +55,7 @@ final class UpcomingSessionViewModel: ObservableObject {
             let sortedGoals = goals.sorted(by: { $0.startDate > $1.startDate })
             if let currGoal = sortedGoals.first {
                 self.currentGoal = currGoal
+                print("goal start date is \(self.currentGoal.startDate)")
             }
         }
         
@@ -115,11 +116,11 @@ final class UpcomingSessionViewModel: ObservableObject {
             }
             
             sessionManager.saveContext()
-            print("reschedule success")
+//            print("reschedule success")
         }
     }
     
-    func markSessionAsComplete(sessionManager: JoggingSessionManager, goalManager: GoalManager) {
+    func markSessionAsComplete(sessionManager: JoggingSessionManager, goalManager: GoalManager) -> Bool {
         currentGoal.progress += 1
         if let prejog = nextPreJog{
             prejog.status = isCompleted.completed
@@ -130,6 +131,9 @@ final class UpcomingSessionViewModel: ObservableObject {
         nextJog.status = isCompleted.completed
         
         sessionManager.saveContext()
+        goalManager.saveContext()
+        
+        return checkIfGoalCompleted()
     }
     
     func wipeAllSessionsRelatedToGoal(sessionManager: JoggingSessionManager, eventStoreManager: EventStoreManager) {
@@ -156,9 +160,18 @@ final class UpcomingSessionViewModel: ObservableObject {
         
         
         let calendar = Calendar.current
-        guard let nextDay = calendar.date(byAdding: .day, value: 1, to: nextEnd),
+        let baseDate: Date
+
+        if let latest = sessionManager.latestSession(for: currentGoal) {
+            baseDate = latest.endTime
+        } else {
+            baseDate = currentGoal.startDate
+        }
+        print("base date: \(baseDate)")
+
+        guard let nextDay = calendar.date(byAdding: .day, value: 1, to: baseDate),
               let startOfNextDay = calendar.date(bySettingHour: 6, minute: 0, second: 0, of: nextDay) else {
-            print("Failed to calculate day after nextEnd at 6AM")
+            print("Failed to calculate start date for session scheduling")
             return
         }
 
@@ -237,8 +250,8 @@ final class UpcomingSessionViewModel: ObservableObject {
     func createNewGoal(goalManager: GoalManager){
         if let myGoal = goalManager.createNewGoal(
             targetFreq: currentGoal.targetFrequency,
-            startingDate: currentGoal.endDate + 7*24*60*60,
-            endingDate: currentGoal.endDate + 14*24*60*60){
+            startingDate: currentGoal.endDate + 24*60*60,
+            endingDate: currentGoal.endDate + 8*24*60*60){
             self.currentGoal = myGoal
         }
     }

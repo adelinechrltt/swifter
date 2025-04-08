@@ -174,24 +174,49 @@ struct EventsTimelineView: View {
     let selectedDay: Int
     let formatHour: (Int) -> String
     let formatTime: (Date) -> String
-    let hourHeight: CGFloat = 200.0 // Increased hour height
-    let onEventTapped: (Event) -> Void // Add this new parameter
+    
+    // Zoom state management
+    @State private var hourHeight: CGFloat = 200.0
+    @State private var lastScale: CGFloat = 1.0
+    private let baselineHourHeight: CGFloat = 200.0
+    private let maxHourHeight: CGFloat = 400.0
+    
+    let onEventTapped: (Event) -> Void
     
     var body: some View {
-        ScrollView {
-            ZStack(alignment: .topLeading) {
-                // Base hour grid
-                HourGridView(formatHour: formatHour, hourHeight: hourHeight) // Pass hourHeight
-
-                // Events overlay
-                EventsOverlayView(
-                    events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay),
-                    formatTime: formatTime,
-                    hourHeight: hourHeight, // Pass hourHeight
-                    onEventTapped: onEventTapped // Pass onEventTapped
+        VStack(spacing: 0) {
+            // Timeline scroll view with pinch gesture
+            ScrollView {
+                ZStack(alignment: .topLeading) {
+                    // Base hour grid
+                    HourGridView(formatHour: formatHour, hourHeight: hourHeight)
+                    
+                    // Events overlay
+                    EventsOverlayView(
+                        events: viewModel.fetchEventsForDay(year: currentYear, month: currentMonth, day: selectedDay),
+                        formatTime: formatTime,
+                        hourHeight: hourHeight,
+                        onEventTapped: onEventTapped
+                    )
+                }
+                .frame(height: 24 * hourHeight)
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hourHeight)
+                .gesture(
+                    MagnificationGesture()
+                        .onChanged { value in
+                            let delta = value / lastScale
+                            lastScale = value
+                            
+                            // Calculate new height, respecting min/max bounds
+                            let newHeight = hourHeight * delta
+                            hourHeight = min(max(newHeight, baselineHourHeight), maxHourHeight)
+                        }
+                        .onEnded { _ in
+                            // Reset the last scale when gesture ends
+                            lastScale = 1.0
+                        }
                 )
             }
-            .frame(height: 24 * hourHeight) // Use hourHeight constant
         }
     }
 }

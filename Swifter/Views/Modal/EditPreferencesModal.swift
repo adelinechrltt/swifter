@@ -30,15 +30,7 @@ struct EditPreferencesModal: View {
     }
 
     var body: some View {
-        ZStack {
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .edgesIgnoringSafeArea(.all)
-                .onTapGesture { isPresented = false }
-
             VStack {
-                Spacer()
-
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         // Header
@@ -128,7 +120,6 @@ struct EditPreferencesModal: View {
             .onAppear {
                 loadPreferenceData()
             }
-        }
     }
 
     private func loadPreferenceData() {

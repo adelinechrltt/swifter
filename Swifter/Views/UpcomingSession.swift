@@ -190,7 +190,10 @@ struct UpcomingSession: View {
                     viewModel.rescheduleSessions(eventStoreManager: eventStoreManager, preferencesManager: preferencesManager, sessionManager: sessionManager)
                     viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
                 })
+                .presentationDetents([.height(600)])
             }
+
+
             .sheet(isPresented: $viewModel.goalModalShown) {
                 GoalSettingModal(
                     isPresented: $viewModel.goalModalShown,
@@ -206,6 +209,8 @@ struct UpcomingSession: View {
                         
                     }
                 )
+                .presentationDetents([.height(300)])
+
             }
         }
         .navigationBarBackButtonHidden(true)

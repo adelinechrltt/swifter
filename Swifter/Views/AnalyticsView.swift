@@ -35,7 +35,6 @@ struct AnalyticsView: View {
     var body: some View {
         ScrollView{
             HStack {
-                Image(systemName: "chevron.backward")
                 Text("My Stats")
                     .font(.title)
                     .fontWeight(.bold)

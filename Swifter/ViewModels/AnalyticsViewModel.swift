@@ -48,11 +48,11 @@ final class AnalyticsViewModel: ObservableObject {
     func fetchSessionData(sessionManager: JoggingSessionManager){
         let calendar = Calendar.current
         self.monthlyJogs = sessionManager.fetchAllSessions().filter{
-            calendar.isDate($0.startTime, equalTo: Date(), toGranularity: .month) && $0.status == isCompleted.completed
+            calendar.isDate($0.startTime, equalTo: Date(), toGranularity: .month) && $0.sessionType == SessionType.jogging && $0.status == isCompleted.completed
         }.count
         
         self.totalJogs = sessionManager.fetchAllSessions().filter{
-            $0.status == isCompleted.completed
+            $0.sessionType == SessionType.jogging && $0.status == isCompleted.completed
         }.count
     }
     

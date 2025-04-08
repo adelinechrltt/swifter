@@ -81,7 +81,7 @@ final class UpcomingSessionViewModel: ObservableObject {
         
         let totalDuration = nextEnd.timeIntervalSince(nextStart)
         
-        if let newTimes = eventStoreManager.findDayOfWeek(duration: totalDuration, preferences: preferences, goal: currentGoal) {
+        if let newTimes = eventStoreManager.findDayOfWeek(currDate: nextEnd, duration: totalDuration, preferences: preferences, goal: currentGoal) {
             
             let newStart = newTimes[0]
             var cursor = newStart
@@ -154,11 +154,19 @@ final class UpcomingSessionViewModel: ObservableObject {
         let preJog = preferences.preJogDuration
         let postJog = preferences.postJogDuration
         
+        
+        let calendar = Calendar.current
+        guard let nextDay = calendar.date(byAdding: .day, value: 1, to: nextEnd),
+              let startOfNextDay = calendar.date(bySettingHour: 6, minute: 0, second: 0, of: nextDay) else {
+            print("Failed to calculate day after nextEnd at 6AM")
+            return
+        }
+
         let duration: Int
         if (preJog > 0 && postJog > 0){
             duration = timeOnFeet + preJog + postJog
             //            print("prejog and postjog")
-            if let availDate = storeManager.findDayOfWeek(duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
+            if let availDate = storeManager.findDayOfWeek(currDate: startOfNextDay, duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
                 /// create prejog event
                 sessionManager.createNewSession(
                     storeManager: storeManager,
@@ -181,7 +189,7 @@ final class UpcomingSessionViewModel: ObservableObject {
         } else if (preJog > 0) {
             duration = timeOnFeet + preJog
             //            print("prejog")
-            if let availDate = storeManager.findDayOfWeek(duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
+            if let availDate = storeManager.findDayOfWeek(currDate: startOfNextDay, duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
                 /// create prejog event
                 sessionManager.createNewSession(
                     storeManager: storeManager,
@@ -198,7 +206,7 @@ final class UpcomingSessionViewModel: ObservableObject {
         } else if (postJog > 0){
             duration = timeOnFeet + postJog
             //            print("postjog")
-            if let availDate = storeManager.findDayOfWeek(duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
+            if let availDate = storeManager.findDayOfWeek(currDate: startOfNextDay, duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
                 /// create jog event
                 sessionManager.createNewSession(
                     storeManager: storeManager,
@@ -214,7 +222,7 @@ final class UpcomingSessionViewModel: ObservableObject {
             }
         } else {
             duration = timeOnFeet
-            if let availDate = storeManager.findDayOfWeek(duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
+            if let availDate = storeManager.findDayOfWeek(currDate: startOfNextDay, duration: TimeInterval(duration*60), preferences: preferences, goal: currentGoal){
                 /// create jog event
                 sessionManager.createNewSession(
                     storeManager: storeManager,

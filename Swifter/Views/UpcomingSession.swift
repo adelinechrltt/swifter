@@ -91,6 +91,9 @@ struct UpcomingSession: View {
                     HStack(spacing: 12) {
                         Button(action: {
                             viewModel.rescheduleSessions(eventStoreManager: eventStoreManager, preferencesManager: preferencesManager, sessionManager: sessionManager)
+                            viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+                            viewModel.alertIsShown = true
+                            viewModel.sessionIsChanged = true
                         }) {
                             Text("Reschedule")
                                 .font(.system(size: 15, weight: .medium))
@@ -105,11 +108,13 @@ struct UpcomingSession: View {
                             let flag = viewModel.markSessionAsComplete(sessionManager: sessionManager, goalManager: goalManager)
 //                            print("flag: \(flag)")
                             if flag {
-                                viewModel.completedGoalAlertShown = true
+                                viewModel.goalIsCompleted = true
                             } else {
                                 print("flag is false?")
                                 viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
+                                viewModel.sessionIsChanged = true
                             }
+                            viewModel.alertIsShown = true
                         }) {
                             Text("Mark as Done")
                                 .font(.system(size: 15, weight: .semibold))
@@ -214,26 +219,17 @@ struct UpcomingSession: View {
             }
         }
         .navigationBarBackButtonHidden(true)
-        .alert(isPresented: $viewModel.completedGoalAlertShown) {
-            Alert(
-                title: Text("Weekly jogging goal completed! 🥳"),
-                message: Text("Congratulations! Let's keep up the pace by setting your next weekly goal."),
-                dismissButton: .default(Text("OK")) {
-                    viewModel.completedGoalAlertShown = false
-                    viewModel.markGoalAsComplete(goalManager: goalManager)
-                    viewModel.createNewGoal(goalManager: goalManager)
-                    viewModel.goalModalShown = true
+        .alert(isPresented: $viewModel.alertIsShown) {
+            if(viewModel.goalIsCompleted) {
+                goalCompletedAlert()
+            } else if (viewModel.sessionIsChanged){
+                jogSessionUpdatedAlert()
+            } else {
+                Alert(title: Text("Default alert"), message: Text("Lorem ipsum"), dismissButton: .default(Text("OK")){
+                    viewModel.alertIsShown = false
                 })
+            }
         }
-        /// cannot have 2 alert wrappers for 1 view
-//        .alert(isPresented: $viewModel.sessionChanged){
-//            Alert(title: Text("Jog sessions updated! 🏃‍♂️💨"),
-//                  message: Text("Your jogging sessions have been updated. Don't forget to check via the calendar!"),
-//                  dismissButton: .default(Text("Got it")){
-//                viewModel.sessionChanged = false
-//                }
-//            )
-//        }
         .onAppear {
                     viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
                     
@@ -254,6 +250,28 @@ struct UpcomingSession: View {
 //        .onChange(of: viewModel.nextJog) { _ in
 //            viewModel.sessionChanged = true
 //        }
+    }
+    
+    func goalCompletedAlert() -> Alert {
+        Alert(
+            title: Text("Weekly goal completed! 🥳"),
+            message: Text("Congratulations! Let's keep up the pace by setting your next weekly goal."),
+            dismissButton: .default(Text("OK")) {
+                viewModel.alertIsShown = false
+                viewModel.markGoalAsComplete(goalManager: goalManager)
+                viewModel.createNewGoal(goalManager: goalManager)
+                viewModel.goalModalShown = true
+            })
+    }
+    
+    func jogSessionUpdatedAlert() -> Alert {
+        Alert(
+            title: Text("Jog sessions updated 🏃🏽💨"),
+            message: Text("Don't forget to check in your calendar!"),
+            dismissButton: .default(Text("OK")) {
+                viewModel.alertIsShown = false
+                viewModel.sessionIsChanged = false
+            })
     }
 }
 

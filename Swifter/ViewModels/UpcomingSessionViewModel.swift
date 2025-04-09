@@ -37,11 +37,14 @@ final class UpcomingSessionViewModel: ObservableObject {
     var timeUntil = TimeInterval(60)
     var days = 4
     
-    /// modality variables
+    /// sheet modality variables
     @Published var preferencesModalShown: Bool = false
     @Published var goalModalShown: Bool = false
-    @Published var completedGoalAlertShown: Bool = false
-    @Published var sessionChanged: Bool = false
+    
+    /// alert variables
+    @Published var alertIsShown: Bool = false
+    @Published var goalIsCompleted: Bool = false
+    @Published var sessionIsChanged: Bool = false
     
     /// init with dummy data
     init(){

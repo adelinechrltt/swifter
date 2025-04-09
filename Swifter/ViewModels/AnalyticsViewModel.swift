@@ -17,7 +17,7 @@ final class AnalyticsViewModel: ObservableObject {
     @Published var totalJogs: Int
     
     init(){
-        weeklyProgress = []
+        weeklyProgress = [(category: "", value: 2), (category: "", value: 4)]
         goals = [
             GoalModel(targetFrequency: 10, startDate: Date(), endDate: Date()+60*60*24*7),
                  GoalModel(targetFrequency: 15, startDate: Date()+60*60*24*8, endDate: Date()+60*60*24*14),

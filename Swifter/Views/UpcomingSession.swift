@@ -326,7 +326,7 @@ struct UpcomingSession: View {
                         viewModel.markGoalAsComplete(goalManager: goalManager)
                         viewModel.createNewGoal(goalManager: goalManager)
                         viewModel.goalModalShown = true
-                        viewModel.goalIsCompleted = true
+                        viewModel.goalIsCompleted = false
                     })
             } else if (viewModel.sessionIsChanged) {
                 Alert(

@@ -76,13 +76,15 @@ struct OnboardAllSet: View {
                     eventStoreManager.eventStore.requestAccess(to: .event) { granted, error in
                         DispatchQueue.main.async {
                             if granted {
-                                viewModel.scheduleFirstJog(sessionManager: sessionManager, storeManager: eventStoreManager)
+                                Task {
+                                    await viewModel.scheduleFirstJog(sessionManager: sessionManager, storeManager: eventStoreManager)
+                                    isNewUser = false  /// runs after session creation + save is done so that when upcoming session is loaded, no dummy data
+                                }
                             } else {
                                 print("❌ Calendar access not granted.")
                             }
                         }
                     }
-                    isNewUser = false
                 } label: { // TODO: Replace EmptyView() with your HomePageView
                     HStack(spacing: 5) {
                         Text("Maybe Later")

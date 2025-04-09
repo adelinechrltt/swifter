@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct OnboardTimeOnFeet: View {
-    @State private var joggingMinutes: Int = 0  // Default value
+    @State private var joggingMinutes: Int = 40  // Default value
     @State private var animateText = false
     @State private var animateStepper = false
     @State private var animateNextButton = false

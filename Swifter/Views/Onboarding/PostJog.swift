@@ -14,7 +14,7 @@ struct OnboardPostJogTime: View {
         PreferencesManager(modelContext: modelContext)
     }
     
-    @State private var postJogDuration: Int = 0  // Default value
+    @State private var postJogDuration: Int = 10  // Default value
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {

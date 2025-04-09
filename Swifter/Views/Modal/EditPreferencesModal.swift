@@ -119,6 +119,13 @@ struct EditPreferencesModal: View {
             .transition(.move(edge: .bottom))
             .onAppear {
                 loadPreferenceData()
+                if let prefs = currentPreference {
+                    selectedTimesOfDay = Set(prefs.preferredTimesOfDay)
+                    selectedDaysOfWeek = Set(prefs.preferredDaysOfWeek ?? [])
+                    avgTimeOnFeet = prefs.jogDuration
+                    preJogDuration = prefs.preJogDuration
+                    postJogDuration = prefs.postJogDuration
+                }
             }
     }
 

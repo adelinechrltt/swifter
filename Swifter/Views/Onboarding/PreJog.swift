@@ -14,7 +14,7 @@ struct OnboardPreJogTime: View {
         PreferencesManager(modelContext: modelContext)
     }
 
-    @State private var preJogDuration: Int = 0
+    @State private var preJogDuration: Int = 10
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {

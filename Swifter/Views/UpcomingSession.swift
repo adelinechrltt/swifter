@@ -103,7 +103,8 @@ struct UpcomingSession: View {
                         .contentShape(Rectangle())
                         Button(action: {
                             let flag = viewModel.markSessionAsComplete(sessionManager: sessionManager, goalManager: goalManager)
-                            if flag == true {
+//                            print("flag: \(flag)")
+                            if flag {
                                 viewModel.completedGoalAlertShown = true
                             } else {
                                 print("flag is false?")
@@ -210,7 +211,6 @@ struct UpcomingSession: View {
                     }
                 )
                 .presentationDetents([.height(300)])
-
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -219,20 +219,21 @@ struct UpcomingSession: View {
                 title: Text("Weekly jogging goal completed! 🥳"),
                 message: Text("Congratulations! Let's keep up the pace by setting your next weekly goal."),
                 dismissButton: .default(Text("OK")) {
+                    viewModel.completedGoalAlertShown = false
                     viewModel.markGoalAsComplete(goalManager: goalManager)
                     viewModel.createNewGoal(goalManager: goalManager)
                     viewModel.goalModalShown = true
                 })
-            //        .onChange(of: viewModel.currentGoal.progress) { _ in
-            //            guard !viewModel.checkIfGoalCompleted() else {
-            //                viewModel.completedGoalAlertShown = true
-            //                return
-            //            }
-            //
-            //            viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
-            //            viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
-            //        }
         }
+        /// cannot have 2 alert wrappers for 1 view
+//        .alert(isPresented: $viewModel.sessionChanged){
+//            Alert(title: Text("Jog sessions updated! 🏃‍♂️💨"),
+//                  message: Text("Your jogging sessions have been updated. Don't forget to check via the calendar!"),
+//                  dismissButton: .default(Text("Got it")){
+//                viewModel.sessionChanged = false
+//                }
+//            )
+//        }
         .onAppear {
                     viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
                     
@@ -250,8 +251,11 @@ struct UpcomingSession: View {
                         }
                     }
                 }
-            }
-        }
+//        .onChange(of: viewModel.nextJog) { _ in
+//            viewModel.sessionChanged = true
+//        }
+    }
+}
 
 #Preview {
     NavigationView {

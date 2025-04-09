@@ -11,14 +11,20 @@ import EventKit
 
 class CalendarViewModel: ObservableObject {
     private let eventStoreManager = EventStoreManager()
+    private var sessionManager: JoggingSessionManager?
     
     @Published var events: [Int: [Event]] = [:]
     @Published var hasCalendarAccess = false
     
-    init() {
+    init(sessionManager: JoggingSessionManager? = nil) {
+        self.sessionManager = sessionManager
         checkCalendarAccess()
     }
     
+    func setSessionManager(_ sessionManager: JoggingSessionManager) {
+        self.sessionManager = sessionManager
+    }
+
     func checkCalendarAccess(completion: ((Bool) -> Void)? = nil) {
         eventStoreManager.requestAccess { result in
             DispatchQueue.main.async {
@@ -108,6 +114,20 @@ class CalendarViewModel: ObservableObject {
             joggingKeywords.contains { keyword in
                 event.title.contains(keyword)
             }
+        }
+    }
+
+    // In CalendarViewModel class
+    func findSessionFromEvent(_ event: Event) -> SessionModel? {
+        guard let sessionManager = sessionManager else { return nil }
+        
+        // Find the session that matches the event's time and title
+        let allSessions = sessionManager.fetchAllSessions()
+        return allSessions.first { session in
+            let sameDay = Calendar.current.isDate(session.startTime, inSameDayAs: event.startDate)
+            let closeStart = abs(session.startTime.timeIntervalSince(event.startDate)) < 60
+            let closeEnd = abs(session.endTime.timeIntervalSince(event.endDate)) < 60
+            return sameDay && closeStart && closeEnd
         }
     }
 }

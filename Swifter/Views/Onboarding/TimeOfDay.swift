@@ -1,10 +1,3 @@
-//
-//  OnboardPreferredJogTime.swift
-//  SwifterSwiftUi
-//
-//  Created by Natasya Felicia on 26/03/25.
-//
-
 import SwiftUI
 
 struct OnboardPreferredJogTime: View {
@@ -22,7 +15,7 @@ struct OnboardPreferredJogTime: View {
         VStack(alignment: .leading, spacing: 20) {
             Spacer()
 
-            Text("What’s your preferred jogging time?")
+            Text("What's your preferred jogging time?")
                 .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.primary)
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -68,13 +61,6 @@ struct OnboardPreferredJogTime: View {
 
             Spacer()
 
-            // Progress Bar
-            ProgressView(value: 0.6, total: 1.0)
-                .progressViewStyle(LinearProgressViewStyle())
-                .tint(.primary)
-                .frame(height: 6)
-                .padding(.top, 10)
-
             // Bottom buttons
             HStack {
                 NavigationLink(destination: OnboardPreferredJogDays()) {
@@ -105,8 +91,15 @@ struct OnboardPreferredJogTime: View {
                     .transition(.scale)
                 }
             }
-            .padding(.bottom, 40)
             .animation(.easeInOut(duration: 0.3), value: timesOfDay)
+            
+            // Progress Bar - Moved to bottom
+            ProgressView(value: 0.6, total: 1.0)
+                .progressViewStyle(LinearProgressViewStyle())
+                .tint(.primary)
+                .frame(height: 6)
+                .padding(.top, 20)
+                .padding(.bottom, 20)
         }
         .padding(30)
         .navigationBarBackButtonHidden(true)

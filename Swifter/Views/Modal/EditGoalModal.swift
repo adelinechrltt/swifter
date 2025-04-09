@@ -15,6 +15,7 @@ struct GoalSettingModal: View {
     }
     
     @State private var showSaveAlert = false
+    @State private var showingFrequencyPicker = false
     
     init(isPresented: Binding<Bool>, goalToEdit: GoalModel, onPreSave: @escaping () -> Void, onPostSave: @escaping () -> Void) {
         self._isPresented = isPresented
@@ -25,15 +26,6 @@ struct GoalSettingModal: View {
     }
     
     var body: some View {
-        //        ZStack {
-        //            // Blur background with dismiss gesture
-        //            Rectangle()
-        //                .fill(.ultraThinMaterial)
-        //                .ignoresSafeArea()
-        //                .onTapGesture {
-        //                    isPresented = false
-        //                }
-        
         VStack {
             ZStack{
                 Rectangle().fill(.ultraThinMaterial)
@@ -52,40 +44,15 @@ struct GoalSettingModal: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 25) {
-                            HStack {
+                            // Frequency Picker
+                            VStack(alignment: .leading, spacing: 10) {
                                 Text("Target Jog Frequency")
                                     .font(.system(size: 18, weight: .medium))
-                                Spacer()
                                 
-                                HStack(spacing: 0) {
-                                    Button(action: {
-                                        if viewModel.targetFrequency > 1 {
-                                            viewModel.targetFrequency -= 1
-                                        }
-                                    }) {
-                                        Text("-")
-                                            .font(.title2)
-                                            .frame(width: 40, height: 30)
-                                            .background(Color(UIColor.secondarySystemBackground))
-                                            .cornerRadius(8)
-                                    }
-                                    
-                                    Text("\(viewModel.targetFrequency) times / week")
-                                        .font(.system(size: 15, weight: .medium))
-                                        .frame(minWidth: 120, alignment: .center)
-                                    
-                                    Button(action: {
-                                        if viewModel.targetFrequency < 7 {
-                                            viewModel.targetFrequency += 1
-                                        }
-                                    }) {
-                                        Text("+")
-                                            .font(.title2)
-                                            .frame(width: 40, height: 30)
-                                            .background(Color(UIColor.secondarySystemBackground))
-                                            .cornerRadius(8)
-                                    }
-                                }
+                                FrequencyPickerButton(
+                                    value: $viewModel.targetFrequency,
+                                    isShowingPicker: $showingFrequencyPicker
+                                )
                             }
                             
                             HStack {
@@ -98,10 +65,8 @@ struct GoalSettingModal: View {
                                 DatePicker("", selection: $viewModel.startDate, displayedComponents: .date)
                                     .datePickerStyle(CompactDatePickerStyle())
                                     .labelsHidden()
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color(UIColor.secondarySystemBackground))
-                                    .cornerRadius(8)
+                                    .frame(width: 200, height: 30)
+                                    .scaleEffect(0.9)
                             }
                             
                             HStack {
@@ -114,10 +79,8 @@ struct GoalSettingModal: View {
                                 DatePicker("", selection: $viewModel.endDate, displayedComponents: .date)
                                     .datePickerStyle(CompactDatePickerStyle())
                                     .labelsHidden()
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color(UIColor.secondarySystemBackground))
-                                    .cornerRadius(8)
+                                    .frame(width: 200, height: 30)
+                                    .scaleEffect(0.9)
                             }
                         }
                     }
@@ -147,6 +110,114 @@ struct GoalSettingModal: View {
     }
 }
 
+// MARK: - Frequency Picker Components
+
+struct FrequencyPickerButton: View {
+    @Binding var value: Int
+    @Binding var isShowingPicker: Bool
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Button(action: {
+                withAnimation {
+                    isShowingPicker.toggle()
+                }
+            }) {
+                HStack {
+                    Text("\(value) times / week")
+                        .font(.system(size: 16, weight: .medium))
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(10)
+                    
+                    Spacer()
+                    
+                    Image(systemName: isShowingPicker ? "chevron.up" : "chevron.down")
+                        .foregroundColor(.primary)
+                        .font(.system(size: 14, weight: .medium))
+                        .frame(width: 30)
+                        .padding(.trailing, 8)
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color(.systemGray4), lineWidth: 1)
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            if isShowingPicker {
+                FrequencyPickerView(value: $value)
+                    .padding(.top, 8)
+                    .transition(.opacity)
+            }
+        }
+    }
+}
+
+struct FrequencyPickerView: View {
+    @Binding var value: Int
+    private let minValue = 1
+    private let maxValue = 7
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            // Slider for frequency
+            HStack {
+                Text("\(minValue)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Slider(
+                    value: Binding(
+                        get: { Double(value - minValue) },
+                        set: { newValue in
+                            value = Int(newValue) + minValue
+                        }
+                    ),
+                    in: 0...Double(maxValue - minValue),
+                    step: 1
+                )
+                .accentColor(.accentColor)
+                
+                Text("\(maxValue)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            // Days of the week selection
+            HStack(spacing: 12) {
+                ForEach(minValue...maxValue, id: \.self) { day in
+                    Button(action: {
+                        value = day
+                    }) {
+                        ZStack {
+                            Circle()
+                                .fill(value == day ? Color.accentColor : Color(UIColor.tertiarySystemBackground))
+                                .frame(width: 40, height: 40)
+                            
+                            Text("\(day)")
+                                .font(.system(size: 16, weight: value == day ? .bold : .medium))
+                                .foregroundColor(value == day ? .white : .primary)
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+            
+            // Selected value description
+            Text("\(value) \(value == 1 ? "day" : "days") per week")
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, 4)
+        }
+        .padding(12)
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(10)
+    }
+}
+
 // MARK: - Preview without SwiftData
 
 struct GoalSettingModal_Preview: PreviewProvider {
@@ -156,6 +227,7 @@ struct GoalSettingModal_Preview: PreviewProvider {
         @State private var startDate: Date = Date().addingTimeInterval(-7*24*60*60)
         @State private var endDate: Date = Date().addingTimeInterval(30*24*60*60)
         @State private var showSaveAlert = false
+        @State private var showingFrequencyPicker = false
         
         var body: some View {
             ZStack {
@@ -181,40 +253,15 @@ struct GoalSettingModal_Preview: PreviewProvider {
                         }
                         
                         VStack(alignment: .leading, spacing: 25) {
-                            HStack {
+                            // Frequency Picker
+                            VStack(alignment: .leading, spacing: 10) {
                                 Text("Target Jog Frequency")
                                     .font(.system(size: 18, weight: .medium))
-                                Spacer()
                                 
-                                HStack(spacing: 0) {
-                                    Button(action: {
-                                        if targetFrequency > 1 {
-                                            targetFrequency -= 1
-                                        }
-                                    }) {
-                                        Text("-")
-                                            .font(.title2)
-                                            .frame(width: 40, height: 30)
-                                            .background(Color(UIColor.secondarySystemBackground))
-                                            .cornerRadius(8)
-                                    }
-                                    
-                                    Text("\(targetFrequency) times / week")
-                                        .font(.system(size: 15, weight: .medium))
-                                        .frame(minWidth: 120, alignment: .center)
-                                    
-                                    Button(action: {
-                                        if targetFrequency < 7 {
-                                            targetFrequency += 1
-                                        }
-                                    }) {
-                                        Text("+")
-                                            .font(.title2)
-                                            .frame(width: 40, height: 30)
-                                            .background(Color(UIColor.secondarySystemBackground))
-                                            .cornerRadius(8)
-                                    }
-                                }
+                                FrequencyPickerButton(
+                                    value: $targetFrequency,
+                                    isShowingPicker: $showingFrequencyPicker
+                                )
                             }
                             
                             HStack {
@@ -227,10 +274,8 @@ struct GoalSettingModal_Preview: PreviewProvider {
                                 DatePicker("", selection: $startDate, displayedComponents: .date)
                                     .datePickerStyle(CompactDatePickerStyle())
                                     .labelsHidden()
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color(UIColor.secondarySystemBackground))
-                                    .cornerRadius(8)
+                                    .frame(width: 200, height: 30)
+                                    .scaleEffect(0.9)
                             }
                             
                             HStack {
@@ -243,10 +288,8 @@ struct GoalSettingModal_Preview: PreviewProvider {
                                 DatePicker("", selection: $endDate, displayedComponents: .date)
                                     .datePickerStyle(CompactDatePickerStyle())
                                     .labelsHidden()
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color(UIColor.secondarySystemBackground))
-                                    .cornerRadius(8)
+                                    .frame(width: 200, height: 30)
+                                    .scaleEffect(0.9)
                             }
                         }
                     }

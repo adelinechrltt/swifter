@@ -32,7 +32,7 @@ struct OnboardAllSet: View {
                 Spacer()
 
                 // Title
-                Text("Great! We’re all set.")
+                Text("Great! We're all set.")
                     .font(.system(size: 36, weight: .bold))
                     .foregroundColor(.primary)
                     .opacity(showTitle ? 1 : 0)
@@ -40,7 +40,7 @@ struct OnboardAllSet: View {
                     .animation(.easeOut(duration: 0.5).delay(0.1), value: showTitle)
 
                 // Subtitle
-                Text("Thanks for letting us get to know you a little bit better. We’ve scheduled your next jogging session!")
+                Text("Thanks for letting us get to know you a little bit better. We've scheduled your next jogging session!")
                     .font(.system(size: 18))
                     .foregroundColor(.primary)
                     .opacity(showSubtitle ? 1 : 0)
@@ -60,13 +60,14 @@ struct OnboardAllSet: View {
                     Text("Yes, please")
                         .font(.system(size: 14))
                         .foregroundColor(.primary)
-                        .padding()
-                        .frame(width: 130, height: 40)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 20)
                         .overlay(
                             RoundedRectangle(cornerRadius: 25)
                                 .stroke(Color.primary, lineWidth: 1)
                         )
                 }
+                .fixedSize(horizontal: true, vertical: false)
                 .opacity(showYesButton ? 1 : 0)
                 .offset(y: showYesButton ? 0 : 20)
                 .animation(.easeOut(duration: 0.5).delay(0.4), value: showYesButton)
@@ -91,6 +92,7 @@ struct OnboardAllSet: View {
                             .font(.system(size: 12))
                             .foregroundColor(.primary)
                             .opacity(0.6)
+                            .padding(.leading, 7)
 
                         Image(systemName: "arrow.right")
                             .font(.system(size: 12))
@@ -98,8 +100,9 @@ struct OnboardAllSet: View {
                             .opacity(0.6)
                             .padding(.leading, -2)
                     }
-                    .frame(width: 130, height: 40)
+                    .padding(.vertical, 10)
                 }
+                .fixedSize(horizontal: true, vertical: false)
                 .padding(.top, -15)
                 .opacity(showMaybeButton ? 1 : 0)
                 .offset(y: showMaybeButton ? 0 : 20)

@@ -36,7 +36,7 @@ final class AnalyticsViewModel: ObservableObject {
             self.goals = goalTemp
         }
         
-        if let currentGoal = goals.sorted(by: { $0.startDate < $1.startDate }).first {
+        if let currentGoal = goals.sorted(by: { $0.startDate > $1.startDate }).first {
             self.weeklyProgress = [(category: "Completed", value: currentGoal.progress),
                                    (category: "Incomplete", value: currentGoal.targetFrequency - currentGoal.progress)]
         }

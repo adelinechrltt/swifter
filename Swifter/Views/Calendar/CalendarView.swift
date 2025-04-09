@@ -34,6 +34,11 @@ struct CalendarView: View {
     @State private var showEditSessionModal = false
     @State private var selectedEvent: Event? = nil
     @StateObject private var eventStoreManager = EventStoreManager()
+
+    @Environment(\.modelContext) private var modelContext
+    private var sessionManager: JoggingSessionManager {
+        JoggingSessionManager(modelContext: modelContext)
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -94,13 +99,28 @@ struct CalendarView: View {
         .background(Color(uiColor: .systemBackground))
         .foregroundColor(.primary)
         .gesture(createSwipeGesture())
-        .onAppear(perform: onAppearHandler)
+        .onAppear{
+            viewModel.setSessionManager(sessionManager)
+            onAppearHandler()
+        }
         .onChange(of: currentMonth, perform: onMonthChangeHandler)
         .onChange(of: currentYear, perform: onYearChangeHandler)
-        .sheet(isPresented: $showEditSessionModal) {
-            EditSessionModal()
-                .environmentObject(eventStoreManager)
-        }
+        .sheet(isPresented: $showEditSessionModal, onDismiss: {
+            // Refresh the calendar data after editing
+            viewModel.fetchEventsForMonth(year: currentYear, month: currentMonth)
+            }) {
+                if let event = selectedEvent, 
+                let session = viewModel.findSessionFromEvent(event) {
+                    EditSessionModal(selectedEvent: session)
+                        .environmentObject(eventStoreManager)
+                        .environmentObject(sessionManager)
+                } else {
+                    EditSessionModal()
+                        .environmentObject(eventStoreManager)
+                        .environmentObject(sessionManager)
+                    }
+            }
+        
     }
     
     // MARK: - Event Handlers

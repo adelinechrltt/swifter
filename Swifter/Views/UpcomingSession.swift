@@ -37,7 +37,7 @@ struct UpcomingSession: View {
     }()
     
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 15) {
             // Header
             HStack {
                 Text("Sessions")
@@ -114,7 +114,7 @@ struct UpcomingSession: View {
                                     viewModel.goalModalShown = true
                                 }) {
                                     Image(systemName: "pencil")
-                                        .font(.system(size: 12))
+                                        .font(.system(size: 13))
                                         .foregroundColor(.white)
                                         .padding(4)
                                         .background(Color.black.opacity(0.3))
@@ -178,8 +178,7 @@ struct UpcomingSession: View {
                                 .padding(.vertical, 16)
                                 .background(
                                     RoundedRectangle(cornerRadius: 30)
-                                        .fill(Color.white)
-                                )
+                                        .fill(Color.white))
                         }
                     }
                     .padding(.horizontal)
@@ -222,12 +221,6 @@ struct UpcomingSession: View {
                                     .animation(.easeOut(duration: 1.0), value: showProgress)
                                     .animation(.easeOut(duration: 1.0), value: viewModel.currentGoal.progress)
                                     .animation(.easeOut(duration: 1.0), value: forceUpdateProgress) // Add this to force the animation to update
-                                
-                                // Add text in the center showing progress as number
-                                Text("\(viewModel.currentGoal.progress)")
-                                    .font(.system(size: 28, weight: .bold))
-                                    .foregroundColor(.primary)
-                                    .animation(nil, value: viewModel.currentGoal.progress) // No animation for text
                             }
                             .padding(.leading, 20)
                             .padding(.vertical, 20)
@@ -244,12 +237,12 @@ struct UpcomingSession: View {
                                 
                                 NavigationLink(destination: AnalyticsView()) {
                                     Text("View Summary")
-                                        .font(.system(size: 14, weight: .medium))
+                                        .font(.system(size: 15, weight: .medium))
                                         .foregroundColor(colorScheme == .dark ? .black : .white)
-                                        .padding(.vertical, 10)
+                                        .padding(.vertical, 13)
                                         .padding(.horizontal, 24)
                                         .background(colorScheme == .dark ? Color.white : Color.primary)
-                                        .cornerRadius(16)
+                                        .cornerRadius(22)
                                 }
                                 .padding(.top, 8)
                             }
@@ -257,7 +250,6 @@ struct UpcomingSession: View {
                             .padding(.trailing, 20)
                             .padding(.vertical, 20)
                             
-                            Spacer()
                         }
                     }
                     .background(colorScheme == .dark ? Color.gray.opacity(0.2) : Color(.systemGray5))
@@ -268,7 +260,6 @@ struct UpcomingSession: View {
                 .padding(.bottom, 20)
             }
             
-            Spacer()
             
             // Original Tab Bar
             HStack(spacing: 12) {

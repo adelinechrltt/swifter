@@ -21,7 +21,7 @@ struct OnboardPreferredJogDays: View {
             Spacer()
 
             // Title
-            Text("What’s your preferred jogging days?")
+            Text("What's your preferred jogging days?")
                 .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.primary)
                 .transition(.move(edge: .leading).combined(with: .opacity))
@@ -66,13 +66,6 @@ struct OnboardPreferredJogDays: View {
 
             Spacer()
 
-            // Progress Bar
-            ProgressView(value: 0.8, total: 1.0)
-                .progressViewStyle(LinearProgressViewStyle())
-                .tint(.gray)
-                .frame(height: 6)
-                .padding(.top, 10)
-
             // Buttons (Skip & Next)
             HStack {
                 NavigationLink(destination: OnboardThanksForLettingUsKnow()) {
@@ -101,7 +94,14 @@ struct OnboardPreferredJogDays: View {
                     .animation(.easeInOut(duration: 0.3), value: daysOfWeek)
                 }
             }
-            .padding(.bottom, 40)
+            
+            // Progress Bar - Moved to bottom
+            ProgressView(value: 0.8, total: 1.0)
+                .progressViewStyle(LinearProgressViewStyle())
+                .tint(.gray)
+                .frame(height: 6)
+                .padding(.top, 20)
+                .padding(.bottom, 20)
         }
         .padding(30)
         .navigationBarBackButtonHidden(true)

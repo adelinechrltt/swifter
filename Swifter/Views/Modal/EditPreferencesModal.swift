@@ -12,6 +12,11 @@ struct EditPreferencesModal: View {
     @State private var avgTimeOnFeet: Int = 30
     @State private var preJogDuration: Int = 5
     @State private var postJogDuration: Int = 5
+    
+    // States for time picker visibility
+    @State private var showingAvgTimeOnFeetPicker = false
+    @State private var showingPreJogDurationPicker = false
+    @State private var showingPostJogDurationPicker = false
 
     @State private var showSaveAlert = false
 
@@ -46,41 +51,93 @@ struct EditPreferencesModal: View {
                             Spacer()
                         }
 
-                        VStack(alignment: .leading, spacing: 15) {
-                            Text("Avg Time On Feet (Required)").font(.subheadline).bold()
-                            Stepper("\(avgTimeOnFeet) minutes", value: $avgTimeOnFeet, in: 5...120, step: 5)
-                                .onChange(of: avgTimeOnFeet) { _, _ in updatePreference() }
-
-                            Text("Avg Pre Jog Duration").font(.subheadline).bold()
-                            Stepper("\(preJogDuration) minutes", value: $preJogDuration, in: 0...60, step: 5)
-                                .onChange(of: preJogDuration) { _, _ in updatePreference() }
-
-                            Text("Avg Post Jog Duration").font(.subheadline).bold()
-                            Stepper("\(postJogDuration) minutes", value: $postJogDuration, in: 0...60, step: 5)
-                                .onChange(of: postJogDuration) { _, _ in updatePreference() }
-
-                            Text("Preferred Times of Day").font(.subheadline).bold()
-
-                            LazyVGrid(columns: columns, spacing: 8) {
-                                ForEach(TimeOfDay.allCases) { time in
-                                    TimeButton(
-                                        title: time.rawValue,
-                                        isSelected: selectedTimesOfDay.contains(time),
-                                        action: { toggleTimeOfDay(time) }
-                                    )
-                                }
+                        VStack(alignment: .leading, spacing: 20) {
+                            // Avg Time On Feet Section
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Avg Time On Feet (Required)")
+                                    .font(.subheadline)
+                                    .bold()
+                                
+                                // Modern time picker design
+                                TimePickerButton(
+                                    value: $avgTimeOnFeet,
+                                    isShowingPicker: $showingAvgTimeOnFeetPicker,
+                                    minValue: 5,
+                                    maxValue: 120,
+                                    step: 5,
+                                    unit: "minutes",
+                                    onValueChange: updatePreference
+                                )
                             }
 
-                            Text("Preferred Days of the Week").font(.subheadline).bold()
+                            // Avg Pre Jog Duration Section
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Avg Pre Jog Duration")
+                                    .font(.subheadline)
+                                    .bold()
+                                
+                                TimePickerButton(
+                                    value: $preJogDuration,
+                                    isShowingPicker: $showingPreJogDurationPicker,
+                                    minValue: 0,
+                                    maxValue: 60,
+                                    step: 5,
+                                    unit: "minutes",
+                                    onValueChange: updatePreference
+                                )
+                            }
 
-                            LazyVGrid(columns: columns, spacing: 8) {
-                                ForEach(DayOfWeek.allCases) { day in
-                                    DayButton(
-                                        title: day.name.prefix(3),
-                                        isSelected: selectedDaysOfWeek.contains(day),
-                                        action: { toggleDayOfWeek(day) }
-                                    )
+                            // Avg Post Jog Duration Section
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Avg Post Jog Duration")
+                                    .font(.subheadline)
+                                    .bold()
+                                
+                                TimePickerButton(
+                                    value: $postJogDuration,
+                                    isShowingPicker: $showingPostJogDurationPicker,
+                                    minValue: 0,
+                                    maxValue: 60,
+                                    step: 5,
+                                    unit: "minutes",
+                                    onValueChange: updatePreference
+                                )
+                            }
+                            
+                            // Times of Day Section
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Preferred Times of Day")
+                                    .font(.subheadline)
+                                    .bold()
+
+                                LazyVGrid(columns: columns, spacing: 8) {
+                                    ForEach(TimeOfDay.allCases) { time in
+                                        TimeButton(
+                                            title: time.rawValue,
+                                            isSelected: selectedTimesOfDay.contains(time),
+                                            action: { toggleTimeOfDay(time) }
+                                        )
+                                    }
                                 }
+                                .padding(.bottom, 5)
+                            }
+                            
+                            // Days of Week Section
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Preferred Days of the Week")
+                                    .font(.subheadline)
+                                    .bold()
+
+                                LazyVGrid(columns: columns, spacing: 8) {
+                                    ForEach(DayOfWeek.allCases) { day in
+                                        DayButton(
+                                            title: day.name.prefix(3),
+                                            isSelected: selectedDaysOfWeek.contains(day),
+                                            action: { toggleDayOfWeek(day) }
+                                        )
+                                    }
+                                }
+                                .padding(.bottom, 5)
                             }
                         }
 
@@ -174,7 +231,135 @@ struct EditPreferencesModal: View {
     }
 }
 
-// MARK: - Reusable Buttons
+// MARK: - Time Picker Components
+
+struct TimePickerButton: View {
+    @Binding var value: Int
+    @Binding var isShowingPicker: Bool
+    let minValue: Int
+    let maxValue: Int
+    let step: Int
+    let unit: String
+    let onValueChange: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Button(action: {
+                withAnimation {
+                    isShowingPicker.toggle()
+                }
+            }) {
+                HStack {
+                    Text("\(value) \(unit)")
+                        .font(.system(size: 16, weight: .medium))
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(10)
+                    
+                    Spacer()
+                    
+                    Image(systemName: isShowingPicker ? "chevron.up" : "chevron.down")
+                        .foregroundColor(.primary)
+                        .font(.system(size: 14, weight: .medium))
+                        .frame(width: 30)
+                        .padding(.trailing, 8)
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color(.systemGray4), lineWidth: 1)
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            if isShowingPicker {
+                TimePickerView(
+                    value: $value,
+                    minValue: minValue,
+                    maxValue: maxValue,
+                    step: step,
+                    unit: unit,
+                    onValueChange: onValueChange
+                )
+                .padding(.top, 8)
+                .transition(.opacity)
+            }
+        }
+    }
+}
+
+struct TimePickerView: View {
+    @Binding var value: Int
+    let minValue: Int
+    let maxValue: Int
+    let step: Int
+    let unit: String
+    let onValueChange: () -> Void
+    
+    // Generate available values based on min, max and step
+    private var availableValues: [Int] {
+        stride(from: minValue, through: maxValue, by: step).map { $0 }
+    }
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            // Slider
+            HStack {
+                Text("\(minValue)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Slider(
+                    value: Binding(
+                        get: {
+                            Double(availableValues.firstIndex(of: value) ?? 0)
+                        },
+                        set: { newPosition in
+                            if let newIndex = Int(exactly: newPosition),
+                               newIndex >= 0 && newIndex < availableValues.count {
+                                value = availableValues[newIndex]
+                                onValueChange()
+                            }
+                        }
+                    ),
+                    in: 0...Double(availableValues.count - 1),
+                    step: 1
+                )
+                .accentColor(.accentColor)
+                
+                Text("\(maxValue)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            // Value selection buttons
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(availableValues, id: \.self) { timeValue in
+                        Button(action: {
+                            value = timeValue
+                            onValueChange()
+                        }) {
+                            Text("\(timeValue)")
+                                .font(.system(size: 15, weight: .medium))
+                                .frame(width: 44, height: 44)
+                                .background(value == timeValue ? Color.accentColor : Color(UIColor.tertiarySystemBackground))
+                                .foregroundColor(value == timeValue ? .white : .primary)
+                                .cornerRadius(22)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                .padding(.horizontal, 4)
+            }
+        }
+        .padding(12)
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(10)
+    }
+}
+
+// MARK: - Original Buttons (Unchanged)
 
 struct TimeButton: View {
     let title: String

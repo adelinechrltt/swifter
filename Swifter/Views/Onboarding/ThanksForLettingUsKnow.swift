@@ -1,10 +1,3 @@
-//
-//  OnboardThanksForLettingUsKnow.swift
-//  SwifterSwiftUi
-//
-//  Created by Natasya Felicia on 26/03/25.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -45,7 +38,7 @@ struct OnboardThanksForLettingUsKnow: View {
                 .transition(.opacity)
                 .animation(.easeIn(duration: 0.3), value: UUID())
 
-            Spacer()
+        
 
             // Start Jogging Button
             Button {
@@ -62,7 +55,7 @@ struct OnboardThanksForLettingUsKnow: View {
                     }
                 }
             } label: {
-                Text("Let’s start jogging!")
+                Text("Let's start jogging!")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.primary)
                     .padding()
@@ -75,14 +68,15 @@ struct OnboardThanksForLettingUsKnow: View {
             .transition(.scale)
             .animation(.spring(response: 0.4, dampingFraction: 0.6), value: UUID())
 
-            // Progress Bar
+            Spacer()
+            
+            // Progress Bar - Moved to bottom
             ProgressView(value: 1.0, total: 1.0)
                 .progressViewStyle(LinearProgressViewStyle())
                 .tint(.primary)
                 .frame(height: 6)
                 .padding(.top, 20)
-
-            Spacer()
+                .padding(.bottom, 20)
         }
         .padding(40)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -99,4 +93,3 @@ struct OnboardThanksForLettingUsKnow: View {
         OnboardThanksForLettingUsKnow()
     }
 }
-

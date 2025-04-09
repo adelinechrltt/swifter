@@ -24,7 +24,7 @@ struct UpcomingSession: View {
     
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.dateFormat = "EEE, dd MMM"
+        formatter.dateFormat = "EEE, dd MMMM"
         return formatter
     }()
     
@@ -65,28 +65,33 @@ struct UpcomingSession: View {
                     VStack(spacing: 0) {
                         // Header section
                         HStack {
-                            Text(viewModel.nextStart.timeIntervalSinceNow > 60*60*24 ? "Next jog session in:" : "Next jogging session at")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                            Text(viewModel.nextStart.timeIntervalSinceNow > 60*60*24 ? "Next jog session" : "Next jogging session at")
+                                .font(.headline)
+                                .foregroundColor(colorScheme == .dark ? .secondary : .white.opacity(0.7))
                                 .padding(.horizontal)
                                 .padding(.top, 16)
                             Spacer()
                         }
                         
                         Divider()
+                            .background(colorScheme == .dark ? Color.gray.opacity(0.3) : Color.white.opacity(0.3))
                             .padding(.top, 8)
                         
                         // Main content
                         HStack(alignment: .center) {
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: 8) {
                                 Text(viewModel.timeUntil > 60 * 60 * 24 ? "In \(viewModel.days) days" : "Tomorrow")
-                                    .font(.subheadline)
+                                    .font(.headline)
+                                    .foregroundColor(colorScheme == .dark ? .primary : .white)
                                 
                                 Text(dateFormatter.string(from: viewModel.nextStart))
-                                    .font(.system(size: 28, weight: .bold))
+                                    .font(.system(size: 28, weight: .bold, design: .default))
+                                    .fontWeight(.bold)
+                                    .foregroundColor(colorScheme == .dark ? .primary : .white)
                                 
                                 Text("\(timeFormatter.string(from: viewModel.nextStart).lowercased()) - \(timeFormatter.string(from: viewModel.nextEnd).lowercased())")
-                                    .font(.subheadline)
+                                    .font(.headline)
+                                    .foregroundColor(colorScheme == .dark ? .primary : .white)
                                     .padding(.top, 2)
                             }
                             .padding(.horizontal)
@@ -99,30 +104,31 @@ struct UpcomingSession: View {
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 100, height: 90)
                                 .foregroundColor(.white)
-                                 .padding(.trailing, 30)                        }
+                                .padding(.trailing, 30)
+                        }
                         
                         // Goal section
                         HStack {
                             HStack {
                                 Text("Goal: Jog \(viewModel.currentGoal.targetFrequency) times in a week")
-                                    .font(.footnote)
+                                    .font(.subheadline)
                                     .foregroundColor(.white)
                                 
                                 Button(action: {
                                     viewModel.goalModalShown = true
                                 }) {
                                     Image(systemName: "pencil")
-                                        .font(.system(size: 13))
+                                        .font(.caption)
                                         .foregroundColor(.white)
-                                        .padding(4)
-                                        .background(Color.black.opacity(0.3))
+                                        .padding(2)
+                                        .background(Color.gray.opacity(0.5))
                                         .clipShape(Circle())
                                 }
                                 .padding(.leading, 4)
                             }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
-                            .background(Color.black.opacity(0.3))
+                            .padding(.vertical, 5)
+                            .padding(.horizontal, 10)
+                            .background(colorScheme == .dark ? Color.gray : Color(UIColor.darkGray))
                             .cornerRadius(20)
                             
                             Spacer()
@@ -132,7 +138,7 @@ struct UpcomingSession: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(Color(uiColor: colorScheme == .dark ? .systemGray6 : .black))
+                            .fill(colorScheme == .dark ? Color(uiColor: .systemGray6) : Color.black)
                     )
                     .padding(.horizontal)
                     
@@ -148,13 +154,14 @@ struct UpcomingSession: View {
                                 .font(.headline)
                                 .foregroundColor(.primary)
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
+                                .padding(.vertical, 13)
                                 .background(
                                     RoundedRectangle(cornerRadius: 30)
                                         .stroke(Color.gray.opacity(0.5), lineWidth: 1)
                                         .background(Color.gray.opacity(0.1).cornerRadius(30))
                                 )
                         }
+                        .accessibilityLabel("Reschedule jogging session")
                         
                         Button(action: {
                             let flag = viewModel.markSessionAsComplete(sessionManager: sessionManager, goalManager: goalManager)
@@ -176,13 +183,14 @@ struct UpcomingSession: View {
                         }) {
                             Text("Mark as Done")
                                 .font(.headline)
-                                .foregroundColor(.black)
+                                .foregroundColor(colorScheme == .dark ? .black : .white)
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
+                                .padding(.vertical, 13)
                                 .background(
                                     RoundedRectangle(cornerRadius: 30)
-                                        .fill(Color.primary))
+                                        .fill(colorScheme == .dark ? Color.white : Color.black))
                         }
+                        .accessibilityLabel("Mark jogging session as completed")
                     }
                     .padding(.horizontal)
                     
@@ -191,17 +199,18 @@ struct UpcomingSession: View {
                         // Header section
                         HStack {
                             Text("Weekly Progress")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .font(.headline)
+                                .foregroundColor(colorScheme == .dark ? .secondary : .white.opacity(0.7))
                                 .padding(.horizontal)
                                 .padding(.top, 16)
                             Spacer()
                         }
                         
                         Divider()
+                            .background(colorScheme == .dark ? Color.gray.opacity(0.3) : Color.white.opacity(0.3))
                             .padding(.top, 8)
                         
-                        // Progress content with gradient stroke
+                        
                         HStack {
                             ZStack {
                                 Circle()
@@ -226,26 +235,31 @@ struct UpcomingSession: View {
                             }
                             .padding(.leading, 20)
                             .padding(.vertical, 20)
+                            .accessibilityLabel("Progress: \(viewModel.currentGoal.progress) of \(viewModel.currentGoal.targetFrequency) runs completed")
                             
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("\(viewModel.currentGoal.progress)/\(viewModel.currentGoal.targetFrequency)")
-                                    .font(.system(size: 32, weight: .bold))
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(colorScheme == .dark ? .primary : .white)
                                 
-                                Text("runs completed this week")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.secondary)
+                                Text("Runs completed this week")
+                                    .font(.headline)
+                                    .foregroundColor(colorScheme == .dark ? .secondary : .white.opacity(0.7))
                                 
-                                Spacer()
+                                
                                 
                                 NavigationLink(destination: AnalyticsView()) {
                                     Text("View Summary")
-                                        .font(.system(size: 15, weight: .medium))
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
                                         .foregroundColor(colorScheme == .dark ? .black : .white)
-                                        .padding(.vertical, 13)
+                                        .padding(.vertical, 12)
                                         .padding(.horizontal, 24)
-                                        .background(colorScheme == .dark ? Color.white : Color.primary)
+                                        .background(colorScheme == .dark ? Color.white : Color(UIColor.darkGray))
                                         .cornerRadius(22)
                                 }
+                                .accessibilityHint("View detailed analysis of your jogging activity")
                                 .padding(.top, 8)
                             }
                             .padding(.leading, 24)
@@ -253,35 +267,17 @@ struct UpcomingSession: View {
                             .padding(.vertical, 20)
                         }
                     }
-                    .background(colorScheme == .dark ? Color.gray.opacity(0.2) : Color(.systemGray5))
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(colorScheme == .dark ? Color(uiColor: .systemGray6) : Color.black)
+                    )
                     .cornerRadius(16)
                     .padding(.horizontal, 20)
                 }
                 .padding(.bottom, 20)
             }
             
-            // Tab Bar
-            HStack(spacing: 12) {
-                Spacer()
-                
-                NavigationLink(destination: AnalyticsView()) {
-                    Image(systemName: "figure.run")
-                        .font(.system(size: 24))
-                        .foregroundColor(.gray)
-                }
-                
-                Spacer()
-                
-                NavigationLink(destination: AnalyticsView()) {
-                    Image(systemName: "calendar")
-                        .font(.system(size: 24))
-                        .foregroundColor(.gray)
-                }
-                
-                Spacer()
-            }
-            .padding(.vertical, 20)
-            .background(Color.gray.opacity(0.1))
+            Spacer()
         }
         .edgesIgnoringSafeArea(.bottom)
         .sheet(isPresented: $viewModel.preferencesModalShown) {

@@ -8,11 +8,17 @@
 import SwiftData
 import Foundation
 
-class JoggingSessionManager: ObservableObject { // --> observable object supaya bisa dimasukkin as a state object
-    private let modelContext: ModelContext
+class JoggingSessionManager: ObservableObject {
+    // Use an underscore for the private property
+    private let _modelContext: ModelContext
     
     init(modelContext: ModelContext) {
-        self.modelContext = modelContext
+        self._modelContext = modelContext
+    }
+
+    // Access to the model context for other managers
+    var modelContext: ModelContext {
+        return _modelContext
     }
     
     /// fetch all sessions, sorted by date
@@ -20,8 +26,10 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
         let descriptor = FetchDescriptor<SessionModel>(
             sortBy: [SortDescriptor(\.startTime, order: .forward)]
         )
-        return (try? modelContext.fetch(descriptor)) ?? []
+        return (try? _modelContext.fetch(descriptor)) ?? []
     }
+    
+    // Update the rest of your methods to use _modelContext instead of modelContext
     
     /// fetch the next upcoming session
     func fetchLatestSession() -> SessionModel? {
@@ -37,7 +45,7 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
             sortBy: [SortDescriptor(\.startTime, order: .forward)]
         )
         
-        return try? modelContext.fetch(descriptor).first
+        return try? _modelContext.fetch(descriptor).first
     }
     
     /// fetch session by ID
@@ -50,7 +58,7 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
             predicate: predicate
         )
 
-        return try? modelContext.fetch(descriptor).first
+        return try? _modelContext.fetch(descriptor).first
     }
     
     func latestSession(for goal: GoalModel) -> SessionModel? {
@@ -64,7 +72,7 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
         )
 
         do {
-            let sessions = try modelContext.fetch(fetchRequest)
+            let sessions = try _modelContext.fetch(fetchRequest)
             return sessions.sorted { $0.endTime > $1.endTime }.first
         } catch {
             print("Error fetching sessions within goal period: \(error)")
@@ -75,11 +83,9 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
     func createNewSession(storeManager: EventStoreManager, start: Date, end: Date, sessionType: SessionType) -> PersistentIdentifier? {
         if let id = storeManager.createNewEvent(eventTitle: sessionType.rawValue, startTime: start, endTime: end) {
             let newSession = SessionModel(startTime: start, endTime: end, calendarEventID: id, sessionType: sessionType)
-            modelContext.insert(newSession)
+            _modelContext.insert(newSession)
             do {
-                try modelContext.save()
-//                print("created new session \(newSession) with ID \(newSession.persistentModelID)")
-//                print("time: \(newSession.startTime) - \(newSession.endTime)")
+                try _modelContext.save()
                 return newSession.persistentModelID
             } catch {
                 print("error bro")
@@ -99,14 +105,13 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
                 newEnd: newEnd)
             
             do {
-                try modelContext.save()
+                try _modelContext.save()
                 print("Session times succesfully updated")
                 print("Start: \(mySession.startTime)")
                 print("End: \(mySession.endTime)")
             } catch {
                 print("Error updating session times")
             }
-
         }
     }
     
@@ -116,25 +121,24 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
             mySession.status = newStatus
             
             do {
-                try modelContext.save()
+                try _modelContext.save()
                 print("Updated status to: \(mySession.status)")
             } catch {
                 print("Error updating status")
             }
-
         }
     }
     
     func deleteSession(session: SessionModel, eventStoreManager: EventStoreManager){
         let calendarEventID = session.calendarEventID
         
-        modelContext.delete(session)
+        _modelContext.delete(session)
         do {
-               try modelContext.save()
-               print("successfully deleted")
-           } catch {
-               print("error \(error.localizedDescription)")
-           }
+            try _modelContext.save()
+            print("successfully deleted")
+        } catch {
+            print("error \(error.localizedDescription)")
+        }
         
         eventStoreManager.deleteSessionById(id: calendarEventID)
     }
@@ -142,7 +146,7 @@ class JoggingSessionManager: ObservableObject { // --> observable object supaya 
     /// so other viewmodels can save context after updating a session
     func saveContext() {
         do {
-            try modelContext.save()
+            try _modelContext.save()
             print("context saved")
         } catch {
             print("error bro: \(error.localizedDescription)")

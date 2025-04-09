@@ -15,6 +15,8 @@ struct EditSessionModal: View {
     @StateObject private var viewModel: EditSessionViewModel
     
     @State private var showSaveAlert = false
+    @State private var showOutsideGoalAlert = false
+    @State private var showGoalModal = false
     @State private var showSuccess = false
     @Environment(\.dismiss) private var dismiss
     
@@ -37,7 +39,12 @@ struct EditSessionModal: View {
                         .fontWeight(.bold)
                     Spacer()
                     Button {
-                        showSaveAlert = true 
+                        // Check if the new date is outside the goal's timeframe
+                        if viewModel.checkDateConstraint() {
+                            showOutsideGoalAlert = true
+                        } else {
+                            showSaveAlert = true
+                        }
                     } label: {
                         Text("Save")
                             .fontWeight(.semibold)
@@ -59,6 +66,12 @@ struct EditSessionModal: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
+                        
+                        if let goal = viewModel.currentGoal {
+                            Text("Goal period: \(formatDate(goal.startDate)) - \(formatDate(goal.endDate))")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
                     }
                     .padding()
                     .background(Color(.secondarySystemBackground))
@@ -77,6 +90,10 @@ struct EditSessionModal: View {
                     )
                     .datePickerStyle(.graphical)
                     .labelsHidden()
+                    .onChange(of: viewModel.newStartTime) { _, _ in
+                        // Optionally check constraint on every change
+                        // _ = viewModel.checkDateConstraint()
+                    }
                 }
                 .padding()
                 .background(Color(.secondarySystemBackground))
@@ -85,6 +102,7 @@ struct EditSessionModal: View {
                 Spacer()
             }
             .padding()
+            // Regular save confirmation
             .alert("Reschedule Session?", isPresented: $showSaveAlert) {
                 Button("Cancel", role: .cancel) {}
                 Button("Save") {
@@ -101,6 +119,44 @@ struct EditSessionModal: View {
             } message: {
                 let count = 1 + viewModel.relatedSessions.count
                 Text("This will reschedule \(count) session\(count > 1 ? "s" : "") to start at \(formatDate(viewModel.newStartTime)).")
+            }
+            // Alert for outside goal date
+            .alert("Outside Goal Period", isPresented: $showOutsideGoalAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Continue") {
+                    // Show goal modal if user wants to proceed
+                    showGoalModal = true
+                }
+            } message: {
+                Text("The new date is outside your current goal period. You'll need to create a new goal to continue.")
+            }
+            .sheet(isPresented: $showGoalModal, onDismiss: {
+                // After setting new goal, save the session changes
+                viewModel.eventStoreManager = eventStoreManager
+                if viewModel.rescheduleSession(sessionManager: sessionManager) {
+                    showSuccess = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        dismiss()
+                    }
+                }
+            }) {
+                // Show goal setting modal
+                if let goal = viewModel.currentGoal {
+                    // Create a goal manager for the modal
+                    let goalManager = GoalManager(modelContext: sessionManager.modelContext)
+    
+                    GoalSettingModal(
+                        isPresented: $showGoalModal,
+                        goalToEdit: goal,
+                        onPreSave: {
+                            // Any actions before saving the goal
+                        },
+                        onPostSave: {
+                            // After goal is saved, we'll handle the session updating in onDismiss
+                        }
+                    )
+                    .environment(\.modelContext, sessionManager.modelContext)
+                }
             }
             .overlay {
                 if showSuccess {
@@ -121,8 +177,11 @@ struct EditSessionModal: View {
             // Replace the temporary EventStoreManager with the environment one
             viewModel.eventStoreManager = eventStoreManager
             
+            // Create a temporary goal manager
+            let goalManager = GoalManager(modelContext: sessionManager.modelContext)
+            
             if let event = selectedEvent {
-                viewModel.loadSession(session: event, sessionManager: sessionManager)
+                viewModel.loadSession(session: event, sessionManager: sessionManager, goalManager: goalManager)
             }
         }
     }

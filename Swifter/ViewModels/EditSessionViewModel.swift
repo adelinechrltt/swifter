@@ -21,6 +21,10 @@ final class EditSessionViewModel: ObservableObject {
     // New scheduled time for the session(s)
     @Published var newStartTime: Date = Date()
     
+    // Current goal
+    @Published var currentGoal: GoalModel?
+    @Published var isOutsideGoalDate: Bool = false
+    
     init(
         // set with initial values
         eventStoreManager: EventStoreManager
@@ -29,24 +33,27 @@ final class EditSessionViewModel: ObservableObject {
     }
     
     // Load session and related sessions (pre/post jog)
-    func loadSession(session: SessionModel, sessionManager: JoggingSessionManager) {
+    func loadSession(session: SessionModel, sessionManager: JoggingSessionManager, goalManager: GoalManager) {
         self.selectedSession = session
         self.newStartTime = session.startTime
         
         // Find related sessions based on timing
         findRelatedSessions(session: session, sessionManager: sessionManager)
+        
+        // Load the current goal
+        if let goals = goalManager.fetchGoals() {
+            self.currentGoal = goals.sorted(by: { $0.startDate > $1.startDate }).first
+        }
     }
     
     // Find sessions that are related (immediately before/after)
     private func findRelatedSessions(session: SessionModel, sessionManager: JoggingSessionManager) {
+        // Existing implementation
         relatedSessions = []
         let allSessions = sessionManager.fetchAllSessions()
         
-        // Find sessions that start right after our session ends
-        // or end right before our session starts
         for s in allSessions {
             if s.persistentModelID != session.persistentModelID {
-                // Check if the session is immediately before or after
                 if abs(s.endTime.timeIntervalSince(session.startTime)) < 60 || 
                    abs(s.startTime.timeIntervalSince(session.endTime)) < 60 {
                     relatedSessions.append(s)
@@ -54,8 +61,22 @@ final class EditSessionViewModel: ObservableObject {
             }
         }
         
-        // Sort related sessions by start time
         relatedSessions.sort { $0.startTime < $1.startTime }
+    }
+    
+    // Check if the new date is outside of the goal's timeframe
+    func checkDateConstraint() -> Bool {
+        guard let goal = currentGoal,
+              let mainSession = selectedSession else { 
+            return false 
+        }
+        
+        let timeDifference = newStartTime.timeIntervalSince(mainSession.startTime)
+        let newEndDate = mainSession.endTime.addingTimeInterval(timeDifference)
+        
+        // Check if the new date range is outside the goal dates
+        isOutsideGoalDate = newStartTime < goal.startDate || newEndDate > goal.endDate
+        return isOutsideGoalDate
     }
     
     // Reschedule the selected session and its related sessions

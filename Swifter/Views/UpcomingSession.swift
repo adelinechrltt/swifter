@@ -57,54 +57,56 @@ struct UpcomingSession: View {
                 .padding(.trailing)
             }
             .padding(.top)
-            .padding(.bottom, 20)
+            .padding(.bottom, 15)
             
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: 16) {
                     // Upcoming Session Card
                     VStack(spacing: 0) {
                         // Header section
                         HStack {
-                            Text(viewModel.nextStart.timeIntervalSinceNow > 60*60*24 ? "Next jog session" : "Next jogging session at")
+                            Text(viewModel.nextStart.timeIntervalSinceNow > 60*60*24 ? "Next Jog Session" : "Next Jogging Session")
                                 .font(.headline)
-                                .foregroundColor(colorScheme == .dark ? .secondary : .white.opacity(0.7))
+                                .foregroundColor(.white) // Always white for better visibility on card
                                 .padding(.horizontal)
-                                .padding(.top, 16)
+                                .padding(.top, 14)
                             Spacer()
                         }
                         
                         Divider()
-                            .background(colorScheme == .dark ? Color.gray.opacity(0.3) : Color.white.opacity(0.3))
+                            .background(Color.white.opacity(0.3)) // Consistent white divider
                             .padding(.top, 8)
                         
-                        // Main content
+                        // Main content - Improved hierarchy
                         HStack(alignment: .center) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(viewModel.timeUntil > 60 * 60 * 24 ? "In \(viewModel.days) days" : "Tomorrow")
-                                    .font(.headline)
-                                    .foregroundColor(colorScheme == .dark ? .primary : .white)
-                                
+                            VStack(alignment: .leading, spacing: 6) {
+                                // Primary information: Date (most important)
                                 Text(dateFormatter.string(from: viewModel.nextStart))
-                                    .font(.system(size: 28, weight: .bold, design: .default))
-                                    .fontWeight(.bold)
-                                    .foregroundColor(colorScheme == .dark ? .primary : .white)
+                                    .font(.system(size: 26, weight: .bold, design: .default))
+                                    .foregroundColor(.white)
                                 
+                                // Secondary information: Time
                                 Text("\(timeFormatter.string(from: viewModel.nextStart).lowercased()) - \(timeFormatter.string(from: viewModel.nextEnd).lowercased())")
                                     .font(.headline)
-                                    .foregroundColor(colorScheme == .dark ? .primary : .white)
+                                    .foregroundColor(.white)
+                                
+                                // Tertiary information: How soon
+                                Text(viewModel.timeUntil > 60 * 60 * 24 ? "In \(viewModel.days) days" : "Tomorrow")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.8))
                                     .padding(.top, 2)
                             }
                             .padding(.horizontal)
-                            .padding(.vertical, 12)
+                            .padding(.vertical, 10)
                             
                             Spacer()
                             
                             Image("Swifter.logo")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 100, height: 90)
+                                .frame(width: 90, height: 80)
                                 .foregroundColor(.white)
-                                .padding(.trailing, 30)
+                                .padding(.trailing, 24)
                         }
                         
                         // Goal section
@@ -134,7 +136,8 @@ struct UpcomingSession: View {
                             Spacer()
                         }
                         .padding(.horizontal)
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 14)
+                        .padding(.top, 4)
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 16)
@@ -194,90 +197,93 @@ struct UpcomingSession: View {
                     }
                     .padding(.horizontal)
                     
-                    // Weekly Progress Card
+                    // Weekly Progress Card - Improved spacing
                     VStack(spacing: 0) {
                         // Header section
                         HStack {
                             Text("Weekly Progress")
                                 .font(.headline)
-                                .foregroundColor(colorScheme == .dark ? .secondary : .white.opacity(0.7))
+                                .foregroundColor(.white)
                                 .padding(.horizontal)
-                                .padding(.top, 16)
+                                .padding(.top, 14)
                             Spacer()
                         }
                         
                         Divider()
-                            .background(colorScheme == .dark ? Color.gray.opacity(0.3) : Color.white.opacity(0.3))
+                            .background(Color.white.opacity(0.3))
                             .padding(.top, 8)
                         
-                        
-                        HStack {
-                            ZStack {
-                                Circle()
-                                    .stroke(Color.gray.opacity(0.3), lineWidth: 12)
-                                    .frame(width: 100, height: 100)
-                                
-                                Circle()
-                                    .trim(from: 0.0, to: showProgress ? Double(viewModel.currentGoal.progress) / Double(viewModel.currentGoal.targetFrequency) : 0.0)
-                                    .stroke(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [.blue, Color.green]),
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        ),
-                                        lineWidth: 12
-                                    )
-                                    .rotationEffect(.degrees(-90))
-                                    .frame(width: 100, height: 100)
-                                    .animation(.easeOut(duration: 1.0), value: showProgress)
-                                    .animation(.easeOut(duration: 1.0), value: viewModel.currentGoal.progress)
-                                    .animation(.easeOut(duration: 1.0), value: forceUpdateProgress)
-                            }
-                            .padding(.leading, 20)
-                            .padding(.vertical, 20)
-                            .accessibilityLabel("Progress: \(viewModel.currentGoal.progress) of \(viewModel.currentGoal.targetFrequency) runs completed")
-                            
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("\(viewModel.currentGoal.progress)/\(viewModel.currentGoal.targetFrequency)")
-                                    .font(.title)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(colorScheme == .dark ? .primary : .white)
-                                
-                                Text("Runs completed this week")
-                                    .font(.headline)
-                                    .foregroundColor(colorScheme == .dark ? .secondary : .white.opacity(0.7))
-                                
-                                
-                                
-                                NavigationLink(destination: AnalyticsView()) {
-                                    Text("View Summary")
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(colorScheme == .dark ? .black : .white)
-                                        .padding(.vertical, 12)
-                                        .padding(.horizontal, 24)
-                                        .background(colorScheme == .dark ? Color.white : Color(UIColor.darkGray))
-                                        .cornerRadius(22)
+                        // Content area with improved spacing
+                        VStack(spacing: 0) {
+                            HStack(alignment: .top, spacing: 10) {
+                                // Left side - Progress circle
+                                ZStack {
+                                    
+                                    Circle()
+                                        .stroke(Color.gray.opacity(0.3), lineWidth: 14)
+                                        .frame(width: 100, height: 100) .padding(.top, 10)
+                                    
+                                    Circle()
+                                        .trim(from: 0.0, to: showProgress ? Double(viewModel.currentGoal.progress) / Double(viewModel.currentGoal.targetFrequency) : 0.0)
+                                        .stroke(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [.blue, Color.green]),
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            ),
+                                            lineWidth: 14
+                                        )
+                                        .rotationEffect(.degrees(-90))
+                                        .frame(width: 100, height: 100)
+                                        .animation(.easeOut(duration: 1.0), value: showProgress)
+                                        .animation(.easeOut(duration: 1.0), value: viewModel.currentGoal.progress)
+                                        .animation(.easeOut(duration: 1.0), value: forceUpdateProgress)
                                 }
-                                .accessibilityHint("View detailed analysis of your jogging activity")
-                                .padding(.top, 8)
+                                .padding(.leading, 20)
+                                .accessibilityLabel("Progress: \(viewModel.currentGoal.progress) of \(viewModel.currentGoal.targetFrequency) runs completed")
+                                
+                                // Right side - Text and button
+                                VStack(alignment: .leading, spacing: 8) {
+                                    // Primary information: Progress fraction
+                                    Text("\(viewModel.currentGoal.progress)/\(viewModel.currentGoal.targetFrequency)")
+                                        .font(.title)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                    
+                                    // Secondary information: Label for context
+                                    Text("Runs completed this week")
+                                        .font(.subheadline)
+                                        .foregroundColor(.white.opacity(0.8))
+                                        .padding(.bottom, 16)
+                                    
+                                    NavigationLink(destination: AnalyticsView()) {
+                                        Text("View Summary")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(colorScheme == .dark ? .black : .white)
+                                            .padding(.vertical, 10)
+                                            .padding(.horizontal, 20)
+                                            .background(colorScheme == .dark ? Color.white : Color(UIColor.darkGray))
+                                            .cornerRadius(20)
+                                    }
+                                    .accessibilityHint("View detailed analysis of your jogging activity")
+                                }
+                                .padding(.leading, 20)
+                                .padding(.trailing, 20)
                             }
-                            .padding(.leading, 24)
-                            .padding(.trailing, 20)
-                            .padding(.vertical, 20)
+                            .padding(.vertical, 16)
                         }
+                        .padding(.bottom, 5) // Small bottom padding for balance
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 16)
                             .fill(colorScheme == .dark ? Color(uiColor: .systemGray6) : Color.black)
                     )
                     .cornerRadius(16)
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal)
                 }
-                .padding(.bottom, 20)
+                .padding(.bottom, 16)
             }
-            
-            Spacer()
         }
         .edgesIgnoringSafeArea(.bottom)
         .sheet(isPresented: $viewModel.preferencesModalShown) {

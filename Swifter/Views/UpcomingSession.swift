@@ -230,6 +230,7 @@ struct UpcomingSession: View {
                                                 gradient: Gradient(colors: [.blue, Color.green]),
                                                 startPoint: .leading,
                                                 endPoint: .trailing
+                                                
                                             ),
                                             lineWidth: 14
                                         )
@@ -238,6 +239,7 @@ struct UpcomingSession: View {
                                         .animation(.easeOut(duration: 1.0), value: showProgress)
                                         .animation(.easeOut(duration: 1.0), value: viewModel.currentGoal.progress)
                                         .animation(.easeOut(duration: 1.0), value: forceUpdateProgress)
+                                        .padding(.top, 10)
                                 }
                                 .padding(.leading, 20)
                                 .accessibilityLabel("Progress: \(viewModel.currentGoal.progress) of \(viewModel.currentGoal.targetFrequency) runs completed")

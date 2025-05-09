@@ -368,6 +368,7 @@ struct UpcomingSession: View {
                 defaults?.set(viewModel.nextStart, forKey: "nextStart")
                 defaults?.set(viewModel.nextEnd, forKey: "nextEnd")
                 defaults?.set(viewModel.currentGoal.progress, forKey: "progress")
+                defaults?.set(viewModel.currentGoal.targetFrequency, forKey: "targetFreq")
 
                 WidgetCenter.shared.reloadAllTimelines()
             }

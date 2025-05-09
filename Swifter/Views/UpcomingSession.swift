@@ -1,4 +1,6 @@
 import SwiftUI
+import Foundation
+import WidgetKit
 
 struct UpcomingSession: View {
     @State private var showProgress = false
@@ -361,6 +363,13 @@ struct UpcomingSession: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     showProgress = true
                 }
+                
+                let defaults = UserDefaults(suiteName: "group.com.adeline.Swifter")
+                defaults?.set(viewModel.nextStart, forKey: "nextStart")
+                defaults?.set(viewModel.nextEnd, forKey: "nextEnd")
+                defaults?.set(viewModel.currentGoal.progress, forKey: "progress")
+
+                WidgetCenter.shared.reloadAllTimelines()
             }
         }
     }

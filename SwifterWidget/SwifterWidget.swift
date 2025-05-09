@@ -58,7 +58,8 @@ struct SwifterWidgetEntryView : View {
         ZStack {
             LinearGradient(
 //                TODO: add logic for conditionally appending colors in the color array based on the duration to the next jog :D
-                colors: [Color("darkPrimary"), Color("darkTeal")/*, Color("midTeal")*/],
+                colors: [Color("darkPrimary"),
+                         Color("darkTeal"), Color("midTeal")],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -90,7 +91,63 @@ struct SwifterWidgetEntryView : View {
                         .font(.system(size: 11))
                 }.padding(16)
             case .systemMedium:
-                Text("Medium")
+                HStack {
+                    VStack(alignment: .leading) {
+                        VStack(alignment: .leading) {
+                            HStack(spacing: 6) {
+                                Image("JogLogo")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(height: 15)
+                                Text("Next jog in")
+                                    .font(.system(size: 15))
+                                    .fontWeight(.medium)
+                                Spacer()
+                            }
+                            Text("7 days")
+                                .fontWeight(.bold)
+                                .font(.system(size: 38))
+                            Text("14h 30m")
+                                .fontWeight(.bold)
+                                .font(.system(size: 17))
+                                .foregroundColor(Color("darkTealSubheading"))
+                        }
+                        Spacer()
+                        Text("Tue, 20 Aug 2025")
+                            .fontWeight(.medium)
+                            .font(.system(size: 11))
+                    }
+                    
+                    ZStack {
+                        ZStack {
+                            Color.clear
+                            Circle()
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 16)
+                                .frame(width: 100, height: 100) .padding(.top, 10)
+                            
+                            Circle()
+                                .trim(from: 0.0, to: 0.6)
+                                .stroke(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [.blue, Color.green]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                        
+                                    ),
+                                    lineWidth: 16
+                                )
+                                .rotationEffect(.degrees(-90))
+                                .frame(width: 100, height: 100)
+                                .animation(.easeOut(duration: 1.0), value: 0.5)
+                                .animation(.easeOut(duration: 1.0), value: 0.5)
+                                .animation(.easeOut(duration: 1.0), value: 0.5)
+                                .padding(.top, 10)
+                        }.padding(.bottom, 10)
+                        Text("1/2")
+                            .font(.system(size: 24))
+                            .fontWeight(.bold)
+                    }
+                }.padding(25)
             case .systemLarge:
                 Text("Large")
             default:

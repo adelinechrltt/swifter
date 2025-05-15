@@ -42,33 +42,15 @@ struct Provider: AppIntentTimelineProvider {
         print("Widget timeline called.")
 
         
-        let currentDate = Date()
-        
-        // --- Handle UserDefaults access carefully ---
-        let nextStart: Date?
-        let nextEnd: Date?
-        let progress: Int
-        let targetFreq: Int
-        
-        // Check if running in a preview environment
-        if context.isPreview {
-            // Provide sensible default data for previews
-            print("Running in preview - using default data.")
-            nextStart = Calendar.current.date(byAdding: .hour, value: 2, to: currentDate) // Example default
-            nextEnd = Calendar.current.date(byAdding: .hour, value: 2, to: currentDate + 30 * 60) // Example default duration (30 mins)
-            progress = 2
-            targetFreq = 3
-        } else {
-            // Access UserDefaults in the actual runtime environment
-            print("Running in simulator/device - accessing UserDefaults.")
-            let defaults = UserDefaults(suiteName: "group.com.adeline.Swifter")
-            nextStart = defaults?.object(forKey: "nextStart") as? Date
-            nextEnd = defaults?.object(forKey: "nextEnd") as? Date
-            progress = defaults?.integer(forKey: "progress") ?? 0
-            targetFreq = defaults?.integer(forKey: "targetFreq") ?? 1
-        }
-        // --- End of UserDefaults handling ---
         var entries: [SimpleEntry] = []
+            let defaults = UserDefaults(suiteName: "group.com.adeline.Swifter")
+
+            let nextStart = defaults?.object(forKey: "nextStart") as? Date
+            let nextEnd = defaults?.object(forKey: "nextEnd") as? Date
+            let progress = defaults?.integer(forKey: "progress") ?? 0
+            let targetFreq = defaults?.integer(forKey: "targetFreq") ?? 1
+
+            let currentDate = Date()
 
             for halfHourOffset in 0..<24*2 {
                 if let entryDate = Calendar.current.date(byAdding: .minute, value: halfHourOffset*30, to: currentDate) {

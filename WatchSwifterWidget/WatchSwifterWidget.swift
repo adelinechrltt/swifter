@@ -42,33 +42,33 @@ struct Provider: AppIntentTimelineProvider {
         print("Widget timeline called.")
 
         
+        let currentDate = Date()
+        
+        // --- Handle UserDefaults access carefully ---
+        let nextStart: Date?
+        let nextEnd: Date?
+        let progress: Int
+        let targetFreq: Int
+        
+        // Check if running in a preview environment
+        if context.isPreview {
+            // Provide sensible default data for previews
+            print("Running in preview - using default data.")
+            nextStart = Calendar.current.date(byAdding: .hour, value: 2, to: currentDate) // Example default
+            nextEnd = Calendar.current.date(byAdding: .hour, value: 2, to: currentDate + 30 * 60) // Example default duration (30 mins)
+            progress = 2
+            targetFreq = 3
+        } else {
+            // Access UserDefaults in the actual runtime environment
+            print("Running in simulator/device - accessing UserDefaults.")
+            let defaults = UserDefaults(suiteName: "group.com.adeline.Swifter")
+            nextStart = defaults?.object(forKey: "nextStart") as? Date
+            nextEnd = defaults?.object(forKey: "nextEnd") as? Date
+            progress = defaults?.integer(forKey: "progress") ?? 0
+            targetFreq = defaults?.integer(forKey: "targetFreq") ?? 1
+        }
+        // --- End of UserDefaults handling ---
         var entries: [SimpleEntry] = []
-                let currentDate = Date()
-
-                // --- Handle UserDefaults access carefully ---
-                let nextStart: Date?
-                let nextEnd: Date?
-                let progress: Int
-                let targetFreq: Int
-
-                // Check if running in a preview environment
-                if context.isPreview {
-                     // Provide sensible default data for previews
-                     print("Running in preview - using default data.")
-                     nextStart = Calendar.current.date(byAdding: .hour, value: 2, to: currentDate) // Example default
-                     nextEnd = Calendar.current.date(byAdding: .hour, value: 2, to: currentDate + 30 * 60) // Example default duration (30 mins)
-                     progress = 2
-                     targetFreq = 3
-                } else {
-                     // Access UserDefaults in the actual runtime environment
-                     print("Running in simulator/device - accessing UserDefaults.")
-                     let defaults = UserDefaults(suiteName: "group.com.adeline.Swifter")
-                     nextStart = defaults?.object(forKey: "nextStart") as? Date
-                     nextEnd = defaults?.object(forKey: "nextEnd") as? Date
-                     progress = defaults?.integer(forKey: "progress") ?? 0
-                     targetFreq = defaults?.integer(forKey: "targetFreq") ?? 1
-                }
-                // --- End of UserDefaults handling ---
 
             for halfHourOffset in 0..<24*2 {
                 if let entryDate = Calendar.current.date(byAdding: .minute, value: halfHourOffset*30, to: currentDate) {
@@ -149,7 +149,7 @@ struct WatchSwifterWidgetEntryView : View {
 
     var body: some View {
         ZStack {
-//            Color("darkPrimary")
+            getBackgroundColor()
             HStack {
                 VStack(alignment: .leading) {
                     HStack{
@@ -171,8 +171,22 @@ struct WatchSwifterWidgetEntryView : View {
                     renderProgressCircle()
                 }
             }
-//            .padding(.horizontal, 14)
+            .padding(.horizontal, 16)
         }
+    }
+    
+    func getBackgroundColor() -> LinearGradient? {
+        if entry.daysUntilNextStart < 1 {
+            return LinearGradient(
+                colors: [
+                    Color("darkPrimary"),
+                    Color("linearGrad1"),
+                    Color("linearGrad2")
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing)
+        }
+        return nil
     }
     
     
@@ -233,11 +247,11 @@ struct WatchSwifterWidget: Widget {
             WatchSwifterWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
 //                .cornerRadius(16)
-//                .overlay(
-//                    RoundedRectangle(cornerRadius: 14.5)
-//                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-//                )
-        }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14.5)
+                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                )
+        }.contentMarginsDisabled()
     }
 }
 

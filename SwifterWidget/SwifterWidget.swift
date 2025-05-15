@@ -102,6 +102,20 @@ struct SimpleEntry: TimelineEntry {
         return (untilNextStart?.minute ?? 0) % 60
     }
     
+    var jogDuration: Int {
+        guard let start = nextStart, let end = nextEnd else {
+            return 0
+        }
+
+        let durationInMinutes = end.timeIntervalSince(start) / 60
+
+        if durationInMinutes < 0 {
+            return 0
+        }
+
+        return Int(durationInMinutes)
+    }
+    
 }
 
 struct SwifterWidgetEntryView : View {
@@ -113,8 +127,7 @@ struct SwifterWidgetEntryView : View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [Color("darkPrimary"),
-                         Color("darkTeal"), Color("midTeal")],
+                colors: getBackgroundGradient(),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -141,7 +154,25 @@ struct SwifterWidgetEntryView : View {
     
     // TODO: add logic for conditionally appending colors in the color array based on the duration to the next jog :D
     func getBackgroundGradient() -> [Color]{
-        return []
+        var colors: [Color]
+        
+        colors = entry.daysUntilNextStart < 1 ? [Color("darkPrimary"),
+            Color("darkTeal"),
+            Color("midTeal")] : [Color("darkPrimary")]
+        
+        return colors
+    }
+    
+    func isWithin3Hours() -> Bool {
+        if (entry.hoursUntilNextStart < 3 && entry.daysUntilNextStart < 1) { return true }
+        return false
+    }
+    
+    func isNow() -> Bool {
+        if(entry.minutesUntilNextStart < 30 && entry.hoursUntilNextStart == 0 && entry.daysUntilNextStart == 0){
+            return true
+        }
+        return false
     }
     
     func renderNextJog() -> some View {
@@ -157,13 +188,14 @@ struct SwifterWidgetEntryView : View {
                         .fontWeight(.medium)
                     Spacer()
                 }
-                Text("\(entry.daysUntilNextStart) days")
+                Text(isNow() ? "Now" : "\(entry.daysUntilNextStart) days")
                     .fontWeight(.bold)
                     .font(.system(size: 38))
-                Text("\(entry.hoursUntilNextStart)h \(entry.minutesUntilNextStart)m")
+                    .foregroundColor(isWithin3Hours() ? Color("redHeading") : Color.white)
+                Text(isNow() ? "\(entry.jogDuration)-min run" : "\(entry.hoursUntilNextStart)h \(entry.minutesUntilNextStart)m")
                     .fontWeight(.bold)
                     .font(.system(size: 17))
-                    .foregroundColor(Color("darkTealSubheading"))
+                    .foregroundColor(isWithin3Hours() ? Color("redSubheading") : Color("darkTealSubheading"))
             }
             Spacer()
             Text("\(formattedDate(entry.nextStart ?? Date()))")
@@ -233,8 +265,8 @@ struct SwifterWidget: Widget {
     SwifterWidget()
 } timeline: {
     SimpleEntry(date: Date(),
-                nextStart: Date()+2*60*60*24,
-                nextEnd: Date()+2*60*60*24+30*60,
+                nextStart: Date()+2*60*60,
+                nextEnd: Date()+2*60*60+30*60,
                 progress: 3,
                 targetFreq: 4)
 }

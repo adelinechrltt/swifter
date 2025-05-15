@@ -1,12 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
    LastUpgradeVersion = "1620"
-   version = "1.7">
+   version = "2.2">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES"
       buildArchitectures = "Automatic">
       <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <AutocreatedTestPlanReference>
+            </AutocreatedTestPlanReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "7E98165C2DD5C77200BE18D5"
+               BuildableName = "SwifterWatchApp Watch App.app"
+               BlueprintName = "SwifterWatchApp Watch App"
+               ReferencedContainer = "container:Swifter.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
             buildForRunning = "YES"
@@ -30,6 +53,28 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "7E98166B2DD5C77300BE18D5"
+               BuildableName = "SwifterWatchApp Watch AppTests.xctest"
+               BlueprintName = "SwifterWatchApp Watch AppTests"
+               ReferencedContainer = "container:Swifter.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "7E9816752DD5C77300BE18D5"
+               BuildableName = "SwifterWatchApp Watch AppUITests.xctest"
+               BlueprintName = "SwifterWatchApp Watch AppUITests"
+               ReferencedContainer = "container:Swifter.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
          <TestableReference
             skipped = "NO"
             parallelizable = "YES">
@@ -68,9 +113,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7E6A02BE2D911FBB000EC773"
-            BuildableName = "Swifter.app"
-            BlueprintName = "Swifter"
+            BlueprintIdentifier = "7E98165C2DD5C77200BE18D5"
+            BuildableName = "SwifterWatchApp Watch App.app"
+            BlueprintName = "SwifterWatchApp Watch App"
             ReferencedContainer = "container:Swifter.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -85,9 +130,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7E6A02BE2D911FBB000EC773"
-            BuildableName = "Swifter.app"
-            BlueprintName = "Swifter"
+            BlueprintIdentifier = "7E98165C2DD5C77200BE18D5"
+            BuildableName = "SwifterWatchApp Watch App.app"
+            BlueprintName = "SwifterWatchApp Watch App"
             ReferencedContainer = "container:Swifter.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

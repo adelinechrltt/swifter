@@ -74,12 +74,21 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
+            BlueprintIdentifier = "7E9817282DD5C94500BE18D5"
+            BuildableName = "WatchSwifterWidgetExtension.appex"
+            BlueprintName = "WatchSwifterWidgetExtension"
+            ReferencedContainer = "container:Swifter.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
             BlueprintIdentifier = "7E6A02BE2D911FBB000EC773"
             BuildableName = "Swifter.app"
             BlueprintName = "Swifter"
             ReferencedContainer = "container:Swifter.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "_XCWidgetKind"

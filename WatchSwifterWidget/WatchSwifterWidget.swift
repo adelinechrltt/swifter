@@ -82,14 +82,14 @@ struct SimpleEntry: TimelineEntry {
     let nextEnd: Date?
     let progress: Int
     let targetFreq: Int
-        
+    
     // computed properties
     var untilNextStart: DateComponents? {
         guard let nextStartDate = nextStart else { return nil }
         let now = Date()
         let components = Calendar.current.dateComponents([.day, .hour, .minute], from: now, to: nextStartDate)
         if let days = components.day, days >= 0 {
-             return components
+            return components
         }
         return nil
     }
@@ -110,15 +110,16 @@ struct SimpleEntry: TimelineEntry {
         guard let start = nextStart, let end = nextEnd else {
             return 0
         }
-
+        
         let durationInMinutes = end.timeIntervalSince(start) / 60
-
+        
         if durationInMinutes < 0 {
             return 0
         }
-
+        
         return Int(durationInMinutes)
-    }}
+    }
+}
 
 struct WatchSwifterWidgetEntryView : View {
     var entry: Provider.Entry
@@ -135,13 +136,14 @@ struct WatchSwifterWidgetEntryView : View {
                             .fontWeight(.semibold)
                             .font(.system(size: 12))
                     }
-                    Text("\(entry.daysUntilNextStart) days")
+                    Text(isNow() ? "Now" : isToday() ? "\(entry.hoursUntilNextStart)h \(entry.minutesUntilNextStart)m" : "\(entry.daysUntilNextStart) days")
                         .fontWeight(.bold)
                         .font(.system(size: 17))
-                    Text("\(formattedDate(entry.nextStart ?? Date()))")
+                        .foregroundColor(isWithin3Hours() ? isNow() ? Color("tealHeading") : Color("redHeading") : Color.white)
+                    Text(isNow() ? "\(entry.jogDuration)-min run" : isToday() ? "\(formattedHours(entry.nextStart ?? Date())) - \(formattedHours(entry.nextEnd ?? Date()))" : "\(formattedDate(entry.nextStart ?? Date()))")
                         .fontWeight(.semibold)
                         .font(.system(size: 12))
-                        .foregroundColor(Color("darkTealSubheading"))
+                        .foregroundColor(isWithin3Hours() ? isNow() ? Color("tealSubheading") : Color("redSubheading") : Color("darkTealSubheading"))
                 }
                 Spacer()
                 VStack {
@@ -152,7 +154,7 @@ struct WatchSwifterWidgetEntryView : View {
         }
     }
     
-    func getBackgroundColor() -> LinearGradient? {
+    func getBackgroundColor() -> LinearGradient? { 
         if entry.daysUntilNextStart < 1 {
             return LinearGradient(
                 colors: [
@@ -165,7 +167,6 @@ struct WatchSwifterWidgetEntryView : View {
         }
         return nil
     }
-    
     
     func renderProgressCircle() -> some View {
         
@@ -213,6 +214,28 @@ struct WatchSwifterWidgetEntryView : View {
         dateFormatter.dateFormat = "E, dd MMM yyyy"
         return dateFormatter.string(from: date)
     }
+    
+    func formattedHours(_ date: Date) -> String {
+        dateFormatter.dateFormat = "HH:mm"
+        return dateFormatter.string(from: date)
+    }
+    
+    func isToday() -> Bool {
+        if(entry.daysUntilNextStart < 1) { return true }
+        return false
+    }
+    
+    func isWithin3Hours() -> Bool {
+        if (entry.hoursUntilNextStart < 3 && entry.daysUntilNextStart < 1) { return true }
+        return false
+    }
+    
+    func isNow() -> Bool {
+        if(entry.minutesUntilNextStart < 59 && entry.hoursUntilNextStart < 1 && entry.daysUntilNextStart < 1){
+            return true
+        }
+        return false
+    }
 }
 
 @main
@@ -241,8 +264,8 @@ extension ConfigurationAppIntent {
 }
 
 
-let nextStartPreview = Date()+2*60*60*24
-let nextEndPreview = Date()+2*60*60*24+30*60
+let nextStartPreview = Date()
+let nextEndPreview = Date()+30*60
 
 #Preview(as: .accessoryRectangular) {
     WatchSwifterWidget()

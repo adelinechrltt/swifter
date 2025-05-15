@@ -271,8 +271,8 @@ let tempEnd = Date()+60*60*2+30*60
     SwifterWidget()
 } timeline: {
     SimpleEntry(date: Date(),
-                nextStart: Date()+2*60*60,
-                nextEnd: Date()+2*60*60+30*60,
+                nextStart: Date(),
+                nextEnd: Date()+30*60,
                 progress: 3,
                 targetFreq: 4)
 }

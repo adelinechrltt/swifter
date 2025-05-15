@@ -76,18 +76,13 @@ struct SimpleEntry: TimelineEntry {
         
     // computed properties
     var untilNextStart: DateComponents? {
-        guard let nextStartDate = nextStart else {
-            return nil
+        guard let nextStartDate = nextStart else { return nil }
+        let now = Date()
+        let components = Calendar.current.dateComponents([.day, .hour, .minute], from: now, to: nextStartDate)
+        if let days = components.day, days >= 0 {
+             return components
         }
-
-        let calendar = Calendar.current
-        let today = Date()
-
-        let startOfToday = calendar.startOfDay(for: today)
-        let startOfNextDay = calendar.startOfDay(for: nextStartDate)
-
-        let components = calendar.dateComponents([.day], from: startOfToday, to: startOfNextDay)
-        return components
+        return nil 
     }
     
     var daysUntilNextStart: Int {
@@ -152,15 +147,9 @@ struct SwifterWidgetEntryView : View {
         return dateFormatter.string(from: date)
     }
     
-    // TODO: add logic for conditionally appending colors in the color array based on the duration to the next jog :D
-    func getBackgroundGradient() -> [Color]{
-        var colors: [Color]
-        
-        colors = entry.daysUntilNextStart < 1 ? [Color("darkPrimary"),
-            Color("darkTeal"),
-            Color("midTeal")] : [Color("darkPrimary")]
-        
-        return colors
+    func isToday() -> Bool {
+        if(entry.daysUntilNextStart < 1) { return true }
+        return false
     }
     
     func isWithin3Hours() -> Bool {
@@ -169,10 +158,20 @@ struct SwifterWidgetEntryView : View {
     }
     
     func isNow() -> Bool {
-        if(entry.minutesUntilNextStart < 30 && entry.hoursUntilNextStart == 0 && entry.daysUntilNextStart == 0){
+        if(entry.minutesUntilNextStart < 59 && entry.hoursUntilNextStart < 1 && entry.daysUntilNextStart < 1){
             return true
         }
         return false
+    }
+    
+    func getBackgroundGradient() -> [Color]{
+        var colors: [Color]
+        
+        colors = isToday() ? [Color("darkPrimary"),
+            Color("darkTeal"),
+            Color("midTeal")] : [Color("darkPrimary")]
+        
+        return colors
     }
     
     func renderNextJog() -> some View {
@@ -188,11 +187,15 @@ struct SwifterWidgetEntryView : View {
                         .fontWeight(.medium)
                     Spacer()
                 }
-                Text(isNow() ? "Now" : "\(entry.daysUntilNextStart) days")
+                Text(
+                    isNow() ? "Now" :
+                        isToday() ? "\(entry.hoursUntilNextStart) hours" : "\(entry.daysUntilNextStart) days")
                     .fontWeight(.bold)
-                    .font(.system(size: 38))
-                    .foregroundColor(isWithin3Hours() ? isNow() ? Color("tealHeading") : Color("redSubheading") : Color.white)
-                Text(isNow() ? "\(entry.jogDuration)-min run" : "\(entry.hoursUntilNextStart)h \(entry.minutesUntilNextStart)m")
+                    .font(.system(size: 36))
+                    .foregroundColor(isWithin3Hours() ? isNow() ? Color("tealHeading") : Color("redHeading") : Color.white)
+                Text(
+                    isNow() ? "\(entry.jogDuration)-min run" :
+                        isToday() ? "\(entry.minutesUntilNextStart) minutes" : "\(entry.hoursUntilNextStart)h \(entry.minutesUntilNextStart)m")
                     .fontWeight(.bold)
                     .font(.system(size: 17))
                     .foregroundColor(isWithin3Hours() ? isNow() ? Color("tealSubheading") : Color("redSubheading") : Color("darkTealSubheading"))
@@ -252,12 +255,15 @@ struct SwifterWidget: Widget {
     }
 }
 
+let tempStart = Date()+60*60*2
+let tempEnd = Date()+60*60*2+30*60
+
 #Preview(as: .systemSmall) {
     SwifterWidget()
 } timeline: {
     SimpleEntry(date: Date(),
-                nextStart: Date(),
-                nextEnd: Date()+30*60,
+                nextStart: tempStart,
+                nextEnd: tempEnd,
                 progress: 2,
                 targetFreq: 3)}
 

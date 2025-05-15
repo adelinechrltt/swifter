@@ -103,18 +103,13 @@ struct SimpleEntry: TimelineEntry {
         
     // computed properties
     var untilNextStart: DateComponents? {
-        guard let nextStartDate = nextStart else {
-            return nil
+        guard let nextStartDate = nextStart else { return nil }
+        let now = Date()
+        let components = Calendar.current.dateComponents([.day, .hour, .minute], from: now, to: nextStartDate)
+        if let days = components.day, days >= 0 {
+             return components
         }
-
-        let calendar = Calendar.current
-        let today = Date()
-
-        let startOfToday = calendar.startOfDay(for: today)
-        let startOfNextDay = calendar.startOfDay(for: nextStartDate)
-
-        let components = calendar.dateComponents([.day], from: startOfToday, to: startOfNextDay)
-        return components
+        return nil
     }
     
     var daysUntilNextStart: Int {

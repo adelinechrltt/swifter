@@ -51,7 +51,7 @@ struct WatchSwifterWidgetEntryView : View {
 
     var body: some View {
         ZStack {
-            Color("darkPrimary")
+//            Color("darkPrimary")
             HStack {
                 VStack(alignment: .leading) {
                     HStack{
@@ -73,7 +73,7 @@ struct WatchSwifterWidgetEntryView : View {
                     renderProgressCircle()
                 }
             }
-            .padding(.horizontal, 14)
+//            .padding(.horizontal, 14)
         }
     }
     
@@ -117,6 +117,7 @@ struct WatchSwifterWidgetEntryView : View {
                     .font(.system(size: 12))
                     .fontWeight(.bold)
             }.frame(width: circleSize, height: circleSize)
+            .padding(.horizontal, 5)
     }
 }
 
@@ -128,11 +129,11 @@ struct WatchSwifterWidget: Widget {
         AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
             WatchSwifterWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
-                .cornerRadius(16)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14.5)
-                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                )
+//                .cornerRadius(16)
+//                .overlay(
+//                    RoundedRectangle(cornerRadius: 14.5)
+//                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+//                )
         }
     }
 }
@@ -155,5 +156,4 @@ extension ConfigurationAppIntent {
     WatchSwifterWidget()
 } timeline: {
     SimpleEntry(date: .now, configuration: .smiley)
-    SimpleEntry(date: .now, configuration: .starEyes)
-}    
+}

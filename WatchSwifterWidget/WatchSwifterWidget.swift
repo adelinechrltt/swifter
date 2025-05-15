@@ -5,32 +5,85 @@
 //  Created by Adeline Charlotte Augustinne on 15/05/25.
 //
 
+import Foundation
 import WidgetKit
 import SwiftUI
 
 struct Provider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), configuration: ConfigurationAppIntent())
+        let twoDaysInSeconds: TimeInterval = 2 * 60 * 60 * 24
+        let thirtyMinutesInSeconds: TimeInterval = 30 * 60
+        
+        let nextStart = Date() + twoDaysInSeconds
+        let nextEnd = Date() + twoDaysInSeconds + thirtyMinutesInSeconds
+        
+        return SimpleEntry(date: Date(),
+                    nextStart: nextStart,
+                    nextEnd: nextEnd,
+                    progress: 2,
+                    targetFreq: 3)
     }
 
     func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
-        SimpleEntry(date: Date(), configuration: configuration)
+        let twoDaysInSeconds: TimeInterval = 2 * 60 * 60 * 24
+        let thirtyMinutesInSeconds: TimeInterval = 30 * 60
+        
+        let nextStart = Date() + twoDaysInSeconds
+        let nextEnd = Date() + twoDaysInSeconds + thirtyMinutesInSeconds
+        
+        return SimpleEntry(date: Date(),
+                    nextStart: nextStart,
+                    nextEnd: nextEnd,
+                    progress: 2,
+                    targetFreq: 3)
     }
     
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
+        print("Widget timeline called.")
+
+        
         var entries: [SimpleEntry] = []
+                let currentDate = Date()
 
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, configuration: configuration)
-            entries.append(entry)
-        }
+                // --- Handle UserDefaults access carefully ---
+                let nextStart: Date?
+                let nextEnd: Date?
+                let progress: Int
+                let targetFreq: Int
 
-        return Timeline(entries: entries, policy: .atEnd)
+                // Check if running in a preview environment
+                if context.isPreview {
+                     // Provide sensible default data for previews
+                     print("Running in preview - using default data.")
+                     nextStart = Calendar.current.date(byAdding: .hour, value: 2, to: currentDate) // Example default
+                     nextEnd = Calendar.current.date(byAdding: .hour, value: 2, to: currentDate + 30 * 60) // Example default duration (30 mins)
+                     progress = 2
+                     targetFreq = 3
+                } else {
+                     // Access UserDefaults in the actual runtime environment
+                     print("Running in simulator/device - accessing UserDefaults.")
+                     let defaults = UserDefaults(suiteName: "group.com.adeline.Swifter")
+                     nextStart = defaults?.object(forKey: "nextStart") as? Date
+                     nextEnd = defaults?.object(forKey: "nextEnd") as? Date
+                     progress = defaults?.integer(forKey: "progress") ?? 0
+                     targetFreq = defaults?.integer(forKey: "targetFreq") ?? 1
+                }
+                // --- End of UserDefaults handling ---
+
+            for halfHourOffset in 0..<24*2 {
+                if let entryDate = Calendar.current.date(byAdding: .minute, value: halfHourOffset*30, to: currentDate) {
+                    let entry = SimpleEntry(date: entryDate,
+                                            nextStart: nextStart,
+                                            nextEnd: nextEnd,
+                                            progress: progress,
+                                            targetFreq: targetFreq)
+                    entries.append(entry)
+                }
+            }
+
+        return Timeline(entries: entries, policy: .after(Date()))
     }
-
+    
     func recommendations() -> [AppIntentRecommendation<ConfigurationAppIntent>] {
         // Create an array with all the preconfigured widgets to show.
         [AppIntentRecommendation(intent: ConfigurationAppIntent(), description: "Example Widget")]
@@ -43,11 +96,56 @@ struct Provider: AppIntentTimelineProvider {
 
 struct SimpleEntry: TimelineEntry {
     let date: Date
-    let configuration: ConfigurationAppIntent
-}
+    let nextStart: Date?
+    let nextEnd: Date?
+    let progress: Int
+    let targetFreq: Int
+        
+    // computed properties
+    var untilNextStart: DateComponents? {
+        guard let nextStartDate = nextStart else {
+            return nil
+        }
+
+        let calendar = Calendar.current
+        let today = Date()
+
+        let startOfToday = calendar.startOfDay(for: today)
+        let startOfNextDay = calendar.startOfDay(for: nextStartDate)
+
+        let components = calendar.dateComponents([.day], from: startOfToday, to: startOfNextDay)
+        return components
+    }
+    
+    var daysUntilNextStart: Int {
+        return untilNextStart?.day ?? 0
+    }
+    
+    var hoursUntilNextStart: Int {
+        return (untilNextStart?.hour ?? 0) % 24
+    }
+    
+    var minutesUntilNextStart: Int {
+        return (untilNextStart?.minute ?? 0) % 60
+    }
+    
+    var jogDuration: Int {
+        guard let start = nextStart, let end = nextEnd else {
+            return 0
+        }
+
+        let durationInMinutes = end.timeIntervalSince(start) / 60
+
+        if durationInMinutes < 0 {
+            return 0
+        }
+
+        return Int(durationInMinutes)
+    }}
 
 struct WatchSwifterWidgetEntryView : View {
     var entry: Provider.Entry
+    let dateFormatter = DateFormatter()
 
     var body: some View {
         ZStack {
@@ -60,10 +158,10 @@ struct WatchSwifterWidgetEntryView : View {
                             .fontWeight(.semibold)
                             .font(.system(size: 12))
                     }
-                    Text("7 days")
+                    Text("\(entry.daysUntilNextStart) days")
                         .fontWeight(.bold)
                         .font(.system(size: 17))
-                    Text("Tue, 20 Aug 2025")
+                    Text("\(formattedDate(entry.nextStart ?? Date()))")
                         .fontWeight(.semibold)
                         .font(.system(size: 12))
                         .foregroundColor(Color("darkTealSubheading"))
@@ -82,8 +180,8 @@ struct WatchSwifterWidgetEntryView : View {
         
         let circleSize: Double = Double(43)
         let circleLineWidth: Double = Double(5)
-        let progress = 2
-        let targetFreq = 4
+        let progress = entry.progress
+        let targetFreq = entry.targetFreq
         
         return
             ZStack {
@@ -119,6 +217,11 @@ struct WatchSwifterWidgetEntryView : View {
             }.frame(width: circleSize, height: circleSize)
             .padding(.horizontal, 5)
     }
+    
+    func formattedDate(_ date: Date) -> String {
+        dateFormatter.dateFormat = "E, dd MMM yyyy"
+        return dateFormatter.string(from: date)
+    }
 }
 
 @main
@@ -144,16 +247,18 @@ extension ConfigurationAppIntent {
         intent.favoriteEmoji = "😀"
         return intent
     }
-    
-    fileprivate static var starEyes: ConfigurationAppIntent {
-        let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "🤩"
-        return intent
-    }
 }
+
+
+let nextStartPreview = Date()+2*60*60*24
+let nextEndPreview = Date()+2*60*60*24+30*60
 
 #Preview(as: .accessoryRectangular) {
     WatchSwifterWidget()
 } timeline: {
-    SimpleEntry(date: .now, configuration: .smiley)
+    SimpleEntry(date: Date(),
+        nextStart: nextStartPreview,
+        nextEnd: nextEndPreview,
+        progress: 2,
+        targetFreq: 3)
 }

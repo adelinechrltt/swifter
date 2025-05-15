@@ -355,6 +355,7 @@ struct UpcomingSession: View {
                 DispatchQueue.main.async {
                     if granted {
                         // The calendar access is granted
+                        print("calendar access granted")
                     } else {
                         print("❌ Calendar access not granted.")
                     }
@@ -365,12 +366,23 @@ struct UpcomingSession: View {
                 }
                 
                 let defaults = UserDefaults(suiteName: "group.com.adeline.Swifter")
-                defaults?.set(viewModel.nextStart, forKey: "nextStart")
-                defaults?.set(viewModel.nextEnd, forKey: "nextEnd")
-                defaults?.set(viewModel.currentGoal.progress, forKey: "progress")
-                defaults?.set(viewModel.currentGoal.targetFrequency, forKey: "targetFreq")
+
+                    if defaults == nil {
+                        print("ERROR: UserDefaults with suite name 'group.com.adeline.Swifter' returned nil!")
+                        print("Please check your App Group capability is enabled and the group is selected for this target.")
+                        return
+                    }
+
+                    print("UserDefaults object is not nil.")
+
+                    defaults?.set(viewModel.nextStart, forKey: "nextStart")
+                    defaults?.set(viewModel.nextEnd, forKey: "nextEnd")
+                    defaults?.set(viewModel.currentGoal.progress, forKey: "progress")
+                    defaults?.set(viewModel.currentGoal.targetFrequency, forKey: "targetFreq")
 
                 WidgetCenter.shared.reloadAllTimelines()
+                print("App: Called WidgetCenter.shared.reloadAllTimelines()")
+
             }
         }
     }

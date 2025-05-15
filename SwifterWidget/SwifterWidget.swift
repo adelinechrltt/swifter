@@ -27,21 +27,31 @@ struct Provider: AppIntentTimelineProvider {
     }
     
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
+        print("Widget timeline called.")
+
+        
         var entries: [SimpleEntry] = []
+            let defaults = UserDefaults(suiteName: "group.com.adeline.Swifter")
 
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = SimpleEntry(date: Date(),
-                                    nextStart: Date()+2*60*60*24,
-                                    nextEnd: Date()+2*60*60*24+30*60,
-                                    progress: 2,
-                                    targetFreq: 3)
-            entries.append(entry)
-        }
+            let nextStart = defaults?.object(forKey: "nextStart") as? Date
+            let nextEnd = defaults?.object(forKey: "nextEnd") as? Date
+            let progress = defaults?.integer(forKey: "progress") ?? 0
+            let targetFreq = defaults?.integer(forKey: "targetFreq") ?? 1
 
-        return Timeline(entries: entries, policy: .atEnd)
+            let currentDate = Date()
+
+            for halfHourOffset in 0..<24*2 {
+                if let entryDate = Calendar.current.date(byAdding: .minute, value: halfHourOffset*30, to: currentDate) {
+                    let entry = SimpleEntry(date: entryDate,
+                                            nextStart: nextStart,
+                                            nextEnd: nextEnd,
+                                            progress: progress,
+                                            targetFreq: targetFreq)
+                    entries.append(entry)
+                }
+            }
+
+        return Timeline(entries: entries, policy: .after(Date()))
     }
 
 //    func relevances() async -> WidgetRelevances<ConfigurationAppIntent> {
@@ -156,7 +166,7 @@ struct SwifterWidgetEntryView : View {
                     .foregroundColor(Color("darkTealSubheading"))
             }
             Spacer()
-            Text("\(formattedDate(Date()))")
+            Text("\(formattedDate(entry.nextStart ?? Date()))")
                 .fontWeight(.medium)
                 .font(.system(size: 11))
         }
@@ -193,6 +203,7 @@ struct SwifterWidgetEntryView : View {
                 .fontWeight(.bold)
         }
     }
+    
 }
 
 struct SwifterWidget: Widget {

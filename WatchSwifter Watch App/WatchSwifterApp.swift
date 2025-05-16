@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct WatchSwifter_Watch_AppApp: App {
+    
+    @StateObject private var watchToiOSConnector = WatchToiOSConnector()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(watchToiOSConnector)
         }
     }
 }

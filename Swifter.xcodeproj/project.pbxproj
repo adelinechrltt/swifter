@@ -143,6 +143,55 @@
 			);
 			target = 7E9817282DD5C94500BE18D5 /* WatchSwifterWidgetExtension */;
 		};
+		7EB4D83B2DD71C4A001AF23A /* Exceptions for "Swifter" folder in "WatchSwifter Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/GoalModel.swift,
+				Models/PreferencesModel.swift,
+				Models/SessionModel.swift,
+				Models/WatchCodables.swift,
+			);
+			target = 7E9816F62DD5C8EB00BE18D5 /* WatchSwifter Watch App */;
+		};
+		7EB4D83C2DD71C4A001AF23A /* Exceptions for "Swifter" folder in "WatchSwifter Watch AppTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/GoalModel.swift,
+				Models/PreferencesModel.swift,
+				Models/SessionModel.swift,
+				Models/WatchCodables.swift,
+			);
+			target = 7E9817052DD5C8ED00BE18D5 /* WatchSwifter Watch AppTests */;
+		};
+		7EB4D83D2DD71C4A001AF23A /* Exceptions for "Swifter" folder in "WatchSwifter Watch AppUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/GoalModel.swift,
+				Models/PreferencesModel.swift,
+				Models/SessionModel.swift,
+				Models/WatchCodables.swift,
+			);
+			target = 7E98170F2DD5C8ED00BE18D5 /* WatchSwifter Watch AppUITests */;
+		};
+		7EB4D83E2DD71C4A001AF23A /* Exceptions for "Swifter" folder in "WatchSwifterWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/GoalModel.swift,
+				Models/PreferencesModel.swift,
+				Models/SessionModel.swift,
+				Models/WatchCodables.swift,
+			);
+			target = 7E9817282DD5C94500BE18D5 /* WatchSwifterWidgetExtension */;
+		};
+		7EB4D84E2DD720F4001AF23A /* Exceptions for "Swifter" folder in "SwifterWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/GoalModel.swift,
+				Models/PreferencesModel.swift,
+				Models/SessionModel.swift,
+			);
+			target = 7E5FBE142DCDDF5300A2220E /* SwifterWidgetExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -158,6 +207,11 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				7E6A04702D93F8C5000EC773 /* Exceptions for "Swifter" folder in "Swifter" target */,
+				7EB4D84E2DD720F4001AF23A /* Exceptions for "Swifter" folder in "SwifterWidgetExtension" target */,
+				7EB4D83B2DD71C4A001AF23A /* Exceptions for "Swifter" folder in "WatchSwifter Watch App" target */,
+				7EB4D83C2DD71C4A001AF23A /* Exceptions for "Swifter" folder in "WatchSwifter Watch AppTests" target */,
+				7EB4D83D2DD71C4A001AF23A /* Exceptions for "Swifter" folder in "WatchSwifter Watch AppUITests" target */,
+				7EB4D83E2DD71C4A001AF23A /* Exceptions for "Swifter" folder in "WatchSwifterWidgetExtension" target */,
 			);
 			path = Swifter;
 			sourceTree = "<group>";

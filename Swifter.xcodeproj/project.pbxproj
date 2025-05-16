@@ -14,6 +14,7 @@
 		7E98172A2DD5C94500BE18D5 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E5FBE172DCDDF5300A2220E /* WidgetKit.framework */; };
 		7E98172B2DD5C94500BE18D5 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E5FBE192DCDDF5400A2220E /* SwiftUI.framework */; };
 		7E9817362DD5C94600BE18D5 /* WatchSwifterWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7E9817292DD5C94500BE18D5 /* WatchSwifterWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7EB4D82F2DD70C9B001AF23A /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7EB4D82E2DD70C9B001AF23A /* WatchConnectivity.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -117,6 +118,7 @@
 		7E9817102DD5C8ED00BE18D5 /* WatchSwifter Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "WatchSwifter Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7E9817292DD5C94500BE18D5 /* WatchSwifterWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WatchSwifterWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7EA1B7752DD3A97A005AC0F9 /* SwifterWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SwifterWidgetExtension.entitlements; sourceTree = "<group>"; };
+		7EB4D82E2DD70C9B001AF23A /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -209,6 +211,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7EB4D82F2DD70C9B001AF23A /* WatchConnectivity.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -262,6 +265,7 @@
 		7E5FBE162DCDDF5300A2220E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				7EB4D82E2DD70C9B001AF23A /* WatchConnectivity.framework */,
 				7E5FBE172DCDDF5300A2220E /* WidgetKit.framework */,
 				7E5FBE192DCDDF5400A2220E /* SwiftUI.framework */,
 			);

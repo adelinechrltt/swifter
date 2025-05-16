@@ -185,8 +185,8 @@ struct UpcomingSession: View {
                                 viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
                                 showProgress = true
                                 forceUpdateProgress.toggle()
+                                viewModel.updateWidget()
                             }
-                            viewModel.updateWidget()
                         }) {
                             Text("Mark as Done")
                                 .font(.headline)

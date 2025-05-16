@@ -154,6 +154,7 @@ struct UpcomingSession: View {
                             viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
                             viewModel.alertIsShown = true
                             viewModel.sessionIsChanged = true
+                            viewModel.updateWidget()
                         }) {
                             Text("Reschedule")
                                 .font(.headline)
@@ -185,6 +186,7 @@ struct UpcomingSession: View {
                                 showProgress = true
                                 forceUpdateProgress.toggle()
                             }
+                            viewModel.updateWidget()
                         }) {
                             Text("Mark as Done")
                                 .font(.headline)
@@ -291,7 +293,10 @@ struct UpcomingSession: View {
         }
         .edgesIgnoringSafeArea(.bottom)
         .sheet(isPresented: $viewModel.preferencesModalShown) {
-            EditPreferencesModal(isPresented: $viewModel.preferencesModalShown, modelContext: modelContext, onSave: {
+            EditPreferencesModal(
+                isPresented: $viewModel.preferencesModalShown,
+                modelContext: modelContext,
+                onSave: {
                 viewModel.rescheduleSessions(eventStoreManager: eventStoreManager, preferencesManager: preferencesManager, sessionManager: sessionManager)
                 viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
                 showProgress = false
@@ -299,6 +304,7 @@ struct UpcomingSession: View {
                     showProgress = true
                     forceUpdateProgress.toggle()
                 }
+                viewModel.updateWidget()
             })
             .presentationDetents([.height(600)])
         }
@@ -318,6 +324,7 @@ struct UpcomingSession: View {
                         showProgress = true
                         forceUpdateProgress.toggle()
                     }
+                    viewModel.updateWidget()
                 }
             )
             .presentationDetents([.height(300)])
@@ -365,23 +372,7 @@ struct UpcomingSession: View {
                     showProgress = true
                 }
                 
-                let defaults = UserDefaults(suiteName: "group.com.adeline.Swifter")
-
-                    if defaults == nil {
-                        print("ERROR: UserDefaults with suite name 'group.com.adeline.Swifter' returned nil!")
-                        print("Please check your App Group capability is enabled and the group is selected for this target.")
-                        return
-                    }
-
-                    print("UserDefaults object is not nil.")
-
-                    defaults?.set(viewModel.nextStart, forKey: "nextStart")
-                    defaults?.set(viewModel.nextEnd, forKey: "nextEnd")
-                    defaults?.set(viewModel.currentGoal.progress, forKey: "progress")
-                    defaults?.set(viewModel.currentGoal.targetFrequency, forKey: "targetFreq")
-
-                WidgetCenter.shared.reloadAllTimelines()
-                print("App: Called WidgetCenter.shared.reloadAllTimelines()")
+                viewModel.updateWidget()
 
             }
         }

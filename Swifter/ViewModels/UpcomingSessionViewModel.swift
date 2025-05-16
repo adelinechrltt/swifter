@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import WidgetKit
 
 final class UpcomingSessionViewModel: ObservableObject {
     
@@ -268,5 +269,24 @@ final class UpcomingSessionViewModel: ObservableObject {
     
     func checkIfGoalCompleted() -> Bool{
         return currentGoal.progress >= currentGoal.targetFrequency
+    }
+    
+    func updateWidget() {
+        let defaults = UserDefaults(suiteName: "group.com.adeline.Swifter")
+
+        if defaults == nil {
+            print("ERROR: UserDefaults with suite name 'group.com.adeline.Swifter' returned nil!")
+            print("Please check your App Group capability is enabled and the group is selected for this target.")
+            return
+        }
+        
+        print("UserDefaults object is not nil.")
+        
+        defaults?.set(nextStart, forKey: "nextStart")
+        defaults?.set(nextEnd, forKey: "nextEnd")
+        defaults?.set(currentGoal.progress, forKey: "progress")
+        defaults?.set(currentGoal.targetFrequency, forKey: "targetFreq")
+
+        WidgetCenter.shared.reloadAllTimelines()
     }
 }

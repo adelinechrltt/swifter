@@ -135,7 +135,7 @@ struct SwifterWidgetEntryView : View {
                     renderProgressCircle()
                 }.padding(25)
             case .systemLarge:
-                Text("Large")
+                Text("unused large")
             default:
                 Text("this is the default idk what to put here")
             }
@@ -185,6 +185,7 @@ struct SwifterWidgetEntryView : View {
                     Text("Next jog in")
                         .font(.system(size: 15))
                         .fontWeight(.medium)
+                        .foregroundColor(.white)
                     Spacer()
                 }
                 Text(
@@ -204,6 +205,7 @@ struct SwifterWidgetEntryView : View {
             Text("\(formattedDate(entry.nextStart ?? Date()))")
                 .fontWeight(.medium)
                 .font(.system(size: 11))
+                .foregroundColor(.white)
         }
     }
     
@@ -236,6 +238,7 @@ struct SwifterWidgetEntryView : View {
             Text("\(entry.progress)/\(entry.targetFreq)")
                 .font(.system(size: 24))
                 .fontWeight(.bold)
+                .foregroundColor(.white)
         }
     }
     

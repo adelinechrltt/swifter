@@ -149,7 +149,7 @@
 				Models/GoalModel.swift,
 				Models/PreferencesModel.swift,
 				Models/SessionModel.swift,
-				Models/WatchCodables.swift,
+				WatchUtils/WatchCodables.swift,
 			);
 			target = 7E9816F62DD5C8EB00BE18D5 /* WatchSwifter Watch App */;
 		};
@@ -159,7 +159,7 @@
 				Models/GoalModel.swift,
 				Models/PreferencesModel.swift,
 				Models/SessionModel.swift,
-				Models/WatchCodables.swift,
+				WatchUtils/WatchCodables.swift,
 			);
 			target = 7E9817052DD5C8ED00BE18D5 /* WatchSwifter Watch AppTests */;
 		};
@@ -169,7 +169,7 @@
 				Models/GoalModel.swift,
 				Models/PreferencesModel.swift,
 				Models/SessionModel.swift,
-				Models/WatchCodables.swift,
+				WatchUtils/WatchCodables.swift,
 			);
 			target = 7E98170F2DD5C8ED00BE18D5 /* WatchSwifter Watch AppUITests */;
 		};
@@ -179,7 +179,7 @@
 				Models/GoalModel.swift,
 				Models/PreferencesModel.swift,
 				Models/SessionModel.swift,
-				Models/WatchCodables.swift,
+				WatchUtils/WatchCodables.swift,
 			);
 			target = 7E9817282DD5C94500BE18D5 /* WatchSwifterWidgetExtension */;
 		};

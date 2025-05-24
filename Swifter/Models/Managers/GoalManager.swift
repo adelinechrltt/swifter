@@ -38,6 +38,18 @@ class GoalManager: ObservableObject {
         }
     }
     
+    func fetchGoalById(id: PersistentIdentifier) -> GoalModel? {
+        let predicate = #Predicate<GoalModel> { goal in
+            goal.persistentModelID == id
+        }
+        
+        let descriptor = FetchDescriptor<GoalModel>(
+            predicate: predicate
+        )
+
+        return try? modelContext.fetch(descriptor).first
+    }
+    
     func fetchGoals() -> [GoalModel]? {
         let goals = FetchDescriptor<GoalModel>()
         return try? modelContext.fetch(goals)

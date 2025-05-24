@@ -36,24 +36,54 @@ class WatchConnector: NSObject, WCSessionDelegate, ObservableObject {
     
     /// method to send context data to the watch
     func sendUpdatedContext(session: SessionDTO, goal: GoalDTO) {
+        print("iOS: sendUpdatedContext called.")
         guard WCSession.default.isPaired else {
+            print("iOS: WCSession is NOT paired. Cannot send context.")
             return
         }
-        
+        // Added print for reachability for more info, though not strictly required for context transfer
+        guard WCSession.default.isReachable else {
+            print("iOS: WCSession is NOT reachable. Context might be queued, but connection isn't live.")
+            return
+        }
+
         let encoder = JSONEncoder()
-        
-        if let sessionData = try? encoder.encode(session),
-           let goalData = try? encoder.encode(goal) {
+
+        let sessionData: Data?
+        do {
+            sessionData = try encoder.encode(session)
+            print("iOS: SessionDTO encoded successfully.") // <-- ADD THIS
+        } catch {
+            sessionData = nil
+            print("iOS: ERROR: Failed to encode SessionDTO: \(error.localizedDescription)") // <-- ADD THIS
+        }
+
+        let goalData: Data?
+        do {
+            goalData = try encoder.encode(goal)
+            print("iOS: GoalDTO encoded successfully.") // <-- ADD THIS
+        } catch {
+            goalData = nil
+            print("iOS: ERROR: Failed to encode GoalDTO: \(error.localizedDescription)") // <-- ADD THIS
+        }
+
+
+        if let sessionData = sessionData,
+           let goalData = goalData {
             do {
                 try WCSession.default.updateApplicationContext([
                     "session": sessionData,
                     "goal": goalData
                 ])
+                print("iOS: SUCCESSFULLY updated application context with session and goal data. Dictionary: \([ "session": sessionData.count, "goal": goalData.count ]) bytes") // <-- Enhanced print
             } catch {
-                print("ahhhhh ERROR CANNOT SEND CONTEXT DATA boooooooo")
+                print("iOS: ERROR: Cannot send context data: \(error.localizedDescription)")
             }
+        } else {
+            print("iOS: ERROR: One or both DTOs failed to encode. Not sending context.") // <-- Enhanced print
         }
     }
+
     
     /// method for iOS app to respond to messages from watch
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {

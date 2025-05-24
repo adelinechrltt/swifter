@@ -11,7 +11,7 @@ import SwiftUI
 struct SwifterApp: App {
     
     @StateObject private var eventStoreManager = EventStoreManager()
-    @StateObject private var watchConnector = WatchConnector()
+    @StateObject private var watchConnector = WatchConnector(dtoManager: nil)
     
     @Environment(\.modelContext) private var modelContext
 

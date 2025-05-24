@@ -10,13 +10,24 @@ import SwiftUI
 struct ContentView: View {
     
     @EnvironmentObject var watchConnector: WatchConnector
-
+    
     @Environment(\.modelContext) private var modelContext
+    
+    private var sessionManager: JoggingSessionManager{
+        JoggingSessionManager(modelContext: modelContext)
+    }
     private var goalManager: GoalManager {
         GoalManager(modelContext: modelContext)
     }
     private var preferencesManager: PreferencesManager {
         PreferencesManager(modelContext: modelContext)
+    }
+    
+    private var watchDTOmanager: WatchDTOManager {
+        WatchDTOManager(
+            sessionManager: sessionManager,
+            goalManager: goalManager
+        )
     }
     
     @AppStorage("isNewUser") private var isNewUser: Bool = false
@@ -64,7 +75,7 @@ struct ContentView: View {
     
     // NEW FUNCTION for the full roundtrip test
         func testFullDataRoundtrip() async {
-            watchConnector.setupModelContext(modelContext)
+            watchConnector.setDTOManager(dtoManager: watchDTOmanager)
             
             print("iOS: --- Starting Full Data Roundtrip Test ---")
 

@@ -5,7 +5,6 @@
 //  Created by Adeline Charlotte Augustinne on 24/05/25.
 //
 
-// iOS App - WatchDataManager.swift
 import Foundation
 import SwiftData
 import WatchConnectivity
@@ -41,18 +40,7 @@ final class WatchDTOManager: ObservableObject {
             return nil
         }
     }
-    
-    func goalDTOtoModel(goal: GoalDTO) -> Data?{
-        let goalData: Data?
-        do {
-            goalData = try encoder.encode(goal)
-            print("iOS: GoalDTO encoded successfully.")
-        } catch {
-            goalData = nil
-            print("iOS: ERROR: Failed to encode SessionDTO: \(error.localizedDescription)")
-        }
-        return goalData
-    }
+
 }
 
 // MARK: for all session DTO related functions
@@ -98,7 +86,7 @@ extension WatchDTOManager {
     func encodeGoalDTO(goal: GoalDTO) -> Data? {
         let goalData: Data?
         do {
-            goalData = try encoder.encode(session)
+            goalData = try encoder.encode(goal)
             print("iOS: SessionDTO encoded successfully.")
         } catch {
             goalData = nil

@@ -10,14 +10,35 @@ import WatchConnectivity
 
 class WatchToiOSConnector: NSObject, WCSessionDelegate, ObservableObject {
     var session: WCSession
-    @Published var receivedSession: SessionDTO? = nil
-    @Published var receivedGoal: GoalDTO? = nil
+    @Published var receivedSession: SessionDTO
+    @Published var receivedGoal: GoalDTO
     @Published var isiOSReachable: Bool = false
     
     let decoder: JSONDecoder = JSONDecoder()
     
     init(session: WCSession = .default) {
         self.session = session
+        
+        let sampleSessionDTO = SessionDTO(
+            id: UUID().uuidString,
+            startTime: Date().addingTimeInterval(3600*1.2),
+            endTime: Date().addingTimeInterval(3600*1.5),
+            calendarEventId: "calEvent123",
+            sessionType: SessionType.jogging.rawValue,
+            status: isCompleted.incomplete.rawValue
+        )
+        self.receivedSession = sampleSessionDTO
+        
+        let sampleGoalDTO = GoalDTO(
+            id: UUID().uuidString,
+            targetFrequency: 3,
+            startDate: Calendar.current.date(byAdding: .day, value: -7, to: Date())!,
+            endDate: Calendar.current.date(byAdding: .month, value: 1, to: Date())!,
+            progress: 1,
+            status: GoalStatus.inProgress.rawValue
+        )
+        self.receivedGoal = sampleGoalDTO
+        
         super.init()
         session.delegate = self
         session.activate()
@@ -49,43 +70,7 @@ class WatchToiOSConnector: NSObject, WCSessionDelegate, ObservableObject {
     func session(_ session: WCSession, didReceiveUserInfo userInfo: [String : Any] = [:]) {
         print("WATCH: Received user info: \(userInfo)")
     }
-    
-    func getSession() -> SessionDTO {
-        let sampleSessionDTO = SessionDTO(
-            id: UUID().uuidString,
-            startTime: Date(),
-            endTime: Date().addingTimeInterval(3600),
-            calendarEventId: "calEvent123",
-            sessionType: SessionType.jogging.rawValue,
-            status: isCompleted.incomplete.rawValue
-        )
-        
-        guard let receivedSession = self.receivedSession else {
-            print("WATCH: Returning sample session DTO")
-            return sampleSessionDTO
-        }
-        
-        return receivedSession
-    }
-    
-    func getGoal() -> GoalDTO {
-        let sampleGoalDTO = GoalDTO(
-            id: UUID().uuidString,
-            targetFrequency: 3,
-            startDate: Calendar.current.date(byAdding: .day, value: -7, to: Date())!,
-            endDate: Calendar.current.date(byAdding: .month, value: 1, to: Date())!,
-            progress: 1,
-            status: GoalStatus.inProgress.rawValue
-        )
-        
-        guard let receivedGoal = self.receivedGoal else {
-            print("WATCH: Returning sample goal DTO")
-            return sampleGoalDTO
-        }
-        
-        return receivedGoal
-    }
-    
+
     func decodeData(sessionData: Data, goalData: Data) {
         if let sessionDTO = try? decoder.decode(SessionDTO.self, from: sessionData),
            let goalDTO = try? decoder.decode(GoalDTO.self, from: goalData) {

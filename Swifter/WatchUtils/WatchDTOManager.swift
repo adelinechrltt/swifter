@@ -156,6 +156,50 @@ extension WatchDTOManager {
             return nil
         }
     }
+}
 
-
+// MARK: access SwiftData as SSOT
+extension WatchDTOManager {
+    func getLatestSession() -> SessionModel? {
+        if let session = sessionManager.fetchLatestSession(){
+            return session
+        }
+        print("OOPS no session! returning nil")
+        return nil
+    }
+    
+    func getSessionById(id: String) -> SessionModel? {
+        guard let persistentId = convertStringToPersistentIdentifier(idString: id) else {
+            print("OOPS cannot convert sessionDTO id to swiftdata persistent id!")
+            return nil
+        }
+        
+        return sessionManager.fetchSessionById(id: persistentId)
+    }
+    
+    func getLatestGoal() -> GoalModel? {
+        if let goal = goalManager.fetchLatestGoal(){
+            return goal
+        }
+        print("OOPS no goal! returning nil")
+        return nil
+    }
+        
+    func getGoalById(id: String) -> GoalModel? {
+        guard let persistentId = convertStringToPersistentIdentifier(idString: id) else {
+            print("OOPS cannot convert goalDTO id to swiftdata persistent id!")
+            return nil
+        }
+        
+        return goalManager.fetchGoalById(id: persistentId)
+    }
+    
+    func markSessionAsCompleted(id: String) {
+        guard let persistentId = convertStringToPersistentIdentifier(idString: id) else {
+            print("OOPS cannot convert sessionDTO id to swiftdata persistent id!")
+            return
+        }
+        
+        sessionManager.updateSessionStatus(id: persistentId, newStatus: .completed)
+    }
 }

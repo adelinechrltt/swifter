@@ -31,21 +31,14 @@ class JoggingSessionManager: ObservableObject {
     
     // Update the rest of your methods to use _modelContext instead of modelContext
     
-    /// fetch the next upcoming session
+    
+    
+    /// fetch the latest session by date from all created sessions
     func fetchLatestSession() -> SessionModel? {
-        let currDate = Date()
-        
-        /// check if session is upcoming or not
-        let predicate = #Predicate<SessionModel> { session in
-            session.startTime >= currDate
-        }
-
         let descriptor = FetchDescriptor<SessionModel>(
-            predicate: predicate,
-            sortBy: [SortDescriptor(\.startTime, order: .forward)]
-        )
-        
-        return try? _modelContext.fetch(descriptor).first
+            sortBy: [SortDescriptor(\.startTime, order: .reverse)])
+
+        return try? modelContext.fetch(descriptor).first
     }
     
     /// fetch session by ID

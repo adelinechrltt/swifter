@@ -54,6 +54,11 @@ class GoalManager: ObservableObject {
         let goals = FetchDescriptor<GoalModel>()
         return try? modelContext.fetch(goals)
     }
+    
+    func fetchLatestGoal() -> GoalModel? {
+        guard let allGoals = fetchGoals() else { return nil }
+        return allGoals.sorted { $0.startDate > $1.startDate }.first
+    }
 
     func updateGoal(goalToEdit: GoalModel, targetFreq: Int, startingDate: Date, endingDate: Date) {
         goalToEdit.targetFrequency = targetFreq

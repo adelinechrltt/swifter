@@ -12,47 +12,48 @@ struct ContentView: View {
     @EnvironmentObject var watchToiOSConnector: WatchToiOSConnector
     
     var body: some View {
-            VStack {
-                // title
-                HStack {
-                    Text("Swifter")
-                        .foregroundColor(Color("tealTitle"))
-                        .fontWeight(.medium)
-                        .font(.system(size: 24))
-                    Spacer()
-                }
-                // card
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14.5)
-                        .fill(Color("darkPrimary"))
-                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                    HStack {
-                        VStack(alignment: .leading){
-                            Text("Your next jog is in")
-                                .fontWeight(.medium)
-                                .font(.system(size: 12))
-                            Text("23 hours")
-                                .fontWeight(.bold)
-                                .font(.system(size: 17))
-                            Text("13.00 - 13.30")
-                                .font(.system(size: 12))
-                                .foregroundColor(Color("tealHeading"))
-                        }
-                        Spacer()
-                        VStack{
-                            renderProgressCircle()
-                        }
-                    }
-                    .padding(15)
-                }
-                Button("Ping iOS") {
-                    pingiOS()
-                }
-                .buttonStyle(BorderedButtonStyle(tint: Color("darkTealButton").opacity(255)))
-                .foregroundColor(.white)
-
+        VStack {
+            // title
+            HStack {
+                Text("Swifter")
+                    .foregroundColor(Color("tealTitle"))
+                    .fontWeight(.medium)
+                    .font(.system(size: 24))
+                Spacer()
             }
+            // card
+            ZStack {
+                RoundedRectangle(cornerRadius: 14.5)
+                    .fill(Color("darkPrimary"))
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                HStack {
+                    VStack(alignment: .leading){
+                        Text("Your next jog is in")
+                            .fontWeight(.medium)
+                            .font(.system(size: 12))
+                        Text("23 hours")
+                            .fontWeight(.bold)
+                            .font(.system(size: 17))
+                        Text("13.00 - 13.30")
+                            .font(.system(size: 12))
+                            .foregroundColor(Color("tealHeading"))
+                    }
+                    Spacer()
+                    VStack{
+                        renderProgressCircle()
+                    }
+                }
+                .padding(15)
+            }
+            Button("Ping iOS") {
+                pingiOS()
+            }
+            .padding(.vertical, 5)
+            .buttonStyle(BorderedButtonStyle(tint: Color("darkTealButton").opacity(255)))
+            .foregroundColor(.white)
+
         }
+    }
 
     func renderProgressCircle() -> some View {
         

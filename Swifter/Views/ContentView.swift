@@ -59,6 +59,7 @@ struct ContentView: View {
                 } else {
                     isNewUser = true
                 }
+            watchConnector.setDTOManager(dtoManager: WatchDTOManager(sessionManager: self.sessionManager, goalManager: self.goalManager))
             print(isNewUser)
         }
     }

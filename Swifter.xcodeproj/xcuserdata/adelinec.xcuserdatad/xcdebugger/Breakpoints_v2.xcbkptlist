@@ -30,8 +30,8 @@
             filePath = "WatchSwifter Watch App/ContentView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "117"
-            endingLineNumber = "117"
+            startingLineNumber = "125"
+            endingLineNumber = "125"
             landmarkName = "renderProgressCircle()"
             landmarkType = "7">
          </BreakpointContent>

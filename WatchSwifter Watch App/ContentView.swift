@@ -12,51 +12,50 @@ struct ContentView: View {
     @EnvironmentObject var watchToiOSConnector: WatchToiOSConnector
     let dateFormatter = DateFormatter()
     
-    // Computed properties based on receivedSession
-        var nextStart: Date? {
-            return watchToiOSConnector.receivedSession.startTime
-        }
-
-        var nextEnd: Date? {
-            return watchToiOSConnector.receivedSession.endTime
-        }
-
-        var untilNextStart: DateComponents? {
-            guard let nextStartDate = nextStart else { return nil }
-            let now = Date()
-            let components = Calendar.current.dateComponents([.day, .hour, .minute], from: now, to: nextStartDate)
-            if let days = components.day, days >= 0 {
-                return components
-            }
-            return nil
-        }
-
-        var daysUntilNextStart: Int {
-            return untilNextStart?.day ?? 0
-        }
-
-        var hoursUntilNextStart: Int {
-            return (untilNextStart?.hour ?? 0) % 24
-        }
-
-        var minutesUntilNextStart: Int {
-            return (untilNextStart?.minute ?? 0) % 60
-        }
-
-        var jogDuration: Int {
-            guard let start = nextStart, let end = nextEnd else {
-                return 0
-            }
-
-            let durationInMinutes = end.timeIntervalSince(start) / 60
-
-            if durationInMinutes < 0 {
-                return 0
-            }
-
-            return Int(durationInMinutes)
-        }
+    var nextStart: Date? {
+        return watchToiOSConnector.receivedSession.startTime
+    }
     
+    var nextEnd: Date? {
+        return watchToiOSConnector.receivedSession.endTime
+    }
+    
+    var untilNextStart: DateComponents? {
+        guard let nextStartDate = nextStart else { return nil }
+        let now = Date()
+        let components = Calendar.current.dateComponents([.day, .hour, .minute], from: now, to: nextStartDate)
+        if let days = components.day, days >= 0 {
+            return components
+        }
+        return nil
+    }
+    
+    var daysUntilNextStart: Int {
+        return untilNextStart?.day ?? 0
+    }
+    
+    var hoursUntilNextStart: Int {
+        return (untilNextStart?.hour ?? 0) % 24
+    }
+    
+    var minutesUntilNextStart: Int {
+        return (untilNextStart?.minute ?? 0) % 60
+    }
+    
+    var jogDuration: Int {
+        guard let start = nextStart, let end = nextEnd else {
+            return 0
+        }
+        
+        let durationInMinutes = end.timeIntervalSince(start) / 60
+        
+        if durationInMinutes < 0 {
+            return 0
+        }
+        
+        return Int(durationInMinutes)
+    }
+
     var body: some View {
         VStack {
             // title
@@ -90,13 +89,22 @@ struct ContentView: View {
                 }
                 .padding(15)
             }
-            Button("Ping iOS") {
+            Button("Refresh data") {
                 watchToiOSConnector.requestInitialDataFromiOS()
+            }
+            Button("Mark as complete") {
+                watchToiOSConnector.sendSessionCompletedUpdateToiOS(sessionDTO: watchToiOSConnector.receivedSession)
+                if(watchToiOSConnector.receivedSession.status == "Done"){
+                    print("completed jog")
+                }
             }
             .padding(.vertical, 5)
             .buttonStyle(BorderedButtonStyle(tint: Color("darkTealButton").opacity(255)))
             .foregroundColor(.white)
             
+        }
+        .onAppear(){
+            watchToiOSConnector.requestInitialDataFromiOS()
         }
     }
     
@@ -152,7 +160,7 @@ struct ContentView: View {
     }
     
     func isToday(for date: Date = Date()) -> Bool {
-            let calendar = Calendar.current
+        let calendar = Calendar.current
         return calendar.isDate(watchToiOSConnector.receivedSession.startTime, inSameDayAs: date)
     }
     

@@ -103,8 +103,10 @@ struct ContentView: View {
                 return
             }
 
-            guard let sessionDTOToSend = sessionModelToDTO(model: newSession),
-                  let goalDTOToSend = goalModelToDTO(model: newGoal) else { // Using corrected function name
+            guard
+                let dtoM = watchConnector.dtoManager,
+                let sessionDTOToSend = dtoM.sessionModelToDTO(model: newSession),
+                let goalDTOToSend = dtoM.goalModelToDTO(model: newGoal) else { // Using corrected function name
                 print("iOS: ERROR: Failed to convert SessionModel or GoalModel to DTO.")
                 return
             }

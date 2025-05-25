@@ -26,26 +26,6 @@ struct SessionDTO: Codable {
     }
 }
 
-func sessionModelToDTO(model: SessionModel) -> SessionDTO? {
-    do {
-        let encoder = JSONEncoder()
-        let idData = try encoder.encode(model.persistentModelID)
-        let idString = idData.base64EncodedString()
-        
-        return SessionDTO(
-            id: idString,
-            startTime: model.startTime,
-            endTime: model.endTime,
-            calendarEventId: model.calendarEventID,
-            sessionType: model.sessionType.rawValue,
-            status: model.status.rawValue
-        )
-    } catch {
-        print("Error encoding PersistentIdentifier to String: \(error)")
-        return nil
-    }
-}
-
 struct GoalDTO: Codable {
     let id: String
     let targetFrequency: Int
@@ -61,25 +41,5 @@ struct GoalDTO: Codable {
         self.endDate = endDate
         self.progress = progress
         self.status = status
-    }
-}
-
-func goalModelToDTO(model: GoalModel) -> GoalDTO? {
-    do {
-        let encoder = JSONEncoder()
-        let idData = try encoder.encode(model.persistentModelID)
-        let idString = idData.base64EncodedString()
-        
-        return GoalDTO(
-            id: idString,
-            targetFrequency: model.targetFrequency,
-            startDate: model.startDate,
-            endDate: model.endDate,
-            progress: model.progress,
-            status: model.status.rawValue
-        )
-    } catch {
-        print("Error encoding PersistentIdentifier to String: \(error)")
-        return nil
     }
 }

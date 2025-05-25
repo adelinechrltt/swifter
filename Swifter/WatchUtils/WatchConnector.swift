@@ -83,7 +83,7 @@ class WatchConnector: NSObject, WCSessionDelegate, ObservableObject {
                 return
             }
 
-            guard let fetchedSession = dtoManager.convertSessionDTOtoModel(sessionDTO: receivedSessionDTO) else {
+            guard let fetchedSession = dtoManager.sessionDTOtoModel(sessionDTO: receivedSessionDTO) else {
                 print("iOS: ERROR: Failed to fetch original SessionModel using ID: \(receivedSessionDTO.id)")
                 replyHandler(["status": "failure", "message": "Failed to fetch session"])
                 return

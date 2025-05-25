@@ -22,7 +22,6 @@ final class WatchDTOManager: ObservableObject {
             self.goalManager = goalManager
     }
     
-    
     /// convert base64 string --> persistent identifier
     func convertStringToPersistentIdentifier(idString: String) -> PersistentIdentifier? {
         /// Attempt to decode the base64 string back into Data
@@ -40,10 +39,9 @@ final class WatchDTOManager: ObservableObject {
             return nil
         }
     }
-
 }
 
-// MARK: for all session DTO related functions
+// MARK: DTO encoding and decoding
 extension WatchDTOManager {
     func encodeSessionDTO(session: SessionDTO) -> Data? {
         let sessionData: Data?
@@ -67,22 +65,7 @@ extension WatchDTOManager {
         }
         return sessionDTO
     }
-
-    func convertSessionDTOtoModel(sessionDTO: SessionDTO) -> SessionModel? {
-        guard let sessionID = convertStringToPersistentIdentifier(idString: sessionDTO.id)
-        else { return nil }
-
-        guard let session = sessionManager.fetchSessionById(id: sessionID)
-        else {
-            print("iOS: ERROR: Failed to fetch original SessionModel using ID: \(sessionDTO.id)")
-            return nil
-        }
-        return session
-    }
-}
-
-// MARK: for all goal DTO related functions
-extension WatchDTOManager {
+    
     func encodeGoalDTO(goal: GoalDTO) -> Data? {
         let goalData: Data?
         do {
@@ -105,8 +88,44 @@ extension WatchDTOManager {
         }
         return goalDTO
     }
+}
 
-    func convertGoalDTOtoModel(goalDTO: GoalDTO) -> GoalModel? {
+// MARK: DTO-model conversion
+extension WatchDTOManager {
+    
+    func sessionDTOtoModel(sessionDTO: SessionDTO) -> SessionModel? {
+        guard let sessionID = convertStringToPersistentIdentifier(idString: sessionDTO.id)
+        else { return nil }
+
+        guard let session = sessionManager.fetchSessionById(id: sessionID)
+        else {
+            print("iOS: ERROR: Failed to fetch original SessionModel using ID: \(sessionDTO.id)")
+            return nil
+        }
+        return session
+    }
+    
+    func sessionModelToDTO(model: SessionModel) -> SessionDTO? {
+        do {
+            let encoder = JSONEncoder()
+            let idData = try encoder.encode(model.persistentModelID)
+            let idString = idData.base64EncodedString()
+            
+            return SessionDTO(
+                id: idString,
+                startTime: model.startTime,
+                endTime: model.endTime,
+                calendarEventId: model.calendarEventID,
+                sessionType: model.sessionType.rawValue,
+                status: model.status.rawValue
+            )
+        } catch {
+            print("Error encoding PersistentIdentifier to String: \(error)")
+            return nil
+        }
+    }
+    
+    func goalDTOtoModel(goalDTO: GoalDTO) -> GoalModel? {
         guard let goalID = convertStringToPersistentIdentifier(idString: goalDTO.id)
         else { return nil }
 
@@ -117,4 +136,26 @@ extension WatchDTOManager {
         }
         return goal
     }
+    
+    func goalModelToDTO(model: GoalModel) -> GoalDTO? {
+        do {
+            let encoder = JSONEncoder()
+            let idData = try encoder.encode(model.persistentModelID)
+            let idString = idData.base64EncodedString()
+            
+            return GoalDTO(
+                id: idString,
+                targetFrequency: model.targetFrequency,
+                startDate: model.startDate,
+                endDate: model.endDate,
+                progress: model.progress,
+                status: model.status.rawValue
+            )
+        } catch {
+            print("Error encoding PersistentIdentifier to String: \(error)")
+            return nil
+        }
+    }
+
+
 }

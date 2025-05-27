@@ -7,6 +7,7 @@ struct UpcomingSession: View {
     @State private var forceUpdateProgress = false
     
     @EnvironmentObject private var eventStoreManager: EventStoreManager
+    @EnvironmentObject private var watchConnector: WatchConnector
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) var colorScheme
     
@@ -315,16 +316,20 @@ struct UpcomingSession: View {
                 onPreSave: {
                     viewModel.wipeAllSessionsRelatedToGoal(sessionManager: sessionManager, eventStoreManager: eventStoreManager)
                     viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
+                    watchConnector.sendUpdatedContext()
                 },
                 onPostSave: {
                     viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
                     viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
                     showProgress = false
+                    
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         showProgress = true
                         forceUpdateProgress.toggle()
                     }
+                    
                     viewModel.updateWidget()
+                    watchConnector.sendUpdatedContext()
                 }
             )
             .presentationDetents([.height(300)])
@@ -373,8 +378,13 @@ struct UpcomingSession: View {
                 }
                 
                 viewModel.updateWidget()
-
+                watchConnector.sendUpdatedContext()
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .watchDidMarkSession)) { notification in
+            print("Received didUpdateGoal notification: \(notification)")
+            viewModel.fetchData(goalManager: self.goalManager, sessionManager: self.sessionManager)
+            watchConnector.sendUpdatedContext()
         }
     }
 }

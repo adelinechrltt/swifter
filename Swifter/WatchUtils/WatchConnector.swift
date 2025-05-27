@@ -35,16 +35,31 @@ class WatchConnector: NSObject, WCSessionDelegate, ObservableObject {
     }
     
     /// method to send context data to the watch
-    func sendUpdatedContext(session: SessionDTO, goal: GoalDTO) {
+    func sendUpdatedContext() {
         print("iOS: sendUpdatedContext called.")
         guard WCSession.default.isPaired, WCSession.default.isReachable else {
             print("iOS: WCSession not paired or reachable. Cannot send context.")
             return
         }
         
+        guard let dtoManager = self.dtoManager,
+              let session = dtoManager.getLatestSession(),
+              let goal = dtoManager.getLatestGoal() else {
+            print("Unable to retrieve latest session and goal")
+            return
+        }
+        
+        guard let dtoManager = self.dtoManager,
+              let sessionDto = dtoManager.sessionModelToDTO(model: session),
+              let goalDto = dtoManager.goalModelToDTO(model: goal)
+        else {
+            print("Unable to convert models to DTOs")
+            return
+        }
+        
         if let dtoManager = self.dtoManager,
-           let sessionData = dtoManager.encodeSessionDTO(session: session),
-           let goalData = dtoManager.encodeGoalDTO(goal: goal) {
+           let sessionData = dtoManager.encodeSessionDTO(session: sessionDto),
+           let goalData = dtoManager.encodeGoalDTO(goal: goalDto) {
             do {
                 try WCSession.default.updateApplicationContext([
                     "session": sessionData,

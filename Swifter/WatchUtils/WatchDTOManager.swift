@@ -10,6 +10,10 @@ import SwiftData
 import WatchConnectivity
 import Combine
 
+extension Notification.Name {
+    static let watchDidMarkSession = Notification.Name("watchDidMarkSession")
+}
+
 final class WatchDTOManager: ObservableObject {
     let sessionManager: JoggingSessionManager
     let goalManager: GoalManager
@@ -201,5 +205,7 @@ extension WatchDTOManager {
         }
         
         sessionManager.updateSessionStatus(id: persistentId, newStatus: .completed)
+        
+        NotificationCenter.default.post(name: .watchDidMarkSession, object: nil, userInfo: ["sessionId": id])
     }
 }

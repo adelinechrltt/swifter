@@ -376,16 +376,40 @@ struct UpcomingSession: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     showProgress = true
                 }
-                
-                viewModel.updateWidget()
-                watchConnector.sendUpdatedContext()
             }
+            
+//            check if goal is completed or not
+            if(viewModel.checkIfGoalCompleted()){
+                viewModel.createNewGoal(goalManager: goalManager)
+                viewModel.goalModalShown = true
+                viewModel.goalIsCompleted = false
+            }
+            
+            updateDataToWidgetAndWatch()
         }
         .onReceive(NotificationCenter.default.publisher(for: .watchDidMarkSession)) { notification in
             print("Received didUpdateGoal notification: \(notification)")
             viewModel.fetchData(goalManager: self.goalManager, sessionManager: self.sessionManager)
-            watchConnector.sendUpdatedContext()
+            
+            //  check if goal is completed or not
+            if(viewModel.checkIfGoalCompleted()){
+                viewModel.createNewGoal(goalManager: goalManager)
+                viewModel.goalModalShown = true
+                viewModel.goalIsCompleted = false
+            } else {
+            //  create new session to replace old session
+                viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
+            }
+            
+            viewModel.fetchData(goalManager: self.goalManager, sessionManager: self.sessionManager)
+            
+            updateDataToWidgetAndWatch()
         }
+    }
+    
+    func updateDataToWidgetAndWatch() {
+        viewModel.updateWidget()
+        watchConnector.sendUpdatedContext()
     }
 }
 

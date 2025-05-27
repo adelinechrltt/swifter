@@ -114,10 +114,14 @@ class WatchConnector: NSObject, WCSessionDelegate, ObservableObject {
             
         case "sessionComplete": // --> mark session as complete
             if let sessionIDString = message["sessionID"] as? String,
+               let goalIDString = message["goalID"] as? String,
                let dtoManager = self.dtoManager {
                 
                 // DTO manager func to mark session as complete
-                dtoManager.markSessionAsCompleted(id: sessionIDString)
+                dtoManager.markSessionAsCompleted(
+                    sessionId: sessionIDString,
+                    goalId: goalIDString
+                )
                 
                 // fetch sessions and goals
                 if let updatedSessionModel = dtoManager.getSessionById(id: sessionIDString),

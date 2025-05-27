@@ -198,14 +198,29 @@ extension WatchDTOManager {
         return goalManager.fetchGoalById(id: persistentId)
     }
     
-    func markSessionAsCompleted(id: String) {
-        guard let persistentId = convertStringToPersistentIdentifier(idString: id) else {
+    func markSessionAsCompleted(sessionId: String, goalId: String) {
+        guard let persistentSessionId = convertStringToPersistentIdentifier(idString: sessionId),
+        let persistentGoalId = convertStringToPersistentIdentifier(idString: goalId)
+        else {
             print("OOPS cannot convert sessionDTO id to swiftdata persistent id!")
             return
         }
         
-        sessionManager.updateSessionStatus(id: persistentId, newStatus: .completed)
+        sessionManager.updateSessionStatus(id: persistentSessionId, newStatus: .completed)
         
-        NotificationCenter.default.post(name: .watchDidMarkSession, object: nil, userInfo: ["sessionId": id])
+        guard let latestGoal = goalManager.fetchGoalById(id: persistentGoalId) else {
+            print("OOPS cannot find latest goal with this persistent identifier")
+            return
+        }
+        
+        latestGoal.progress += 1
+        goalManager.saveContext()
+        
+        NotificationCenter.default.post(
+            name: .watchDidMarkSession,
+            object: nil,
+            userInfo:
+                ["sessionId": sessionId,
+                 "goalId": goalId])
     }
 }

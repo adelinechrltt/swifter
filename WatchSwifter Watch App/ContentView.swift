@@ -76,9 +76,12 @@ struct ContentView: View {
                         Text("Your next jog is in")
                             .fontWeight(.medium)
                             .font(.system(size: 12))
-                        Text(isNow() ? "Now" : isToday() ? "\(hoursUntilNextStart)h \(minutesUntilNextStart)m" : "\(daysUntilNextStart) days")              .fontWeight(.bold)
+                        Text(goalIsComplete() ? "All done!" :
+                                isNow() ? "Now" :
+                                    isToday() ? "\(hoursUntilNextStart)h \(minutesUntilNextStart)m" : "\(daysUntilNextStart) days")              .fontWeight(.bold)
                             .font(.system(size: 17))
-                        Text(isNow() ? "\(jogDuration)-min run" : isToday() ? "\(formattedHours(nextStart ?? Date())) - \(formattedHours(nextEnd ?? Date()))" : "\(formattedDate(nextStart ?? Date()))")
+                        Text(goalIsComplete() ? "See you next week!" :
+                                isNow() ? "\(jogDuration)-min run" : isToday() ? "\(formattedHours(nextStart ?? Date())) - \(formattedHours(nextEnd ?? Date()))" : "\(formattedDate(nextStart ?? Date()))")
                             .font(.system(size: 12))
                             .foregroundColor(Color("tealHeading"))
                     }
@@ -89,11 +92,11 @@ struct ContentView: View {
                 }
                 .padding(15)
             }
-            Button("Refresh data") {
-                watchToiOSConnector.requestInitialDataFromiOS()
-            }
+//            Button("Refresh data") {
+//                watchToiOSConnector.requestInitialDataFromiOS()
+//            }
             Button("Mark as complete") {
-                watchToiOSConnector.sendSessionCompletedUpdateToiOS(sessionDTO: watchToiOSConnector.receivedSession)
+                watchToiOSConnector.sendSessionCompletedUpdateToiOS()
                 if(watchToiOSConnector.receivedSession.status == "Done"){
                     print("completed jog")
                 }
@@ -173,6 +176,10 @@ struct ContentView: View {
         let timeDifferenceStart = watchToiOSConnector.receivedSession.startTime.timeIntervalSince(date)
         let timeDifferenceEnd = watchToiOSConnector.receivedSession.endTime.timeIntervalSince(date)
         return timeDifferenceStart <= 0 && timeDifferenceEnd > 0
+    }
+    
+    func goalIsComplete() -> Bool {
+        return watchToiOSConnector.receivedGoal.progress >= watchToiOSConnector.receivedGoal.targetFrequency
     }
 }
 

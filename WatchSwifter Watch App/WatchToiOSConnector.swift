@@ -140,15 +140,19 @@ extension WatchToiOSConnector {
 
 // MARK: mark session as done, send back to iOS
 extension WatchToiOSConnector {
-    func sendSessionCompletedUpdateToiOS(sessionDTO: SessionDTO) {
+    func sendSessionCompletedUpdateToiOS() {
         guard WCSession.default.isReachable else {
             print("WATCH: iOS app is not reachable. Cannot send session completed update.")
             return
         }
+        
+        let sessionDTO = self.receivedSession
+        let goalDTO = self.receivedGoal
 
         let message: [String: Any] = [
             "action": "sessionComplete",
-            "sessionID": sessionDTO.id
+            "sessionID": sessionDTO.id,
+            "goalID": goalDTO.id
         ]
 
         WCSession.default.sendMessage(message, replyHandler: { reply in

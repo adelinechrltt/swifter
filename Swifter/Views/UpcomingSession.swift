@@ -317,6 +317,7 @@ struct UpcomingSession: View {
                     viewModel.wipeAllSessionsRelatedToGoal(sessionManager: sessionManager, eventStoreManager: eventStoreManager)
                     viewModel.fetchData(goalManager: goalManager, sessionManager: sessionManager)
                     watchConnector.sendUpdatedContext()
+                    viewModel.createNewGoal(goalManager: goalManager)
                 },
                 onPostSave: {
                     viewModel.createNewSession(sessionManager: sessionManager, storeManager: eventStoreManager, preferencesManager: preferencesManager)
@@ -342,7 +343,6 @@ struct UpcomingSession: View {
                     dismissButton: .default(Text("OK")) {
                         viewModel.alertIsShown = false
                         viewModel.markGoalAsComplete(goalManager: goalManager)
-                        viewModel.createNewGoal(goalManager: goalManager)
                         viewModel.goalModalShown = true
                         viewModel.goalIsCompleted = false
                     })
@@ -380,7 +380,6 @@ struct UpcomingSession: View {
             
 //            check if goal is completed or not
             if(viewModel.checkIfGoalCompleted()){
-                viewModel.createNewGoal(goalManager: goalManager)
                 viewModel.goalModalShown = true
                 viewModel.goalIsCompleted = false
             }
@@ -393,7 +392,6 @@ struct UpcomingSession: View {
             
             //  check if goal is completed or not
             if(viewModel.checkIfGoalCompleted()){
-                viewModel.createNewGoal(goalManager: goalManager)
                 viewModel.goalModalShown = true
                 viewModel.goalIsCompleted = false
             } else {
